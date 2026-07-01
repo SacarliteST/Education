@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <CommonPrefix>Education</CommonPrefix>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+</Project>
