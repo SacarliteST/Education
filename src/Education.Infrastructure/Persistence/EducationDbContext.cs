@@ -9,6 +9,7 @@ namespace Education.Infrastructure.Persistence;
 
 public sealed class EducationDbContext(DbContextOptions<EducationDbContext> options) : DbContext(options)
 {
+    public DbSet<IdentityUserLink> IdentityUserLinks => Set<IdentityUserLink>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Course> Courses => Set<Course>();

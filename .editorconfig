@@ -51,6 +51,9 @@ charset = utf-8-bom
 
 max_line_length = 150
 
+# Public API must be documented. Projects that generate XML docs fail the build on CS1591.
+dotnet_diagnostic.CS1591.severity = error
+
 #no need for explicit this.
 dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_property = false:warning

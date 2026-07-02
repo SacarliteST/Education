@@ -1,5 +1,10 @@
 ﻿using System.Security.Claims;
+using Education.Application.Courses;
 using Education.Application.Identity;
+using Education.Application.Users;
+using Education.Infrastructure;
+using Education.Infrastructure.Courses;
+using Education.Web.Endpoints;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -12,6 +17,14 @@ var jwtSection = builder.Configuration.GetSection("Jwt");
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
+builder.Services.AddScoped<ICoursesService, CoursesService>();
+builder.Services.AddEducationInfrastructure(builder.Configuration);
+builder.Services.Configure<PublicTheoryDocumentStorageOptions>(options =>
+{
+    options.RootPath = builder.Environment.ContentRootPath;
+    options.DirectoryName = "Files";
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -83,6 +96,8 @@ app.MapGet("/api/v1/teacher/ping", () => Results.Ok())
 app.MapGet("/api/v1/admin/ping", () => Results.Ok())
     .RequireAuthorization(AuthorizationPolicies.AdminOnly)
     .WithTags("Admin");
+
+app.MapCoursesEndpoints();
 
 app.Run();
 

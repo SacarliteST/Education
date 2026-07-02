@@ -8,6 +8,5 @@
 
   <PropertyGroup>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 </Project>
