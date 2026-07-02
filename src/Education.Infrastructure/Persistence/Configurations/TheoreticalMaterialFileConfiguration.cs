@@ -13,6 +13,11 @@ internal sealed class TheoreticalMaterialFileConfiguration : IEntityTypeConfigur
         builder.Property(file => file.Id).HasColumnName("id");
         builder.Property(file => file.Description).HasColumnName("description").IsRequired();
         builder.Property(file => file.Path).HasColumnName("path").IsRequired();
+        builder.Property(file => file.OriginalFileName)
+            .HasColumnName("original_file_name")
+            .HasMaxLength(255)
+            .IsRequired()
+            .HasDefaultValue(String.Empty);
         builder.Property(file => file.TheoreticalMaterialId).HasColumnName("theoretical_material_id");
         builder.HasOne(file => file.TheoreticalMaterial)
             .WithMany(theory => theory.Files)

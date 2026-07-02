@@ -11,6 +11,8 @@ public static class EducationEndpointGroups
         app.MapTheoriesEndpointGroup();
         app.MapTestResultsEndpointGroup();
         app.MapGradesEndpointGroup();
+        app.MapTaskFilesEndpointGroup();
+        app.MapFilesEndpointGroup();
 
         return app;
     }

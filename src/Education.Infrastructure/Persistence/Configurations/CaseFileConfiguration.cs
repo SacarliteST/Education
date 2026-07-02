@@ -12,6 +12,11 @@ internal sealed class CaseFileConfiguration : IEntityTypeConfiguration<CaseFile>
         builder.HasKey(file => file.Id);
         builder.Property(file => file.Id).HasColumnName("id");
         builder.Property(file => file.Path).HasColumnName("path").IsRequired();
+        builder.Property(file => file.OriginalFileName)
+            .HasColumnName("original_file_name")
+            .HasMaxLength(255)
+            .IsRequired()
+            .HasDefaultValue(String.Empty);
         builder.Property(file => file.CaseId).HasColumnName("case_id");
         builder.Property(file => file.UserId).HasColumnName("user_id");
         builder.Property(file => file.IsAccepted).HasColumnName("is_accepted");

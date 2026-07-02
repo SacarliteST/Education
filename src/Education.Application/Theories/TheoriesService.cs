@@ -1,4 +1,5 @@
 ﻿using Education.Application.Courses;
+using Education.Application.Files;
 using Education.Application.Modules;
 using Education.Application.Users;
 using Education.Domain.Materials;
@@ -9,7 +10,7 @@ public sealed class TheoriesService(
     IEducationUserResolver userResolver,
     IModulesRepository modulesRepository,
     ITheoriesRepository theoriesRepository,
-    ITheoryDocumentStorage theoryDocumentStorage)
+    IFileStorage fileStorage)
     : ITheoriesService
 {
     public Task<TheoreticalMaterial?> GetTheoryAsync(long theoryId, CancellationToken cancellationToken = default)
@@ -44,11 +45,12 @@ public sealed class TheoriesService(
     {
         await EnsureTheoryOwnerAsync(command.TheoryMaterialId, cancellationToken);
 
-        var path = await theoryDocumentStorage.SaveAsync(command.File, cancellationToken);
+        var storedFile = await fileStorage.SaveAsync(command.File, cancellationToken);
         return await theoriesRepository.CreateTheoryDocumentAsync(
             command.TheoryMaterialId,
             command.Description,
-            path,
+            storedFile.StorageKey,
+            storedFile.OriginalFileName,
             cancellationToken);
     }
 
@@ -81,7 +83,7 @@ public sealed class TheoriesService(
         var path = await theoriesRepository.GetTheoryDocumentPathAsync(documentId, cancellationToken);
         if (path is not null)
         {
-            await theoryDocumentStorage.DeleteAsync(path, cancellationToken);
+            await fileStorage.DeleteAsync(path, cancellationToken);
         }
 
         await theoriesRepository.DeleteTheoryDocumentAsync(documentId, cancellationToken);

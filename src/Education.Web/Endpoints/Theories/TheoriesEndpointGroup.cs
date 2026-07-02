@@ -1,4 +1,5 @@
-﻿using Education.Application.Theories;
+﻿using Education.Application.Files;
+using Education.Application.Theories;
 using Education.Contracts;
 using Education.Contracts.Theories;
 using Education.Web.Identity;
@@ -127,7 +128,7 @@ public static class TheoriesEndpointGroup
                 var command = new CreateTheoryDocumentCommand(
                     request.TheoryMaterialId,
                     request.Description,
-                    new TheoryDocumentFile(file.FileName, stream));
+                    new UploadFile(file.FileName, file.ContentType, file.Length, stream));
                 var document = await service.CreateTheoryDocumentAsync(command, cancellationToken);
 
                 return Results.Ok(document.ToResponse());

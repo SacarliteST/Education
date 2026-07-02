@@ -6,6 +6,7 @@ namespace Education.Domain.Practicals;
 public sealed class CaseFile : Entity
 {
     public string Path { get; private set; } = String.Empty;
+    public string OriginalFileName { get; private set; } = String.Empty;
     public long CaseId { get; private set; }
     public Case Case { get; private set; } = null!;
     public long UserId { get; private set; }
@@ -19,13 +20,24 @@ public sealed class CaseFile : Entity
     }
 
     public CaseFile(long caseId, long userId, string path)
+        : this(caseId, userId, path, global::System.IO.Path.GetFileName(path))
+    {
+    }
+
+    public CaseFile(long caseId, long userId, string path, string originalFileName)
     {
         CaseId = caseId;
         UserId = userId;
         Path = path;
+        OriginalFileName = originalFileName;
     }
 
     public void ReplaceFile(string path)
+    {
+        ReplaceFile(path, global::System.IO.Path.GetFileName(path));
+    }
+
+    public void ReplaceFile(string path, string originalFileName)
     {
         if (IsAccepted)
         {
@@ -33,6 +45,7 @@ public sealed class CaseFile : Entity
         }
 
         Path = path;
+        OriginalFileName = originalFileName;
     }
 
     public void Accept(int grade)

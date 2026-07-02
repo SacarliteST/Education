@@ -23,6 +23,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         "Host=localhost;Database=education_test;Username=postgres;Password=postgres";
 
     private string? connectionString;
+    private readonly string fileStorageRoot = Path.Combine(Path.GetTempPath(), "education-tests-" + Guid.NewGuid());
+
+    public string FileStorageRoot => fileStorageRoot;
 
     private readonly PostgreSqlContainer postgreSqlContainer = new PostgreSqlBuilder()
         .WithDatabase(TestDbName)
@@ -46,6 +49,7 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:Default"] = connectionString ?? FallbackConnectionString,
+                ["FileStorage:RootPath"] = fileStorageRoot,
             });
         });
 
@@ -66,6 +70,10 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
     async Task IAsyncLifetime.DisposeAsync()
     {
         await postgreSqlContainer.StopAsync();
+        if (Directory.Exists(fileStorageRoot))
+        {
+            Directory.Delete(fileStorageRoot, true);
+        }
     }
 
     private async Task SeedDatabaseAsync()
@@ -78,8 +86,9 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
         var testUser = new User("test.user", "Test", "User", String.Empty, 2);
         var otherTeacher = new User("other.teacher", "Other", "Teacher", String.Empty, 2);
+        var otherStudent = new User("other.student", "Other", "Student", String.Empty, 3);
 
-        await dbContext.Users.AddRangeAsync(testUser, otherTeacher);
+        await dbContext.Users.AddRangeAsync(testUser, otherTeacher, otherStudent);
         await dbContext.SaveChangesAsync();
 
         await dbContext.IdentityUserLinks.AddAsync(new IdentityUserLink
@@ -133,7 +142,22 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
             new PracticalBindUser(assignedStartPractical.Id, testUser.Id),
             new PracticalBindUser(submitPractical.Id, testUser.Id),
             new PracticalBindUser(limitedPractical.Id, testUser.Id),
-            new PracticalBindUser(protocolPractical.Id, testUser.Id));
+            new PracticalBindUser(protocolPractical.Id, testUser.Id),
+            new PracticalBindUser(assignedStartPractical.Id, otherStudent.Id));
+        await dbContext.SaveChangesAsync();
+
+        var assignedTask = new Case(assignedStartPractical.Id, "Assigned task", "Upload solution");
+        var otherTeacherTask = new Case(otherTeacherPractical.Id, "Other teacher task", "Other upload");
+        await dbContext.Cases.AddRangeAsync(assignedTask, otherTeacherTask);
+        await dbContext.SaveChangesAsync();
+
+        Directory.CreateDirectory(fileStorageRoot);
+        await File.WriteAllTextAsync(Path.Combine(fileStorageRoot, "other-student.txt"), "other student file");
+        await File.WriteAllTextAsync(Path.Combine(fileStorageRoot, "other-teacher.txt"), "other teacher file");
+
+        await dbContext.CaseFiles.AddRangeAsync(
+            new CaseFile(assignedTask.Id, otherStudent.Id, "other-student.txt", "other-student.txt"),
+            new CaseFile(otherTeacherTask.Id, testUser.Id, "other-teacher.txt", "other-teacher.txt"));
 
         var startQuestion = CreateSingleChoiceQuestion(module.Id, "Start question");
         var submitQuestion = CreateSingleChoiceQuestion(module.Id, "Submit question");

@@ -50,6 +50,7 @@ public interface ITheoriesRepository : IBaseRepository<TheoreticalMaterial, long
         long theoryMaterialId,
         string description,
         string path,
+        string originalFileName,
         CancellationToken cancellationToken = default);
 
     /// <summary>

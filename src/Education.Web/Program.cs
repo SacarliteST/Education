@@ -1,10 +1,12 @@
 ﻿using System.Security.Claims;
 using Education.Application.Courses;
+using Education.Application.Files;
 using Education.Application.Grades;
 using Education.Application.Identity;
 using Education.Application.Modules;
 using Education.Application.Practicals;
 using Education.Application.Questions;
+using Education.Application.TaskFiles;
 using Education.Application.TestResults;
 using Education.Application.Theories;
 using Education.Application.Users;
@@ -13,10 +15,11 @@ using Education.Contracts.Grades;
 using Education.Contracts.Modules;
 using Education.Contracts.Practicals;
 using Education.Contracts.Questions;
+using Education.Contracts.TaskFiles;
 using Education.Contracts.TestResults;
 using Education.Contracts.Theories;
 using Education.Infrastructure;
-using Education.Infrastructure.Courses;
+using Education.Infrastructure.Files;
 using Education.Web.Endpoints;
 using Education.Web.Identity;
 using FluentValidation;
@@ -39,6 +42,8 @@ builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 builder.Services.AddScoped<ITestResultsService, TestResultsService>();
 builder.Services.AddScoped<IGradesService, GradesService>();
 builder.Services.AddScoped<ITheoriesService, TheoriesService>();
+builder.Services.AddScoped<ITaskFilesService, TaskFilesService>();
+builder.Services.AddScoped<IFilesService, FilesService>();
 builder.Services.AddScoped<IValidator<CreateCourseRequest>, CreateCourseRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateModuleRequest>, CreateModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreatePracticalRequest>, CreatePracticalRequestValidator>();
@@ -51,11 +56,13 @@ builder.Services.AddScoped<IValidator<CreateTheoryDocumentRequest>, CreateTheory
 builder.Services.AddScoped<IValidator<CreateTheoryLinkRequest>, CreateTheoryLinkRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateTheoryTextRequest>, UpdateTheoryTextRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateTheoryTitleRequest>, UpdateTheoryTitleRequestValidator>();
+builder.Services.AddScoped<IValidator<AddTaskFileCommentRequest>, AddTaskFileCommentRequestValidator>();
+builder.Services.AddScoped<IValidator<AcceptTaskFileRequest>, AcceptTaskFileRequestValidator>();
 builder.Services.AddEducationInfrastructure(builder.Configuration);
-builder.Services.Configure<PublicTheoryDocumentStorageOptions>(options =>
+builder.Services.Configure<FileStorageOptions>(options =>
 {
-    options.RootPath = builder.Environment.ContentRootPath;
-    options.DirectoryName = "Files";
+    options.RootPath = Path.Combine(builder.Environment.ContentRootPath, "Files");
+    builder.Configuration.GetSection("FileStorage").Bind(options);
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

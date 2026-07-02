@@ -38,19 +38,11 @@ internal static class TheoryEndpointMappings
 
     public static TheoryDocumentResponse ToResponse(this TheoreticalMaterialFile file)
     {
-        return new TheoryDocumentResponse(file.Id, file.Path, file.Description, GetPublicFileName(file.Path));
+        return new TheoryDocumentResponse(file.Id, file.Path, file.Description, file.OriginalFileName);
     }
 
     public static TheoryLinkResponse ToResponse(this TheoreticalMaterialLink link)
     {
         return new TheoryLinkResponse(link.Id, link.Link, link.Description);
-    }
-
-    private static string GetPublicFileName(string path)
-    {
-        var name = Path.GetFileName(path);
-        var lastUnderscore = name.LastIndexOf('_');
-
-        return lastUnderscore <= 0 ? name : name[..lastUnderscore] + Path.GetExtension(name);
     }
 }

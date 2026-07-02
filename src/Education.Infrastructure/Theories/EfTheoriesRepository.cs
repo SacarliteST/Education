@@ -76,9 +76,10 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
         long theoryMaterialId,
         string description,
         string path,
+        string originalFileName,
         CancellationToken cancellationToken = default)
     {
-        var file = new TheoreticalMaterialFile(theoryMaterialId, description, path);
+        var file = new TheoreticalMaterialFile(theoryMaterialId, description, path, originalFileName);
         await DatabaseContext.TheoreticalMaterialFiles.AddAsync(file, cancellationToken);
         await DatabaseContext.SaveChangesAsync(cancellationToken);
 

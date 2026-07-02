@@ -1,4 +1,5 @@
 ﻿using Education.Application.Courses;
+using Education.Application.Files;
 using Education.Application.TestResults;
 using FluentValidation;
 
@@ -37,6 +38,10 @@ internal static class EndpointResults
         {
             return Results.Forbid();
         }
+        catch (FileStorageValidationException exception)
+        {
+            return Results.BadRequest(exception.Message);
+        }
     }
 
     public static async Task<IResult> ExecuteTeacherCommandAsync(Func<Task<IResult>> command)
@@ -48,6 +53,10 @@ internal static class EndpointResults
         catch (CourseAccessDeniedException)
         {
             return Results.Forbid();
+        }
+        catch (FileStorageValidationException exception)
+        {
+            return Results.BadRequest(exception.Message);
         }
     }
 
@@ -68,6 +77,26 @@ internal static class EndpointResults
         catch (TestAttemptNotFoundException)
         {
             return Results.BadRequest();
+        }
+        catch (FileStorageValidationException exception)
+        {
+            return Results.BadRequest(exception.Message);
+        }
+    }
+
+    public static async Task<IResult> ExecuteFileCommandAsync(Func<Task<IResult>> command)
+    {
+        try
+        {
+            return await command();
+        }
+        catch (FileStorageValidationException exception)
+        {
+            return Results.BadRequest(exception.Message);
+        }
+        catch (FileAccessDeniedException)
+        {
+            return Results.Forbid();
         }
     }
 }
