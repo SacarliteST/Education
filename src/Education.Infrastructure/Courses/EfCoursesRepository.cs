@@ -9,13 +9,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Courses;
 
-internal sealed class EfCoursesRepository(EducationDbContext context) : ICoursesRepository
+internal sealed class EfCoursesRepository(EducationDbContext context)
+    : RepositoryBase<Course, long>(context), ICoursesRepository
 {
+    public override Task<Course?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        return DatabaseContext.Courses.FirstOrDefaultAsync(course => course.Id == id, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<CourseResponse>> GetTeacherCoursesAsync(
         long teacherUserId,
         CancellationToken cancellationToken = default)
     {
-        return await context.Courses
+        return await DatabaseContext.Courses
             .AsNoTracking()
             .Where(course => course.UserId == teacherUserId)
             .Select(course => new CourseResponse(course.Id, course.Date, course.Description, course.Name))
@@ -28,15 +34,15 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         CancellationToken cancellationToken = default)
     {
         var course = new Course(request.Name, request.Description, request.Date, teacherUserId);
-        await context.Courses.AddAsync(course, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.Courses.AddAsync(course, cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         return new CourseResponse(course.Id, course.Date, course.Description, course.Name);
     }
 
     public async Task DeleteCourseAsync(long courseId, CancellationToken cancellationToken = default)
     {
-        await context.Courses
+        await DatabaseContext.Courses
             .Where(course => course.Id == courseId)
             .ExecuteDeleteAsync(cancellationToken);
     }
@@ -45,7 +51,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         long studentUserId,
         CancellationToken cancellationToken = default)
     {
-        return await context.Courses
+        return await DatabaseContext.Courses
             .AsNoTracking()
             .Where(course => course.CourseBindUsers.Any(bind => bind.UserId == studentUserId))
             .Select(course => new CourseResponse(course.Id, course.Date, course.Description, course.Name))
@@ -54,35 +60,35 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
 
     public Task<bool> IsCourseOwnerAsync(long courseId, long teacherUserId, CancellationToken cancellationToken = default)
     {
-        return context.Courses.AnyAsync(
+        return DatabaseContext.Courses.AnyAsync(
             course => course.Id == courseId && course.UserId == teacherUserId,
             cancellationToken);
     }
 
     public Task<bool> IsModuleOwnerAsync(long moduleId, long teacherUserId, CancellationToken cancellationToken = default)
     {
-        return context.Modules.AnyAsync(
+        return DatabaseContext.Modules.AnyAsync(
             module => module.Id == moduleId && module.Course.UserId == teacherUserId,
             cancellationToken);
     }
 
     public Task<bool> IsTheoryOwnerAsync(long theoryId, long teacherUserId, CancellationToken cancellationToken = default)
     {
-        return context.TheoreticalMaterials.AnyAsync(
+        return DatabaseContext.TheoreticalMaterials.AnyAsync(
             theory => theory.Id == theoryId && theory.Module.Course.UserId == teacherUserId,
             cancellationToken);
     }
 
     public Task<bool> IsTheoryLinkOwnerAsync(long linkId, long teacherUserId, CancellationToken cancellationToken = default)
     {
-        return context.TheoreticalMaterialLinks.AnyAsync(
+        return DatabaseContext.TheoreticalMaterialLinks.AnyAsync(
             link => link.Id == linkId && link.TheoreticalMaterial.Module.Course.UserId == teacherUserId,
             cancellationToken);
     }
 
     public Task<bool> IsTheoryDocumentOwnerAsync(long documentId, long teacherUserId, CancellationToken cancellationToken = default)
     {
-        return context.TheoreticalMaterialFiles.AnyAsync(
+        return DatabaseContext.TheoreticalMaterialFiles.AnyAsync(
             file => file.Id == documentId && file.TheoreticalMaterial.Module.Course.UserId == teacherUserId,
             cancellationToken);
     }
@@ -91,7 +97,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         long courseId,
         CancellationToken cancellationToken = default)
     {
-        return await context.Modules
+        return await DatabaseContext.Modules
             .AsNoTracking()
             .Where(module => module.CourseId == courseId)
             .Select(module => new ModuleResponse(module.Id, module.Name))
@@ -103,15 +109,15 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         CancellationToken cancellationToken = default)
     {
         var module = new Module(request.CourseId, request.Name);
-        await context.Modules.AddAsync(module, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.Modules.AddAsync(module, cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         return new ModuleResponse(module.Id, module.Name);
     }
 
     public async Task DeleteModuleAsync(long moduleId, CancellationToken cancellationToken = default)
     {
-        await context.Modules
+        await DatabaseContext.Modules
             .Where(module => module.Id == moduleId)
             .ExecuteDeleteAsync(cancellationToken);
     }
@@ -120,7 +126,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         long moduleId,
         CancellationToken cancellationToken = default)
     {
-        return await context.TheoreticalMaterials
+        return await DatabaseContext.TheoreticalMaterials
             .AsNoTracking()
             .Where(theory => theory.ModuleId == moduleId)
             .Select(theory => new TheoryListItemResponse(theory.Id, theory.Name))
@@ -129,7 +135,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
 
     public Task<TheoryTextResponse?> GetTheoryTextAsync(long theoryId, CancellationToken cancellationToken = default)
     {
-        return context.TheoreticalMaterials
+        return DatabaseContext.TheoreticalMaterials
             .AsNoTracking()
             .Where(theory => theory.Id == theoryId)
             .Select(theory => new TheoryTextResponse(theory.Text, theory.Name))
@@ -140,7 +146,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         long theoryId,
         CancellationToken cancellationToken = default)
     {
-        var files = await context.TheoreticalMaterialFiles
+        var files = await DatabaseContext.TheoreticalMaterialFiles
             .AsNoTracking()
             .Where(file => file.TheoreticalMaterialId == theoryId)
             .Select(file => new { file.Id, file.Path, file.Description })
@@ -159,7 +165,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         long theoryId,
         CancellationToken cancellationToken = default)
     {
-        return await context.TheoreticalMaterialLinks
+        return await DatabaseContext.TheoreticalMaterialLinks
             .AsNoTracking()
             .Where(link => link.TheoreticalMaterialId == theoryId)
             .Select(link => new TheoryLinkResponse(link.Id, link.Link, link.Description))
@@ -171,8 +177,8 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         CancellationToken cancellationToken = default)
     {
         var theory = new TheoreticalMaterial(request.ModuleId, request.Name, "Текст лекции");
-        await context.TheoreticalMaterials.AddAsync(theory, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.TheoreticalMaterials.AddAsync(theory, cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         return new TheoryListItemResponse(theory.Id, theory.Name);
     }
@@ -184,8 +190,8 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         CancellationToken cancellationToken = default)
     {
         var file = new TheoreticalMaterialFile(theoryMaterialId, description, path);
-        await context.TheoreticalMaterialFiles.AddAsync(file, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.TheoreticalMaterialFiles.AddAsync(file, cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         return new TheoryDocumentResponse(file.Id, file.Path, file.Description, GetPublicFileName(file.Path));
     }
@@ -195,7 +201,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         string title,
         CancellationToken cancellationToken = default)
     {
-        var theory = await context.TheoreticalMaterials.FirstOrDefaultAsync(
+        var theory = await DatabaseContext.TheoreticalMaterials.FirstOrDefaultAsync(
             item => item.Id == theoryId,
             cancellationToken);
 
@@ -205,7 +211,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         }
 
         theory.Rename(title);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateTheoryTextAsync(
@@ -213,7 +219,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         string text,
         CancellationToken cancellationToken = default)
     {
-        var theory = await context.TheoreticalMaterials.FirstOrDefaultAsync(
+        var theory = await DatabaseContext.TheoreticalMaterials.FirstOrDefaultAsync(
             item => item.Id == theoryId,
             cancellationToken);
 
@@ -223,19 +229,19 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
         }
 
         theory.UpdateText(text);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteTheoryAsync(long theoryId, CancellationToken cancellationToken = default)
     {
-        await context.TheoreticalMaterials
+        await DatabaseContext.TheoreticalMaterials
             .Where(theory => theory.Id == theoryId)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
     public Task<string?> GetTheoryDocumentPathAsync(long documentId, CancellationToken cancellationToken = default)
     {
-        return context.TheoreticalMaterialFiles
+        return DatabaseContext.TheoreticalMaterialFiles
             .AsNoTracking()
             .Where(file => file.Id == documentId)
             .Select(file => file.Path)
@@ -244,7 +250,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
 
     public async Task DeleteTheoryDocumentAsync(long documentId, CancellationToken cancellationToken = default)
     {
-        await context.TheoreticalMaterialFiles
+        await DatabaseContext.TheoreticalMaterialFiles
             .Where(file => file.Id == documentId)
             .ExecuteDeleteAsync(cancellationToken);
     }
@@ -258,15 +264,15 @@ internal sealed class EfCoursesRepository(EducationDbContext context) : ICourses
             request.Description,
             request.Link);
 
-        await context.TheoreticalMaterialLinks.AddAsync(link, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await DatabaseContext.TheoreticalMaterialLinks.AddAsync(link, cancellationToken);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         return new TheoryLinkResponse(link.Id, link.Link, link.Description);
     }
 
     public async Task DeleteTheoryLinkAsync(long linkId, CancellationToken cancellationToken = default)
     {
-        await context.TheoreticalMaterialLinks
+        await DatabaseContext.TheoreticalMaterialLinks
             .Where(link => link.Id == linkId)
             .ExecuteDeleteAsync(cancellationToken);
     }

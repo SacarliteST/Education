@@ -1,13 +1,15 @@
-﻿using Education.Contracts.Courses;
+﻿using Education.Application.Common;
+using Education.Contracts.Courses;
 using Education.Contracts.Modules;
 using Education.Contracts.Theories;
+using Education.Domain.Courses;
 
 namespace Education.Application.Courses;
 
 /// <summary>
 /// Предоставляет операции чтения и записи данных курсов для сценариев приложения.
 /// </summary>
-public interface ICoursesRepository
+public interface ICoursesRepository : IBaseRepository<Course, long>
 {
     /// <summary>
     /// Возвращает курсы указанного преподавателя.
@@ -48,6 +50,11 @@ public interface ICoursesRepository
     /// Проверяет, принадлежит ли ссылка теоретического материала указанному преподавателю.
     /// </summary>
     Task<bool> IsTheoryLinkOwnerAsync(long linkId, long teacherUserId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Проверяет, принадлежит ли документ теоретического материала указанному преподавателю.
+    /// </summary>
+    Task<bool> IsTheoryDocumentOwnerAsync(long documentId, long teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает модули указанного курса.
@@ -112,11 +119,6 @@ public interface ICoursesRepository
     /// Удаляет теоретический материал.
     /// </summary>
     Task DeleteTheoryAsync(long theoryId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Проверяет, принадлежит ли документ теоретического материала указанному преподавателю.
-    /// </summary>
-    Task<bool> IsTheoryDocumentOwnerAsync(long documentId, long teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает путь документа теоретического материала.

@@ -97,7 +97,7 @@ app.MapGet("/api/v1/admin/ping", () => Results.Ok())
     .RequireAuthorization(AuthorizationPolicies.AdminOnly)
     .WithTags("Admin");
 
-app.MapCoursesEndpoints();
+app.MapEducationEndpoints();
 
 app.Run();
 
