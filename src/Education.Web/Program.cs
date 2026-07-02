@@ -1,11 +1,17 @@
 ﻿using System.Security.Claims;
 using Education.Application.Courses;
 using Education.Application.Identity;
+using Education.Application.Modules;
+using Education.Application.Theories;
 using Education.Application.Users;
+using Education.Contracts.Courses;
+using Education.Contracts.Modules;
+using Education.Contracts.Theories;
 using Education.Infrastructure;
 using Education.Infrastructure.Courses;
 using Education.Web.Endpoints;
 using Education.Web.Identity;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -19,6 +25,15 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
 builder.Services.AddScoped<ICoursesService, CoursesService>();
+builder.Services.AddScoped<IModulesService, ModulesService>();
+builder.Services.AddScoped<ITheoriesService, TheoriesService>();
+builder.Services.AddScoped<IValidator<CreateCourseRequest>, CreateCourseRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateModuleRequest>, CreateModuleRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateTheoryRequest>, CreateTheoryRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateTheoryDocumentRequest>, CreateTheoryDocumentRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateTheoryLinkRequest>, CreateTheoryLinkRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateTheoryTextRequest>, UpdateTheoryTextRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateTheoryTitleRequest>, UpdateTheoryTitleRequestValidator>();
 builder.Services.AddEducationInfrastructure(builder.Configuration);
 builder.Services.Configure<PublicTheoryDocumentStorageOptions>(options =>
 {

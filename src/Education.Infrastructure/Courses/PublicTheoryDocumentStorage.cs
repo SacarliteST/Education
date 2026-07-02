@@ -1,4 +1,4 @@
-﻿using Education.Application.Courses;
+﻿using Education.Application.Theories;
 using Microsoft.Extensions.Options;
 
 namespace Education.Infrastructure.Courses;

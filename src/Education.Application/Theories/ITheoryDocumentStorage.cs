@@ -1,4 +1,4 @@
-﻿namespace Education.Application.Courses;
+﻿namespace Education.Application.Theories;
 
 /// <summary>
 /// Управляет физическим хранением документов теоретических материалов.

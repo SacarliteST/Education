@@ -1,7 +1,11 @@
 ﻿using Education.Application.Courses;
+using Education.Application.Modules;
+using Education.Application.Theories;
 using Education.Application.Users;
 using Education.Infrastructure.Courses;
+using Education.Infrastructure.Modules;
 using Education.Infrastructure.Persistence;
+using Education.Infrastructure.Theories;
 using Education.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +23,8 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("Default")));
 
         services.AddScoped<ICoursesRepository, EfCoursesRepository>();
+        services.AddScoped<IModulesRepository, EfModulesRepository>();
+        services.AddScoped<ITheoriesRepository, EfTheoriesRepository>();
         services.AddScoped<ITheoryDocumentStorage, PublicTheoryDocumentStorage>();
         services.AddScoped<IUserProfileRepository, EfUserProfileRepository>();
 

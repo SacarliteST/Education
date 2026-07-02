@@ -1,9 +1,30 @@
 ﻿using Education.Application.Courses;
+using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
 internal static class EndpointResults
 {
+    public static async Task<IResult?> ValidateAsync<TRequest>(
+        IValidator<TRequest> validator,
+        TRequest request,
+        CancellationToken cancellationToken)
+    {
+        var validationResult = await validator.ValidateAsync(request, cancellationToken);
+        if (validationResult.IsValid)
+        {
+            return null;
+        }
+
+        var errors = validationResult.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(error => error.ErrorMessage).ToArray());
+
+        return Results.ValidationProblem(errors);
+    }
+
     public static async Task<IResult> ExecuteTeacherCommandAsync(Func<Task> command)
     {
         try
