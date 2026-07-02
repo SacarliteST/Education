@@ -6,7 +6,11 @@ public static class EducationEndpointGroups
     {
         app.MapCoursesEndpointGroup();
         app.MapModulesEndpointGroup();
+        app.MapPracticalsEndpointGroup();
+        app.MapQuestionsEndpointGroup();
         app.MapTheoriesEndpointGroup();
+        app.MapTestResultsEndpointGroup();
+        app.MapGradesEndpointGroup();
 
         return app;
     }

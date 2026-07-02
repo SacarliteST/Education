@@ -1,4 +1,5 @@
 ﻿using Education.Application.Courses;
+using Education.Application.TestResults;
 using FluentValidation;
 
 namespace Education.Web.Endpoints;
@@ -47,6 +48,26 @@ internal static class EndpointResults
         catch (CourseAccessDeniedException)
         {
             return Results.Forbid();
+        }
+    }
+
+    public static async Task<IResult> ExecuteStudentCommandAsync(Func<Task<IResult>> command)
+    {
+        try
+        {
+            return await command();
+        }
+        catch (StudentPracticalAccessDeniedException)
+        {
+            return Results.Forbid();
+        }
+        catch (TestAttemptLimitExceededException)
+        {
+            return Results.BadRequest();
+        }
+        catch (TestAttemptNotFoundException)
+        {
+            return Results.BadRequest();
         }
     }
 }

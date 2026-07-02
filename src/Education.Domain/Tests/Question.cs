@@ -28,4 +28,13 @@ public sealed class Question : Entity
         Answer = answer;
         Weight = weight;
     }
+
+    public void Update(long questionTypeId, string text, string options, string answer, double weight)
+    {
+        QuestionTypeId = questionTypeId;
+        Text = text;
+        Options = options;
+        Answer = answer;
+        Weight = weight;
+    }
 }

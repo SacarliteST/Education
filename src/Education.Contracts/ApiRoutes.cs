@@ -75,6 +75,16 @@ public static class ApiRoutes
         public const string ModuleTheories = Module + "/theories";
 
         /// <summary>
+        /// Шаблон маршрута практических материалов модуля.
+        /// </summary>
+        public const string ModulePracticals = Module + "/practicals";
+
+        /// <summary>
+        /// Шаблон маршрута вопросов модуля.
+        /// </summary>
+        public const string ModuleQuestions = Module + "/questions";
+
+        /// <summary>
         /// Создаёт маршрут для конкретного модуля.
         /// </summary>
         public static string ForModule(long moduleId) => ReplaceUrlSegment(Module, "moduleId:long", moduleId.ToString());
@@ -86,6 +96,230 @@ public static class ApiRoutes
             ModuleTheories,
             "moduleId:long",
             moduleId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут для практических материалов конкретного модуля.
+        /// </summary>
+        public static string ForModulePracticals(long moduleId) => ReplaceUrlSegment(
+            ModulePracticals,
+            "moduleId:long",
+            moduleId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут для вопросов конкретного модуля.
+        /// </summary>
+        public static string ForModuleQuestions(long moduleId) => ReplaceUrlSegment(
+            ModuleQuestions,
+            "moduleId:long",
+            moduleId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов для работы с практическими материалами.
+    /// </summary>
+    public static class Practicals
+    {
+        /// <summary>
+        /// Маршрут коллекции практических материалов.
+        /// </summary>
+        public const string PracticalsList = PrefixV1 + "/practicals";
+
+        /// <summary>
+        /// Шаблон маршрута практического материала по идентификатору.
+        /// </summary>
+        public const string Practical = PracticalsList + "/{practicalId:long}";
+
+        /// <summary>
+        /// Шаблон маршрута публикации практического материала.
+        /// </summary>
+        public const string Publish = Practical + "/publish";
+
+        /// <summary>
+        /// Шаблон маршрута настройки вопросов практического материала.
+        /// </summary>
+        public const string Questions = Practical + "/questions";
+
+        /// <summary>
+        /// Шаблон маршрута заданий практического материала.
+        /// </summary>
+        public const string Tasks = Practical + "/tasks";
+
+        /// <summary>
+        /// Создаёт маршрут для конкретного практического материала.
+        /// </summary>
+        public static string ForPractical(long practicalId) => ReplaceUrlSegment(
+            Practical,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут для настройки вопросов практического материала.
+        /// </summary>
+        public static string ForQuestions(long practicalId) => ReplaceUrlSegment(
+            Questions,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут публикации практического материала.
+        /// </summary>
+        public static string ForPublish(long practicalId) => ReplaceUrlSegment(
+            Publish,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут заданий практического материала.
+        /// </summary>
+        public static string ForTasks(long practicalId) => ReplaceUrlSegment(
+            Tasks,
+            "practicalId:long",
+            practicalId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов для работы с вопросами.
+    /// </summary>
+    public static class Questions
+    {
+        /// <summary>
+        /// Маршрут коллекции вопросов.
+        /// </summary>
+        public const string QuestionsList = PrefixV1 + "/questions";
+
+        /// <summary>
+        /// Шаблон маршрута вопроса по идентификатору.
+        /// </summary>
+        public const string Question = QuestionsList + "/{questionId:long}";
+
+        /// <summary>
+        /// Создаёт маршрут для конкретного вопроса.
+        /// </summary>
+        public static string ForQuestion(long questionId) => ReplaceUrlSegment(
+            Question,
+            "questionId:long",
+            questionId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов для работы с результатами тестирования.
+    /// </summary>
+    public static class TestResults
+    {
+        /// <summary>
+        /// Шаблон маршрута статуса тестирования практического материала.
+        /// </summary>
+        public const string Status = Practicals.Practical + "/test-status";
+
+        /// <summary>
+        /// Шаблон маршрута старта попытки тестирования.
+        /// </summary>
+        public const string Start = Practicals.Practical + "/test/start";
+
+        /// <summary>
+        /// Шаблон маршрута вопросов текущей попытки.
+        /// </summary>
+        public const string Questions = Practicals.Practical + "/test/questions";
+
+        /// <summary>
+        /// Шаблон маршрута отправки ответов.
+        /// </summary>
+        public const string Submit = Practicals.Practical + "/test/submit";
+
+        /// <summary>
+        /// Шаблон маршрута протоколов практического материала.
+        /// </summary>
+        public const string PracticalProtocols = Practicals.Practical + "/protocols";
+
+        /// <summary>
+        /// Шаблон маршрута протоколов практического материала для преподавателя.
+        /// </summary>
+        public const string TeacherPracticalProtocols = PracticalProtocols + "/teacher";
+
+        /// <summary>
+        /// Маршрут коллекции результатов тестирования.
+        /// </summary>
+        public const string ResultsList = PrefixV1 + "/test-results";
+
+        /// <summary>
+        /// Шаблон маршрута протокола результата тестирования.
+        /// </summary>
+        public const string Protocol = ResultsList + "/{testResultId:long}/protocol";
+
+        /// <summary>
+        /// Создаёт маршрут статуса тестирования практического материала.
+        /// </summary>
+        public static string ForStatus(long practicalId) => ReplaceUrlSegment(
+            Status,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут старта попытки тестирования.
+        /// </summary>
+        public static string ForStart(long practicalId) => ReplaceUrlSegment(
+            Start,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут вопросов текущей попытки.
+        /// </summary>
+        public static string ForQuestions(long practicalId) => ReplaceUrlSegment(
+            Questions,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут отправки ответов.
+        /// </summary>
+        public static string ForSubmit(long practicalId) => ReplaceUrlSegment(
+            Submit,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут протоколов практического материала.
+        /// </summary>
+        public static string ForPracticalProtocols(long practicalId) => ReplaceUrlSegment(
+            PracticalProtocols,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут протоколов практического материала для преподавателя.
+        /// </summary>
+        public static string ForTeacherPracticalProtocols(long practicalId) => ReplaceUrlSegment(
+            TeacherPracticalProtocols,
+            "practicalId:long",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут протокола результата тестирования.
+        /// </summary>
+        public static string ForProtocol(long testResultId) => ReplaceUrlSegment(
+            Protocol,
+            "testResultId:long",
+            testResultId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов для работы с оценками.
+    /// </summary>
+    public static class Grades
+    {
+        /// <summary>
+        /// Шаблон маршрута итоговой оценки за практический материал.
+        /// </summary>
+        public const string PracticalGrade = Practicals.Practical + "/grade";
+
+        /// <summary>
+        /// Создаёт маршрут итоговой оценки за практический материал.
+        /// </summary>
+        public static string ForPracticalGrade(long practicalId) => ReplaceUrlSegment(
+            PracticalGrade,
+            "practicalId:long",
+            practicalId.ToString());
     }
 
     /// <summary>

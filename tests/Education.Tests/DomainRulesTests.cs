@@ -56,4 +56,47 @@ public class DomainRulesTests
         Assert.Equal(turnedAt, result.TurnedDate);
         Assert.Throws<InvalidOperationException>(() => result.Complete(9, 10, turnedAt));
     }
+
+    [Theory]
+    [InlineData(QuestionKind.SingleChoice, """{"answers":[{"id":"a","text":"Right"}],"correctAnswerId":"a"}""", "a", 1)]
+    [InlineData(QuestionKind.ShortAnswer, """{"answer":"Alpha;Beta"}""", "beta", 1)]
+    [InlineData(QuestionKind.ShortAnswer, """{"answer":"Alpha;Beta"}""", "gamma", 0)]
+    public void QuestionScoringService_ScoresSimpleQuestionTypes(
+        QuestionKind kind,
+        string answer,
+        string userAnswer,
+        double expectedScore)
+    {
+        var question = new Question(1, (long)kind, "Question", "{}", answer, 2);
+
+        var score = QuestionScoringService.Score(question, userAnswer);
+
+        Assert.Equal(expectedScore * 2, score.QuestionScore);
+    }
+
+    [Fact]
+    public void QuestionScoringService_ScoresMultipleChoice()
+    {
+        const string answer = """
+            {"answers":[{"id":"a","text":"A","correct":true,"weight":0.5},{"id":"b","text":"B","correct":false,"weight":0.5}]}
+            """;
+        var question = new Question(1, (long)QuestionKind.MultipleChoice, "Question", "{}", answer, 4);
+
+        var score = QuestionScoringService.Score(question, """["a"]""");
+
+        Assert.Equal(4, score.QuestionScore);
+    }
+
+    [Fact]
+    public void QuestionScoringService_ScoresMatch()
+    {
+        const string answer = """
+            {"matches":[{"left":{"id":"l","text":"Left"},"right":{"id":"r","text":"Right"},"weight":1}]}
+            """;
+        var question = new Question(1, (long)QuestionKind.Match, "Question", "{}", answer, 3);
+
+        var score = QuestionScoringService.Score(question, """[{"left":"l","right":"r"}]""");
+
+        Assert.Equal(3, score.QuestionScore);
+    }
 }

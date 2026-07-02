@@ -1,5 +1,7 @@
 ﻿using Education.Domain.Courses;
 using Education.Domain.Materials;
+using Education.Domain.Practicals;
+using Education.Domain.Tests;
 using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
@@ -105,10 +107,65 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
         await dbContext.CourseBindUsers.AddAsync(new CourseBindUser(ownCourse.Id, testUser.Id));
 
         var module = new Module(ownCourse.Id, "Own module");
-        await dbContext.Modules.AddAsync(module);
+        var otherModule = new Module(otherCourse.Id, "Other module");
+        await dbContext.Modules.AddRangeAsync(module, otherModule);
         await dbContext.SaveChangesAsync();
 
         await dbContext.TheoreticalMaterials.AddAsync(new TheoreticalMaterial(module.Id, "Theory", "Theory text"));
         await dbContext.SaveChangesAsync();
+
+        var assignedStartPractical = new PracticalMaterial(module.Id, "Assigned start practical");
+        var unassignedPractical = new PracticalMaterial(module.Id, "Unassigned practical");
+        var submitPractical = new PracticalMaterial(module.Id, "Submit practical");
+        var limitedPractical = new PracticalMaterial(module.Id, "Limited practical");
+        var protocolPractical = new PracticalMaterial(module.Id, "Protocol practical");
+        var otherTeacherPractical = new PracticalMaterial(otherModule.Id, "Other teacher practical");
+        await dbContext.PracticalMaterials.AddRangeAsync(
+            assignedStartPractical,
+            unassignedPractical,
+            submitPractical,
+            limitedPractical,
+            protocolPractical,
+            otherTeacherPractical);
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.PracticalBindUsers.AddRangeAsync(
+            new PracticalBindUser(assignedStartPractical.Id, testUser.Id),
+            new PracticalBindUser(submitPractical.Id, testUser.Id),
+            new PracticalBindUser(limitedPractical.Id, testUser.Id),
+            new PracticalBindUser(protocolPractical.Id, testUser.Id));
+
+        var startQuestion = CreateSingleChoiceQuestion(module.Id, "Start question");
+        var submitQuestion = CreateSingleChoiceQuestion(module.Id, "Submit question");
+        var limitedQuestion = CreateSingleChoiceQuestion(module.Id, "Limited question");
+        var protocolQuestion = CreateSingleChoiceQuestion(module.Id, "Protocol question");
+        await dbContext.Questions.AddRangeAsync(startQuestion, submitQuestion, limitedQuestion, protocolQuestion);
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.PracticalMaterialBindQuestions.AddRangeAsync(
+            new PracticalMaterialBindQuestion(assignedStartPractical.Id, startQuestion.Id),
+            new PracticalMaterialBindQuestion(submitPractical.Id, submitQuestion.Id),
+            new PracticalMaterialBindQuestion(limitedPractical.Id, limitedQuestion.Id),
+            new PracticalMaterialBindQuestion(protocolPractical.Id, protocolQuestion.Id));
+        await dbContext.SaveChangesAsync();
+
+        var completedLimitedResult = new TestResult(testUser.Id, limitedPractical.Id, 1);
+        completedLimitedResult.Complete(1, 1, DateTime.UtcNow);
+        var completedProtocolResult = new TestResult(testUser.Id, protocolPractical.Id, 1);
+        completedProtocolResult.Complete(1, 1, DateTime.UtcNow);
+        await dbContext.TestResults.AddRangeAsync(completedLimitedResult, completedProtocolResult);
+        await dbContext.SaveChangesAsync();
+    }
+
+    private static Question CreateSingleChoiceQuestion(long moduleId, string text)
+    {
+        const string body = """
+            {"answers":[{"id":"a","text":"Right"},{"id":"b","text":"Wrong"}]}
+            """;
+        const string answer = """
+            {"answers":[{"id":"a","text":"Right"},{"id":"b","text":"Wrong"}],"correctAnswerId":"a"}
+            """;
+
+        return new Question(moduleId, (long)QuestionKind.SingleChoice, text, body, answer, 1);
     }
 }
