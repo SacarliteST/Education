@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Education.Domain.Tests;
 
+/// <summary>
+/// Сервис расчета баллов за ответы на вопросы теста.
+/// </summary>
 public static class QuestionScoringService
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -11,6 +14,12 @@ public static class QuestionScoringService
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
     };
 
+    /// <summary>
+    /// Рассчитывает балл пользователя за вопрос.
+    /// </summary>
+    /// <param name="question">Вопрос теста.</param>
+    /// <param name="userAnswer">Ответ пользователя.</param>
+    /// <returns>Результат проверки ответа.</returns>
     public static QuestionAnswerScore Score(Question question, string userAnswer)
     {
         var scoreFactor = GetScoreFactor(QuestionTypeIds.ToKind(question.QuestionTypeId), question.Answer, userAnswer);
@@ -25,6 +34,13 @@ public static class QuestionScoringService
             Math.Abs(questionScore - question.Weight) < Double.Epsilon);
     }
 
+    /// <summary>
+    /// Возвращает коэффициент набранного балла для ответа.
+    /// </summary>
+    /// <param name="type">Вид вопроса.</param>
+    /// <param name="answer">Правильный ответ.</param>
+    /// <param name="userAnswer">Ответ пользователя.</param>
+    /// <returns>Коэффициент от 0 до 1.</returns>
     public static double GetScoreFactor(QuestionKind type, string answer, string userAnswer)
     {
         return type switch
