@@ -10,17 +10,17 @@ public interface ITheoriesService
     /// <summary>
     /// Возвращает указанный теоретический материал.
     /// </summary>
-    Task<TheoreticalMaterial?> GetTheoryAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task<TheoreticalMaterial?> GetTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает документы указанного теоретического материала.
     /// </summary>
-    Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает ссылки указанного теоретического материала.
     /// </summary>
-    Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт теоретический материал в модуле текущего преподавателя.
@@ -37,22 +37,22 @@ public interface ITheoriesService
     /// <summary>
     /// Обновляет заголовок теоретического материала текущего преподавателя.
     /// </summary>
-    Task UpdateTheoryTitleAsync(long theoryId, UpdateTheoryTitleCommand command, CancellationToken cancellationToken = default);
+    Task UpdateTheoryTitleAsync(Guid theoryId, UpdateTheoryTitleCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Обновляет текст теоретического материала текущего преподавателя.
     /// </summary>
-    Task UpdateTheoryTextAsync(long theoryId, UpdateTheoryTextCommand command, CancellationToken cancellationToken = default);
+    Task UpdateTheoryTextAsync(Guid theoryId, UpdateTheoryTextCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Удаляет теоретический материал текущего преподавателя.
     /// </summary>
-    Task DeleteTheoryAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task DeleteTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Удаляет документ теоретического материала текущего преподавателя.
     /// </summary>
-    Task DeleteTheoryDocumentAsync(long documentId, CancellationToken cancellationToken = default);
+    Task DeleteTheoryDocumentAsync(Guid documentId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Добавляет ссылку к теоретическому материалу текущего преподавателя.
@@ -62,5 +62,6 @@ public interface ITheoriesService
     /// <summary>
     /// Удаляет ссылку теоретического материала текущего преподавателя.
     /// </summary>
-    Task DeleteTheoryLinkAsync(long linkId, CancellationToken cancellationToken = default);
+    Task DeleteTheoryLinkAsync(Guid linkId, CancellationToken cancellationToken = default);
 }
+

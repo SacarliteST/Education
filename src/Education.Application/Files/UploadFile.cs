@@ -8,3 +8,4 @@
 /// <param name="Length">Размер файла в байтах.</param>
 /// <param name="Content">Поток с содержимым файла.</param>
 public sealed record UploadFile(string OriginalFileName, string ContentType, long Length, Stream Content);
+

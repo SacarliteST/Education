@@ -1,6 +1,7 @@
 ﻿namespace Education.Application.TestResults;
 
-public sealed class TestAttemptNotFoundException(long practicalId) : Exception
+public sealed class TestAttemptNotFoundException(Guid practicalId) : Exception
 {
-    public long PracticalId { get; } = practicalId;
+    public Guid PracticalId { get; } = practicalId;
 }
+

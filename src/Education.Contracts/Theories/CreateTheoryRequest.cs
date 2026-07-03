@@ -4,5 +4,7 @@
 /// Запрос на создание теоретического материала внутри модуля.
 /// </summary>
 public sealed record CreateTheoryRequest(
-    long ModuleId,
+    Guid ModuleId,
     string Name);
+
+

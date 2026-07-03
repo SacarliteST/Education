@@ -5,4 +5,5 @@
 /// </summary>
 /// <param name="TaskFileId">Идентификатор файла сдачи.</param>
 /// <param name="Grade">Оценка за сдачу.</param>
-public sealed record AcceptTaskFileCommand(long TaskFileId, int Grade);
+public sealed record AcceptTaskFileCommand(Guid TaskFileId, int Grade);
+

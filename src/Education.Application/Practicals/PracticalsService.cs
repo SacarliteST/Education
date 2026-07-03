@@ -11,7 +11,7 @@ public sealed class PracticalsService(
     IPracticalsRepository practicalsRepository)
     : IPracticalsService
 {
-    public Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(long moduleId, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         return practicalsRepository.GetPracticalsAsync(moduleId, cancellationToken);
     }
@@ -27,18 +27,18 @@ public sealed class PracticalsService(
         return await practicalsRepository.CreatePracticalAsync(command, cancellationToken);
     }
 
-    public async Task PublishPracticalAsync(long practicalId, CancellationToken cancellationToken = default)
+    public async Task PublishPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
         await practicalsRepository.PublishPracticalAsync(practicalId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<Case>> GetTasksAsync(long practicalId, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<Case>> GetTasksAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         return practicalsRepository.GetTasksAsync(practicalId, cancellationToken);
     }
 
-    public async Task<PracticalQuestionsSetup?> GetQuestionsSetupAsync(long practicalId, CancellationToken cancellationToken = default)
+    public async Task<PracticalQuestionsSetup?> GetQuestionsSetupAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
         return await practicalsRepository.GetQuestionsSetupAsync(practicalId, cancellationToken);
@@ -50,7 +50,7 @@ public sealed class PracticalsService(
         await practicalsRepository.ConfigureQuestionsAsync(command, cancellationToken);
     }
 
-    private async Task EnsurePracticalOwnerAsync(long practicalId, CancellationToken cancellationToken)
+    private async Task EnsurePracticalOwnerAsync(Guid practicalId, CancellationToken cancellationToken)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await practicalsRepository.IsPracticalOwnerAsync(practicalId, legacyUserId, cancellationToken))
@@ -59,3 +59,4 @@ public sealed class PracticalsService(
         }
     }
 }
+

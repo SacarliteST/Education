@@ -9,9 +9,9 @@ public sealed class Question : Entity
     public string Options { get; private set; } = String.Empty;
     public string Answer { get; private set; } = String.Empty;
     public double Weight { get; private set; }
-    public long QuestionTypeId { get; private set; }
+    public Guid QuestionTypeId { get; private set; }
     public QuestionType QuestionType { get; private set; } = null!;
-    public long ModuleId { get; private set; }
+    public Guid ModuleId { get; private set; }
     public Module Module { get; private set; } = null!;
     public List<PracticalMaterialBindQuestion> PracticalMaterialBindQuestions { get; private set; } = [];
 
@@ -19,7 +19,7 @@ public sealed class Question : Entity
     {
     }
 
-    public Question(long moduleId, long questionTypeId, string text, string options, string answer, double weight)
+    public Question(Guid moduleId, Guid questionTypeId, string text, string options, string answer, double weight)
     {
         ModuleId = moduleId;
         QuestionTypeId = questionTypeId;
@@ -29,7 +29,7 @@ public sealed class Question : Entity
         Weight = weight;
     }
 
-    public void Update(long questionTypeId, string text, string options, string answer, double weight)
+    public void Update(Guid questionTypeId, string text, string options, string answer, double weight)
     {
         QuestionTypeId = questionTypeId;
         Text = text;
@@ -38,3 +38,4 @@ public sealed class Question : Entity
         Weight = weight;
     }
 }
+

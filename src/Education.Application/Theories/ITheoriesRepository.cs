@@ -6,37 +6,37 @@ namespace Education.Application.Theories;
 /// <summary>
 /// Предоставляет операции чтения и записи данных теоретических материалов.
 /// </summary>
-public interface ITheoriesRepository : IBaseRepository<TheoreticalMaterial, long>
+public interface ITheoriesRepository : IBaseRepository<TheoreticalMaterial, Guid>
 {
     /// <summary>
     /// Проверяет, принадлежит ли теоретический материал указанному преподавателю.
     /// </summary>
-    Task<bool> IsTheoryOwnerAsync(long theoryId, long teacherUserId, CancellationToken cancellationToken = default);
+    Task<bool> IsTheoryOwnerAsync(Guid theoryId, Guid teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Проверяет, принадлежит ли ссылка теоретического материала указанному преподавателю.
     /// </summary>
-    Task<bool> IsTheoryLinkOwnerAsync(long linkId, long teacherUserId, CancellationToken cancellationToken = default);
+    Task<bool> IsTheoryLinkOwnerAsync(Guid linkId, Guid teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Проверяет, принадлежит ли документ теоретического материала указанному преподавателю.
     /// </summary>
-    Task<bool> IsTheoryDocumentOwnerAsync(long documentId, long teacherUserId, CancellationToken cancellationToken = default);
+    Task<bool> IsTheoryDocumentOwnerAsync(Guid documentId, Guid teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает теоретический материал.
     /// </summary>
-    Task<TheoreticalMaterial?> GetTheoryAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task<TheoreticalMaterial?> GetTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает документы теоретического материала.
     /// </summary>
-    Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает ссылки теоретического материала.
     /// </summary>
-    Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт теоретический материал.
@@ -47,7 +47,7 @@ public interface ITheoriesRepository : IBaseRepository<TheoreticalMaterial, long
     /// Создаёт запись документа теоретического материала.
     /// </summary>
     Task<TheoreticalMaterialFile> CreateTheoryDocumentAsync(
-        long theoryMaterialId,
+        Guid theoryMaterialId,
         string description,
         string path,
         string originalFileName,
@@ -56,27 +56,27 @@ public interface ITheoriesRepository : IBaseRepository<TheoreticalMaterial, long
     /// <summary>
     /// Обновляет заголовок теоретического материала.
     /// </summary>
-    Task UpdateTheoryTitleAsync(long theoryId, string title, CancellationToken cancellationToken = default);
+    Task UpdateTheoryTitleAsync(Guid theoryId, string title, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Обновляет текст теоретического материала.
     /// </summary>
-    Task UpdateTheoryTextAsync(long theoryId, string text, CancellationToken cancellationToken = default);
+    Task UpdateTheoryTextAsync(Guid theoryId, string text, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Удаляет теоретический материал.
     /// </summary>
-    Task DeleteTheoryAsync(long theoryId, CancellationToken cancellationToken = default);
+    Task DeleteTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает путь документа теоретического материала.
     /// </summary>
-    Task<string?> GetTheoryDocumentPathAsync(long documentId, CancellationToken cancellationToken = default);
+    Task<string?> GetTheoryDocumentPathAsync(Guid documentId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Удаляет запись документа теоретического материала.
     /// </summary>
-    Task DeleteTheoryDocumentAsync(long documentId, CancellationToken cancellationToken = default);
+    Task DeleteTheoryDocumentAsync(Guid documentId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт ссылку теоретического материала.
@@ -86,5 +86,6 @@ public interface ITheoriesRepository : IBaseRepository<TheoreticalMaterial, long
     /// <summary>
     /// Удаляет ссылку теоретического материала.
     /// </summary>
-    Task DeleteTheoryLinkAsync(long linkId, CancellationToken cancellationToken = default);
+    Task DeleteTheoryLinkAsync(Guid linkId, CancellationToken cancellationToken = default);
 }
+

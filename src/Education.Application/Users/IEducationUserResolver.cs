@@ -8,10 +8,11 @@ public interface IEducationUserResolver
     /// <summary>
     /// Возвращает идентификатор пользователя учебной системы по идентификатору пользователя identity-сервиса.
     /// </summary>
-    Task<long> ResolveLegacyUserIdAsync(Guid identityUserId, CancellationToken cancellationToken = default);
+    Task<Guid> ResolveLegacyUserIdAsync(Guid identityUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает идентификатор пользователя учебной системы для текущего аутентифицированного пользователя.
     /// </summary>
-    Task<long> ResolveCurrentLegacyUserIdAsync(CancellationToken cancellationToken = default);
+    Task<Guid> ResolveCurrentLegacyUserIdAsync(CancellationToken cancellationToken = default);
 }
+

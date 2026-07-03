@@ -11,7 +11,7 @@ public sealed class ModulesService(
     IModulesRepository modulesRepository)
     : IModulesService
 {
-    public Task<IReadOnlyList<Module>> GetModulesAsync(long courseId, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<Module>> GetModulesAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         return modulesRepository.GetModulesAsync(courseId, cancellationToken);
     }
@@ -27,7 +27,7 @@ public sealed class ModulesService(
         return await modulesRepository.CreateModuleAsync(command, cancellationToken);
     }
 
-    public async Task DeleteModuleAsync(long moduleId, CancellationToken cancellationToken = default)
+    public async Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await modulesRepository.IsModuleOwnerAsync(moduleId, legacyUserId, cancellationToken))
@@ -38,8 +38,9 @@ public sealed class ModulesService(
         await modulesRepository.DeleteModuleAsync(moduleId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(long moduleId, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         return modulesRepository.GetTheoriesAsync(moduleId, cancellationToken);
     }
 }
+

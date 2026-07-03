@@ -6,19 +6,19 @@ namespace Education.Infrastructure.Users;
 
 internal sealed class EfUserProfileRepository(EducationDbContext context) : IUserProfileRepository
 {
-    public Task<long?> FindLegacyUserIdByIdentityUserIdAsync(
+    public Task<Guid?> FindLegacyUserIdByIdentityUserIdAsync(
         Guid identityUserId,
         CancellationToken cancellationToken = default)
     {
         return context.IdentityUserLinks
             .AsNoTracking()
             .Where(link => link.IdentityUserId == identityUserId && link.IsActive)
-            .Select(link => (long?)link.LegacyUserId)
+            .Select(link => (Guid?)link.LegacyUserId)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<UserProfile?> FindProfileByLegacyUserIdAsync(
-        long legacyUserId,
+        Guid legacyUserId,
         CancellationToken cancellationToken = default)
     {
         return await context.Users
@@ -41,7 +41,7 @@ internal sealed class EfUserProfileRepository(EducationDbContext context) : IUse
     }
 
     public async Task<UserRelationsSnapshot> GetRelationsSnapshotAsync(
-        long legacyUserId,
+        Guid legacyUserId,
         CancellationToken cancellationToken = default)
     {
         var ownedCourseIds = await context.Courses
@@ -83,3 +83,5 @@ internal sealed class EfUserProfileRepository(EducationDbContext context) : IUse
             testResultIds);
     }
 }
+
+

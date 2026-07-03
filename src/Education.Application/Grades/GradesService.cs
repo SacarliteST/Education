@@ -9,7 +9,7 @@ public sealed class GradesService(
     IGradesRepository gradesRepository)
     : IGradesService
 {
-    public async Task<PracticalGrade> GetPracticalGradeAsync(long practicalId, CancellationToken cancellationToken = default)
+    public async Task<PracticalGrade> GetPracticalGradeAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await testResultsRepository.IsPracticalAssignedToStudentAsync(practicalId, userId, cancellationToken))
@@ -20,3 +20,4 @@ public sealed class GradesService(
         return await gradesRepository.GetPracticalGradeAsync(practicalId, userId, cancellationToken);
     }
 }
+

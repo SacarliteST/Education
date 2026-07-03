@@ -6,7 +6,7 @@ namespace Education.Web.Endpoints;
 
 internal static class TestResultEndpointMappings
 {
-    public static SubmitTestCommand ToCommand(this SubmitTestRequest request, long practicalId)
+    public static SubmitTestCommand ToCommand(this SubmitTestRequest request, Guid practicalId)
     {
         return new SubmitTestCommand(
             practicalId,
@@ -67,3 +67,4 @@ internal static class TestResultEndpointMappings
             answer.IsCorrect);
     }
 }
+

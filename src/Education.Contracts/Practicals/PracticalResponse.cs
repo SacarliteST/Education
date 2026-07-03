@@ -4,5 +4,7 @@
 /// Данные практического материала, возвращаемые API системы обучения.
 /// </summary>
 public sealed record PracticalResponse(
-    long Id,
+    Guid Id,
     string Name);
+
+

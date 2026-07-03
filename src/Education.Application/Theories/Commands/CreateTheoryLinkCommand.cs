@@ -6,4 +6,5 @@
 /// <param name="TheoryMaterialId">Идентификатор теоретического материала.</param>
 /// <param name="Link">Адрес ссылки.</param>
 /// <param name="Description">Описание ссылки.</param>
-public sealed record CreateTheoryLinkCommand(long TheoryMaterialId, string Link, string Description);
+public sealed record CreateTheoryLinkCommand(Guid TheoryMaterialId, string Link, string Description);
+

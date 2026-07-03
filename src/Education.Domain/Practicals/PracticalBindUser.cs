@@ -5,18 +5,19 @@ namespace Education.Domain.Practicals;
 
 public sealed class PracticalBindUser : Entity
 {
-    public long PracticalMaterialId { get; private set; }
+    public Guid PracticalMaterialId { get; private set; }
     public PracticalMaterial PracticalMaterial { get; private set; } = null!;
-    public long UserId { get; private set; }
+    public Guid UserId { get; private set; }
     public User User { get; private set; } = null!;
 
     private PracticalBindUser()
     {
     }
 
-    public PracticalBindUser(long practicalMaterialId, long userId)
+    public PracticalBindUser(Guid practicalMaterialId, Guid userId)
     {
         PracticalMaterialId = practicalMaterialId;
         UserId = userId;
     }
 }
+

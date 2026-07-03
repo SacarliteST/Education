@@ -33,7 +33,7 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута курса по идентификатору.
         /// </summary>
-        public const string Course = CoursesList + "/{courseId:long}";
+        public const string Course = CoursesList + "/{courseId:guid}";
 
         /// <summary>
         /// Шаблон маршрута модулей курса.
@@ -43,14 +43,14 @@ public static class ApiRoutes
         /// <summary>
         /// Создаёт маршрут для конкретного курса.
         /// </summary>
-        public static string ForCourse(long courseId) => ReplaceUrlSegment(Course, "courseId:long", courseId.ToString());
+        public static string ForCourse(Guid courseId) => ReplaceUrlSegment(Course, "courseId:guid", courseId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для модулей конкретного курса.
         /// </summary>
-        public static string ForCourseModules(long courseId) => ReplaceUrlSegment(
+        public static string ForCourseModules(Guid courseId) => ReplaceUrlSegment(
             CourseModules,
-            "courseId:long",
+            "courseId:guid",
             courseId.ToString());
     }
 
@@ -67,7 +67,7 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута модуля по идентификатору.
         /// </summary>
-        public const string Module = ModulesList + "/{moduleId:long}";
+        public const string Module = ModulesList + "/{moduleId:guid}";
 
         /// <summary>
         /// Шаблон маршрута теоретических материалов модуля.
@@ -87,30 +87,30 @@ public static class ApiRoutes
         /// <summary>
         /// Создаёт маршрут для конкретного модуля.
         /// </summary>
-        public static string ForModule(long moduleId) => ReplaceUrlSegment(Module, "moduleId:long", moduleId.ToString());
+        public static string ForModule(Guid moduleId) => ReplaceUrlSegment(Module, "moduleId:guid", moduleId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для теоретических материалов конкретного модуля.
         /// </summary>
-        public static string ForModuleTheories(long moduleId) => ReplaceUrlSegment(
+        public static string ForModuleTheories(Guid moduleId) => ReplaceUrlSegment(
             ModuleTheories,
-            "moduleId:long",
+            "moduleId:guid",
             moduleId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для практических материалов конкретного модуля.
         /// </summary>
-        public static string ForModulePracticals(long moduleId) => ReplaceUrlSegment(
+        public static string ForModulePracticals(Guid moduleId) => ReplaceUrlSegment(
             ModulePracticals,
-            "moduleId:long",
+            "moduleId:guid",
             moduleId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для вопросов конкретного модуля.
         /// </summary>
-        public static string ForModuleQuestions(long moduleId) => ReplaceUrlSegment(
+        public static string ForModuleQuestions(Guid moduleId) => ReplaceUrlSegment(
             ModuleQuestions,
-            "moduleId:long",
+            "moduleId:guid",
             moduleId.ToString());
     }
 
@@ -127,7 +127,7 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута практического материала по идентификатору.
         /// </summary>
-        public const string Practical = PracticalsList + "/{practicalId:long}";
+        public const string Practical = PracticalsList + "/{practicalId:guid}";
 
         /// <summary>
         /// Шаблон маршрута публикации практического материала.
@@ -147,33 +147,33 @@ public static class ApiRoutes
         /// <summary>
         /// Создаёт маршрут для конкретного практического материала.
         /// </summary>
-        public static string ForPractical(long practicalId) => ReplaceUrlSegment(
+        public static string ForPractical(Guid practicalId) => ReplaceUrlSegment(
             Practical,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для настройки вопросов практического материала.
         /// </summary>
-        public static string ForQuestions(long practicalId) => ReplaceUrlSegment(
+        public static string ForQuestions(Guid practicalId) => ReplaceUrlSegment(
             Questions,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут публикации практического материала.
         /// </summary>
-        public static string ForPublish(long practicalId) => ReplaceUrlSegment(
+        public static string ForPublish(Guid practicalId) => ReplaceUrlSegment(
             Publish,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут заданий практического материала.
         /// </summary>
-        public static string ForTasks(long practicalId) => ReplaceUrlSegment(
+        public static string ForTasks(Guid practicalId) => ReplaceUrlSegment(
             Tasks,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
     }
 
@@ -190,14 +190,14 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута вопроса по идентификатору.
         /// </summary>
-        public const string Question = QuestionsList + "/{questionId:long}";
+        public const string Question = QuestionsList + "/{questionId:guid}";
 
         /// <summary>
         /// Создаёт маршрут для конкретного вопроса.
         /// </summary>
-        public static string ForQuestion(long questionId) => ReplaceUrlSegment(
+        public static string ForQuestion(Guid questionId) => ReplaceUrlSegment(
             Question,
-            "questionId:long",
+            "questionId:guid",
             questionId.ToString());
     }
 
@@ -244,62 +244,62 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута протокола результата тестирования.
         /// </summary>
-        public const string Protocol = ResultsList + "/{testResultId:long}/protocol";
+        public const string Protocol = ResultsList + "/{testResultId:guid}/protocol";
 
         /// <summary>
         /// Создаёт маршрут статуса тестирования практического материала.
         /// </summary>
-        public static string ForStatus(long practicalId) => ReplaceUrlSegment(
+        public static string ForStatus(Guid practicalId) => ReplaceUrlSegment(
             Status,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут старта попытки тестирования.
         /// </summary>
-        public static string ForStart(long practicalId) => ReplaceUrlSegment(
+        public static string ForStart(Guid practicalId) => ReplaceUrlSegment(
             Start,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут вопросов текущей попытки.
         /// </summary>
-        public static string ForQuestions(long practicalId) => ReplaceUrlSegment(
+        public static string ForQuestions(Guid practicalId) => ReplaceUrlSegment(
             Questions,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут отправки ответов.
         /// </summary>
-        public static string ForSubmit(long practicalId) => ReplaceUrlSegment(
+        public static string ForSubmit(Guid practicalId) => ReplaceUrlSegment(
             Submit,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут протоколов практического материала.
         /// </summary>
-        public static string ForPracticalProtocols(long practicalId) => ReplaceUrlSegment(
+        public static string ForPracticalProtocols(Guid practicalId) => ReplaceUrlSegment(
             PracticalProtocols,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут протоколов практического материала для преподавателя.
         /// </summary>
-        public static string ForTeacherPracticalProtocols(long practicalId) => ReplaceUrlSegment(
+        public static string ForTeacherPracticalProtocols(Guid practicalId) => ReplaceUrlSegment(
             TeacherPracticalProtocols,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут протокола результата тестирования.
         /// </summary>
-        public static string ForProtocol(long testResultId) => ReplaceUrlSegment(
+        public static string ForProtocol(Guid testResultId) => ReplaceUrlSegment(
             Protocol,
-            "testResultId:long",
+            "testResultId:guid",
             testResultId.ToString());
     }
 
@@ -316,9 +316,9 @@ public static class ApiRoutes
         /// <summary>
         /// Создаёт маршрут итоговой оценки за практический материал.
         /// </summary>
-        public static string ForPracticalGrade(long practicalId) => ReplaceUrlSegment(
+        public static string ForPracticalGrade(Guid practicalId) => ReplaceUrlSegment(
             PracticalGrade,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
     }
 
@@ -346,12 +346,12 @@ public static class ApiRoutes
         /// <summary>
         /// Маршрут файла сдачи текущего студента по заданию.
         /// </summary>
-        public const string StudentTaskFile = PrefixV1 + "/tasks/{taskId:long}/file";
+        public const string StudentTaskFile = PrefixV1 + "/tasks/{taskId:guid}/file";
 
         /// <summary>
         /// Маршрут файлов сдачи указанного задания для преподавателя.
         /// </summary>
-        public const string TaskFilesByTask = PrefixV1 + "/tasks/{taskId:long}/files";
+        public const string TaskFilesByTask = PrefixV1 + "/tasks/{taskId:guid}/files";
 
         /// <summary>
         /// Маршрут файлов сдачи практического материала для преподавателя.
@@ -361,7 +361,7 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута файла сдачи по идентификатору.
         /// </summary>
-        public const string TaskFile = PrefixV1 + "/task-files/{taskFileId:long}";
+        public const string TaskFile = PrefixV1 + "/task-files/{taskFileId:guid}";
 
         /// <summary>
         /// Шаблон маршрута комментариев файла сдачи.
@@ -376,42 +376,105 @@ public static class ApiRoutes
         /// <summary>
         /// Создаёт маршрут файла сдачи текущего студента по заданию.
         /// </summary>
-        public static string ForStudentTaskFile(long taskId) => ReplaceUrlSegment(
+        public static string ForStudentTaskFile(Guid taskId) => ReplaceUrlSegment(
             StudentTaskFile,
-            "taskId:long",
+            "taskId:guid",
             taskId.ToString());
 
         /// <summary>
         /// Создаёт маршрут файлов сдачи указанного задания.
         /// </summary>
-        public static string ForTaskFilesByTask(long taskId) => ReplaceUrlSegment(
+        public static string ForTaskFilesByTask(Guid taskId) => ReplaceUrlSegment(
             TaskFilesByTask,
-            "taskId:long",
+            "taskId:guid",
             taskId.ToString());
 
         /// <summary>
         /// Создаёт маршрут файлов сдачи практического материала.
         /// </summary>
-        public static string ForPracticalTaskFiles(long practicalId) => ReplaceUrlSegment(
+        public static string ForPracticalTaskFiles(Guid practicalId) => ReplaceUrlSegment(
             PracticalTaskFiles,
-            "practicalId:long",
+            "practicalId:guid",
             practicalId.ToString());
 
         /// <summary>
         /// Создаёт маршрут комментариев файла сдачи.
         /// </summary>
-        public static string ForComments(long taskFileId) => ReplaceUrlSegment(
+        public static string ForComments(Guid taskFileId) => ReplaceUrlSegment(
             Comments,
-            "taskFileId:long",
+            "taskFileId:guid",
             taskFileId.ToString());
 
         /// <summary>
         /// Создаёт маршрут принятия файла сдачи.
         /// </summary>
-        public static string ForAccept(long taskFileId) => ReplaceUrlSegment(
+        public static string ForAccept(Guid taskFileId) => ReplaceUrlSegment(
             Accept,
-            "taskFileId:long",
+            "taskFileId:guid",
             taskFileId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов для администрирования локальных учебных профилей.
+    /// </summary>
+    public static class AdminProfiles
+    {
+        /// <summary>
+        /// Маршрут коллекции локальных учебных профилей.
+        /// </summary>
+        public const string ProfilesList = PrefixV1 + "/admin/profiles";
+
+        /// <summary>
+        /// Шаблон маршрута локального учебного профиля.
+        /// </summary>
+        public const string Profile = ProfilesList + "/{legacyUserId:guid}";
+
+        /// <summary>
+        /// Шаблон маршрута деактивации связи профиля с identity-сервисом.
+        /// </summary>
+        public const string Deactivate = Profile + "/deactivate";
+
+        /// <summary>
+        /// Шаблон маршрута студентов, доступных для назначения на курс.
+        /// </summary>
+        public const string CourseAssignableStudents = Courses.Course + "/assignable-students";
+
+        /// <summary>
+        /// Шаблон маршрута студентов, доступных для назначения на практический материал.
+        /// </summary>
+        public const string PracticalAssignableStudents = Practicals.Practical + "/assignable-students";
+
+        /// <summary>
+        /// Создаёт маршрут локального учебного профиля.
+        /// </summary>
+        public static string ForProfile(Guid legacyUserId) => ReplaceUrlSegment(
+            Profile,
+            "legacyUserId:guid",
+            legacyUserId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут деактивации связи профиля с identity-сервисом.
+        /// </summary>
+        public static string ForDeactivate(Guid legacyUserId) => ReplaceUrlSegment(
+            Deactivate,
+            "legacyUserId:guid",
+            legacyUserId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут студентов, доступных для назначения на курс.
+        /// </summary>
+        public static string ForCourseAssignableStudents(Guid courseId) => ReplaceUrlSegment(
+            CourseAssignableStudents,
+            "courseId:guid",
+            courseId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут студентов, доступных для назначения на практический материал.
+        /// </summary>
+        public static string ForPracticalAssignableStudents(Guid practicalId) => ReplaceUrlSegment(
+            PracticalAssignableStudents,
+            "practicalId:guid",
+            practicalId.ToString());
     }
 
     /// <summary>
@@ -427,7 +490,7 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута теоретического материала по идентификатору.
         /// </summary>
-        public const string Theory = TheoriesList + "/{theoryId:long}";
+        public const string Theory = TheoriesList + "/{theoryId:guid}";
 
         /// <summary>
         /// Шаблон маршрута документов теоретического материала.
@@ -457,7 +520,7 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута документа теоретического материала по идентификатору.
         /// </summary>
-        public const string Doc = Docs + "/{docId:long}";
+        public const string Doc = Docs + "/{docId:guid}";
 
         /// <summary>
         /// Маршрут коллекции ссылок теоретических материалов.
@@ -467,38 +530,38 @@ public static class ApiRoutes
         /// <summary>
         /// Шаблон маршрута ссылки теоретического материала по идентификатору.
         /// </summary>
-        public const string Link = Links + "/{linkId:long}";
+        public const string Link = Links + "/{linkId:guid}";
 
         /// <summary>
         /// Создаёт маршрут для конкретного теоретического материала.
         /// </summary>
-        public static string ForTheory(long theoryId) => ReplaceUrlSegment(Theory, "theoryId:long", theoryId.ToString());
+        public static string ForTheory(Guid theoryId) => ReplaceUrlSegment(Theory, "theoryId:guid", theoryId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для документов конкретного теоретического материала.
         /// </summary>
-        public static string ForTheoryDocs(long theoryId) => ReplaceUrlSegment(
+        public static string ForTheoryDocs(Guid theoryId) => ReplaceUrlSegment(
             TheoryDocs,
-            "theoryId:long",
+            "theoryId:guid",
             theoryId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для ссылок конкретного теоретического материала.
         /// </summary>
-        public static string ForTheoryLinks(long theoryId) => ReplaceUrlSegment(
+        public static string ForTheoryLinks(Guid theoryId) => ReplaceUrlSegment(
             TheoryLinks,
-            "theoryId:long",
+            "theoryId:guid",
             theoryId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для конкретного документа теоретического материала.
         /// </summary>
-        public static string ForDoc(long docId) => ReplaceUrlSegment(Doc, "docId:long", docId.ToString());
+        public static string ForDoc(Guid docId) => ReplaceUrlSegment(Doc, "docId:guid", docId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для конкретной ссылки теоретического материала.
         /// </summary>
-        public static string ForLink(long linkId) => ReplaceUrlSegment(Link, "linkId:long", linkId.ToString());
+        public static string ForLink(Guid linkId) => ReplaceUrlSegment(Link, "linkId:guid", linkId.ToString());
     }
 
     private static string ReplaceUrlSegment(string template, string name, string value)
@@ -507,3 +570,5 @@ public static class ApiRoutes
         return template.Replace('{' + name + '}', escapedUri);
     }
 }
+
+

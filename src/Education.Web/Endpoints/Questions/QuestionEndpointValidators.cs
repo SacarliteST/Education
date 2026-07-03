@@ -7,8 +7,8 @@ internal sealed class CreateQuestionRequestValidator : AbstractValidator<CreateQ
 {
     public CreateQuestionRequestValidator()
     {
-        RuleFor(request => request.ModuleId).GreaterThan(0);
-        RuleFor(request => request.Type).InclusiveBetween(1, 4);
+        RuleFor(request => request.ModuleId).NotEmpty();
+        RuleFor(request => request.Type).NotEmpty();
         RuleFor(request => request.Text).NotEmpty();
         RuleFor(request => request.Body).NotEmpty();
         RuleFor(request => request.Answer).NotEmpty();
@@ -20,10 +20,11 @@ internal sealed class UpdateQuestionRequestValidator : AbstractValidator<UpdateQ
 {
     public UpdateQuestionRequestValidator()
     {
-        RuleFor(request => request.Type).InclusiveBetween(1, 4);
+        RuleFor(request => request.Type).NotEmpty();
         RuleFor(request => request.Text).NotEmpty();
         RuleFor(request => request.Body).NotEmpty();
         RuleFor(request => request.Answer).NotEmpty();
         RuleFor(request => request.Weight).GreaterThan(0);
     }
 }
+

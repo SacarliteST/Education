@@ -4,5 +4,7 @@
 /// Данные модуля, возвращаемые API системы обучения.
 /// </summary>
 public sealed record ModuleResponse(
-    long Id,
+    Guid Id,
     string Name);
+
+

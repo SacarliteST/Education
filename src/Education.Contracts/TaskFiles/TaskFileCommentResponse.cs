@@ -7,4 +7,6 @@
 /// <param name="Text">Текст комментария.</param>
 /// <param name="Created">Дата и время создания комментария.</param>
 /// <param name="IsGenerated">Признак системного комментария.</param>
-public sealed record TaskFileCommentResponse(long Id, string Text, DateTime Created, bool IsGenerated);
+public sealed record TaskFileCommentResponse(Guid Id, string Text, DateTime Created, bool IsGenerated);
+
+

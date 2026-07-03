@@ -5,9 +5,9 @@ namespace Education.Domain.Tests;
 
 public sealed class PracticalMaterialBindQuestion : Entity
 {
-    public long QuestionId { get; private set; }
+    public Guid QuestionId { get; private set; }
     public Question Question { get; private set; } = null!;
-    public long PracticalMaterialId { get; private set; }
+    public Guid PracticalMaterialId { get; private set; }
     public PracticalMaterial PracticalMaterial { get; private set; } = null!;
     public List<Answer> Answers { get; private set; } = [];
 
@@ -15,9 +15,10 @@ public sealed class PracticalMaterialBindQuestion : Entity
     {
     }
 
-    public PracticalMaterialBindQuestion(long practicalMaterialId, long questionId)
+    public PracticalMaterialBindQuestion(Guid practicalMaterialId, Guid questionId)
     {
         PracticalMaterialId = practicalMaterialId;
         QuestionId = questionId;
     }
 }
+

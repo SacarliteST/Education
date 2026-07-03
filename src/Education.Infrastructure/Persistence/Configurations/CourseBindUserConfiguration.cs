@@ -17,3 +17,5 @@ internal sealed class CourseBindUserConfiguration : IEntityTypeConfiguration<Cou
         builder.HasOne(bind => bind.User).WithMany(user => user.CourseBindUsers).HasForeignKey(bind => bind.UserId);
     }
 }
+
+

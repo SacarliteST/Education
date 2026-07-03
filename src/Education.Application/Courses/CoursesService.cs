@@ -20,7 +20,7 @@ public sealed class CoursesService(
         return await coursesRepository.CreateCourseAsync(legacyUserId, command, cancellationToken);
     }
 
-    public async Task DeleteCourseAsync(long courseId, CancellationToken cancellationToken = default)
+    public async Task DeleteCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await coursesRepository.IsCourseOwnerAsync(courseId, legacyUserId, cancellationToken))
@@ -37,3 +37,4 @@ public sealed class CoursesService(
         return await coursesRepository.GetStudentCoursesAsync(legacyUserId, cancellationToken);
     }
 }
+

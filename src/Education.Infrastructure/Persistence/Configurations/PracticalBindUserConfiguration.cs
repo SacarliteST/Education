@@ -19,3 +19,5 @@ internal sealed class PracticalBindUserConfiguration : IEntityTypeConfiguration<
         builder.HasOne(bind => bind.User).WithMany(user => user.PracticalBindUsers).HasForeignKey(bind => bind.UserId);
     }
 }
+
+

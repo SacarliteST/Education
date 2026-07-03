@@ -4,7 +4,9 @@
 /// Вопрос, выдаваемый студенту в текущей попытке тестирования.
 /// </summary>
 public sealed record TestQuestionResponse(
-    long Id,
+    Guid Id,
     string Text,
-    long Type,
+    Guid Type,
     string Body);
+
+

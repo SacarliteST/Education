@@ -8,10 +8,11 @@ internal sealed class CreateModuleRequestValidator : AbstractValidator<CreateMod
     public CreateModuleRequestValidator()
     {
         RuleFor(request => request.CourseId)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(request => request.Name)
             .NotEmpty()
             .MaximumLength(200);
     }
 }
+

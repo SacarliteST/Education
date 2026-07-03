@@ -16,3 +16,4 @@ internal static class CourseEndpointMappings
         return new CourseResponse(course.Id, course.Date, course.Description, course.Name);
     }
 }
+

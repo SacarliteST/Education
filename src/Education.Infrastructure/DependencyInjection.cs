@@ -1,4 +1,5 @@
-﻿using Education.Application.Courses;
+﻿using Education.Application.AdminProfiles;
+using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.Grades;
 using Education.Application.Modules;
@@ -8,6 +9,7 @@ using Education.Application.TaskFiles;
 using Education.Application.TestResults;
 using Education.Application.Theories;
 using Education.Application.Users;
+using Education.Infrastructure.AdminProfiles;
 using Education.Infrastructure.Courses;
 using Education.Infrastructure.Files;
 using Education.Infrastructure.Grades;
@@ -25,8 +27,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Education.Infrastructure;
 
+/// <summary>
+/// Регистрация инфраструктурных зависимостей Education API.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Добавляет PostgreSQL-контекст, репозитории и файловое хранилище в контейнер зависимостей.
+    /// </summary>
+    /// <param name="services">Коллекция сервисов приложения.</param>
+    /// <param name="configuration">Конфигурация приложения с подключением к базе данных.</param>
+    /// <returns>Та же коллекция сервисов для цепочки вызовов.</returns>
     public static IServiceCollection AddEducationInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -34,6 +45,7 @@ public static class DependencyInjection
         services.AddDbContext<EducationDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("Default")));
 
+        services.AddScoped<IAdminProfilesRepository, EfAdminProfilesRepository>();
         services.AddScoped<ICoursesRepository, EfCoursesRepository>();
         services.AddScoped<IModulesRepository, EfModulesRepository>();
         services.AddScoped<IPracticalsRepository, EfPracticalsRepository>();
@@ -49,3 +61,5 @@ public static class DependencyInjection
         return services;
     }
 }
+
+

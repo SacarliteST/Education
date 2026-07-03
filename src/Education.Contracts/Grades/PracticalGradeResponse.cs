@@ -6,3 +6,5 @@
 public sealed record PracticalGradeResponse(
     int? Grade,
     IReadOnlyList<string> Messages);
+
+

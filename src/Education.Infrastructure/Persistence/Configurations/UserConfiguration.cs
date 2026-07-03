@@ -21,3 +21,5 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasOne(user => user.Role).WithMany().HasForeignKey(user => user.RoleId);
     }
 }
+
+

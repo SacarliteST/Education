@@ -13,7 +13,7 @@ public static class QuestionScoringService
 
     public static QuestionAnswerScore Score(Question question, string userAnswer)
     {
-        var scoreFactor = GetScoreFactor((QuestionKind)question.QuestionTypeId, question.Answer, userAnswer);
+        var scoreFactor = GetScoreFactor(QuestionTypeIds.ToKind(question.QuestionTypeId), question.Answer, userAnswer);
         var questionScore = question.Weight * scoreFactor;
 
         return new QuestionAnswerScore(
@@ -97,3 +97,4 @@ public static class QuestionScoringService
 
     private sealed record ShortAnswerPayload(string Answer);
 }
+

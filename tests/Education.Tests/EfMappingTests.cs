@@ -3,17 +3,27 @@ using Education.Domain.Practicals;
 using Education.Domain.Tests;
 using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
+using Education.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Education.Tests;
 
-public class EfMappingTests
+public class EfMappingTests : IClassFixture<TestWebApplicationFactory>
 {
+    private readonly TestWebApplicationFactory factory;
+
+    public EfMappingTests(TestWebApplicationFactory factory)
+    {
+        this.factory = factory;
+    }
+
     [Fact]
     public void DbContext_MapsKeyEntitiesToLegacyTablesAndColumns()
     {
-        using var context = CreateContext();
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
         var model = context.Model;
 
         AssertColumn<User>(model, nameof(User.Id), "Users", "id");
@@ -31,7 +41,8 @@ public class EfMappingTests
     [Fact]
     public void UserRelations_KeepForeignKeysToLegacyUsersId()
     {
-        using var context = CreateContext();
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
         var model = context.Model;
 
         AssertForeignKeyToUser<Course>(model, nameof(Course.UserId));
@@ -39,15 +50,6 @@ public class EfMappingTests
         AssertForeignKeyToUser<PracticalBindUser>(model, nameof(PracticalBindUser.UserId));
         AssertForeignKeyToUser<CaseFile>(model, nameof(CaseFile.UserId));
         AssertForeignKeyToUser<TestResult>(model, nameof(TestResult.UserId));
-    }
-
-    private static EducationDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<EducationDbContext>()
-            .UseNpgsql("Host=localhost;Database=education_mapping_tests")
-            .Options;
-
-        return new EducationDbContext(options);
     }
 
     private static void AssertColumn<TEntity>(IModel model, string propertyName, string tableName, string columnName)

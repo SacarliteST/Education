@@ -25,3 +25,5 @@ internal sealed class TestResultConfiguration : IEntityTypeConfiguration<TestRes
             .HasForeignKey(result => result.PracticalMaterialId);
     }
 }
+
+

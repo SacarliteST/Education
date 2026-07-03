@@ -12,7 +12,7 @@ public sealed class TaskFilesService(
     IFileStorage fileStorage)
     : ITaskFilesService
 {
-    public async Task<CaseFile?> GetStudentTaskFileAsync(long taskId, CancellationToken cancellationToken = default)
+    public async Task<CaseFile?> GetStudentTaskFileAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await taskFilesRepository.IsTaskAssignedToStudentAsync(taskId, legacyUserId, cancellationToken))
@@ -24,7 +24,7 @@ public sealed class TaskFilesService(
     }
 
     public async Task<IReadOnlyList<CaseFile>> GetTeacherTaskFilesAsync(
-        long taskId,
+        Guid taskId,
         CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -37,7 +37,7 @@ public sealed class TaskFilesService(
     }
 
     public async Task<IReadOnlyList<CaseFile>> GetTeacherPracticalTaskFilesAsync(
-        long practicalId,
+        Guid practicalId,
         CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -89,7 +89,7 @@ public sealed class TaskFilesService(
         await taskFilesRepository.AcceptTaskFileAsync(command.TaskFileId, command.Grade, cancellationToken);
     }
 
-    private async Task EnsureTaskFileOwnerAsync(long taskFileId, CancellationToken cancellationToken)
+    private async Task EnsureTaskFileOwnerAsync(Guid taskFileId, CancellationToken cancellationToken)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await taskFilesRepository.IsTaskFileOwnedByTeacherAsync(taskFileId, legacyUserId, cancellationToken))
@@ -98,3 +98,4 @@ public sealed class TaskFilesService(
         }
     }
 }
+

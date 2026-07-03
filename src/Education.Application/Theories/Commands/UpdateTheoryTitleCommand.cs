@@ -5,3 +5,4 @@
 /// </summary>
 /// <param name="Title">Новый заголовок теоретического материала.</param>
 public sealed record UpdateTheoryTitleCommand(string Title);
+

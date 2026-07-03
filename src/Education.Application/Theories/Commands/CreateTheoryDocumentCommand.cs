@@ -8,4 +8,5 @@ namespace Education.Application.Theories;
 /// <param name="TheoryMaterialId">Идентификатор теоретического материала.</param>
 /// <param name="Description">Описание документа.</param>
 /// <param name="File">Загружаемый файл документа.</param>
-public sealed record CreateTheoryDocumentCommand(long TheoryMaterialId, string Description, UploadFile File);
+public sealed record CreateTheoryDocumentCommand(Guid TheoryMaterialId, string Description, UploadFile File);
+

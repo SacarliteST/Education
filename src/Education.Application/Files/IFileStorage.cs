@@ -20,3 +20,4 @@ public interface IFileStorage
     /// </summary>
     Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default);
 }
+

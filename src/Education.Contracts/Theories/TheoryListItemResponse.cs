@@ -4,5 +4,7 @@
 /// Краткие данные теоретического материала для списков внутри модуля.
 /// </summary>
 public sealed record TheoryListItemResponse(
-    long Id,
+    Guid Id,
     string Name);
+
+

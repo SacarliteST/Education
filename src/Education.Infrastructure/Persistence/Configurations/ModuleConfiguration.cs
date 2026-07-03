@@ -16,3 +16,5 @@ internal sealed class ModuleConfiguration : IEntityTypeConfiguration<Module>
         builder.HasOne(module => module.Course).WithMany(course => course.Modules).HasForeignKey(module => module.CourseId);
     }
 }
+
+

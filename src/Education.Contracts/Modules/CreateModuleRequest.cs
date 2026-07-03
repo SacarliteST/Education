@@ -4,5 +4,7 @@
 /// Запрос на создание модуля внутри курса.
 /// </summary>
 public sealed record CreateModuleRequest(
-    long CourseId,
+    Guid CourseId,
     string Name);
+
+

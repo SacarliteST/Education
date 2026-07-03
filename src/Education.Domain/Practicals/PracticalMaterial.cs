@@ -7,7 +7,7 @@ namespace Education.Domain.Practicals;
 public sealed class PracticalMaterial : Entity
 {
     public string Name { get; private set; } = String.Empty;
-    public long ModuleId { get; private set; }
+    public Guid ModuleId { get; private set; }
     public bool IsPublic { get; private set; }
     public int TriesCount { get; private set; } = 1;
     public double PercentForFive { get; private set; } = 90;
@@ -23,7 +23,7 @@ public sealed class PracticalMaterial : Entity
     {
     }
 
-    public PracticalMaterial(long moduleId, string name)
+    public PracticalMaterial(Guid moduleId, string name)
     {
         ModuleId = moduleId;
         Name = name;
@@ -59,3 +59,4 @@ public sealed class PracticalMaterial : Entity
         return (int)Math.Ceiling((bestTestGrade + meanTaskGrade) / 2);
     }
 }
+

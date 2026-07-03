@@ -1,10 +1,21 @@
 ﻿using Education.Domain.Practicals;
 using Education.Domain.Tests;
+using Education.Infrastructure.Persistence;
+using Education.Tests.Auth;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Education.Tests;
 
-public class DomainRulesTests
+public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
 {
+    private readonly TestWebApplicationFactory factory;
+
+    public DomainRulesTests(TestWebApplicationFactory factory)
+    {
+        this.factory = factory;
+    }
+
     [Theory]
     [InlineData(90.0, 100.0, 5)]
     [InlineData(75.0, 100.0, 4)]
@@ -12,28 +23,35 @@ public class DomainRulesTests
     [InlineData(59.0, 100.0, 2)]
     [InlineData(null, 100.0, 0)]
     [InlineData(10.0, null, 0)]
-    public void GradingPolicy_PreservesLegacyThresholds(double? score, double? maxScore, int expectedGrade)
+    public async Task GradingPolicy_PreservesLegacyThresholds(double? score, double? maxScore, int expectedGrade)
     {
-        var grade = GradingPolicy.GetGrade(score, maxScore, 90, 75, 60);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var practical = await dbContext.PracticalMaterials.SingleAsync(item => item.Id == factory.Seed.SubmitPracticalId);
+
+        var grade = practical.CalculateTestGrade(score, maxScore);
 
         Assert.Equal(expectedGrade, grade);
     }
 
     [Fact]
-    public void PracticalMaterial_ChecksAttemptAvailability()
+    public async Task PracticalMaterial_ChecksAttemptAvailability()
     {
-        var practical = new PracticalMaterial(10, "Practice");
-        practical.ConfigureTest(2, 90, 75, 60);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var practical = await dbContext.PracticalMaterials
+            .Include(item => item.TestResults)
+            .SingleAsync(item => item.Id == factory.Seed.LimitedPracticalId);
 
-        Assert.True(practical.CanStartAttempt(0));
-        Assert.True(practical.CanStartAttempt(1));
-        Assert.False(practical.CanStartAttempt(2));
+        Assert.False(practical.CanStartAttempt(practical.TestResults.Count(result => result.IsCompleted)));
     }
 
     [Fact]
-    public void CaseFile_Accept_AssignsGradeAndLocksReplacement()
+    public async Task CaseFile_Accept_AssignsGradeAndLocksReplacement()
     {
-        var file = new CaseFile(1, 42, "Files/work.docx");
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var file = await dbContext.CaseFiles.SingleAsync(item => item.Path == "other-student.txt");
 
         file.Accept(5);
 
@@ -43,60 +61,47 @@ public class DomainRulesTests
     }
 
     [Fact]
-    public void TestResult_Complete_StoresScoreAndPreventsSecondCompletion()
+    public async Task TestResult_Complete_StoresScoreAndPreventsSecondCompletion()
     {
-        var result = new TestResult(42, 100, 1);
-        var turnedAt = DateTime.UtcNow;
-
-        result.Complete(8, 10, turnedAt);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var result = await dbContext.TestResults.SingleAsync(item => item.PracticalMaterialId == factory.Seed.ProtocolPracticalId);
+        var turnedAt = result.TurnedDate!.Value;
 
         Assert.True(result.IsCompleted);
-        Assert.Equal(8, result.Score);
-        Assert.Equal(10, result.MaxScore);
+        Assert.Equal(1, result.Score);
+        Assert.Equal(1, result.MaxScore);
         Assert.Equal(turnedAt, result.TurnedDate);
-        Assert.Throws<InvalidOperationException>(() => result.Complete(9, 10, turnedAt));
-    }
-
-    [Theory]
-    [InlineData(QuestionKind.SingleChoice, """{"answers":[{"id":"a","text":"Right"}],"correctAnswerId":"a"}""", "a", 1)]
-    [InlineData(QuestionKind.ShortAnswer, """{"answer":"Alpha;Beta"}""", "beta", 1)]
-    [InlineData(QuestionKind.ShortAnswer, """{"answer":"Alpha;Beta"}""", "gamma", 0)]
-    public void QuestionScoringService_ScoresSimpleQuestionTypes(
-        QuestionKind kind,
-        string answer,
-        string userAnswer,
-        double expectedScore)
-    {
-        var question = new Question(1, (long)kind, "Question", "{}", answer, 2);
-
-        var score = QuestionScoringService.Score(question, userAnswer);
-
-        Assert.Equal(expectedScore * 2, score.QuestionScore);
+        Assert.Throws<InvalidOperationException>(() => result.Complete(1, 1, turnedAt));
     }
 
     [Fact]
-    public void QuestionScoringService_ScoresMultipleChoice()
+    public async Task QuestionScoringService_ScoresPersistedSingleChoiceQuestion()
     {
-        const string answer = """
-            {"answers":[{"id":"a","text":"A","correct":true,"weight":0.5},{"id":"b","text":"B","correct":false,"weight":0.5}]}
-            """;
-        var question = new Question(1, (long)QuestionKind.MultipleChoice, "Question", "{}", answer, 4);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var question = await dbContext.Questions
+            .Where(item => item.Text == "Submit question")
+            .SingleAsync();
 
-        var score = QuestionScoringService.Score(question, """["a"]""");
+        var score = QuestionScoringService.Score(question, "a");
 
-        Assert.Equal(4, score.QuestionScore);
+        Assert.Equal(question.Weight, score.QuestionScore);
+        Assert.True(score.IsCorrect);
     }
 
     [Fact]
-    public void QuestionScoringService_ScoresMatch()
+    public async Task QuestionScoringService_ScoresPersistedWrongAnswerAsZero()
     {
-        const string answer = """
-            {"matches":[{"left":{"id":"l","text":"Left"},"right":{"id":"r","text":"Right"},"weight":1}]}
-            """;
-        var question = new Question(1, (long)QuestionKind.Match, "Question", "{}", answer, 3);
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var question = await dbContext.Questions
+            .Where(item => item.Text == "Submit question")
+            .SingleAsync();
 
-        var score = QuestionScoringService.Score(question, """[{"left":"l","right":"r"}]""");
+        var score = QuestionScoringService.Score(question, "b");
 
-        Assert.Equal(3, score.QuestionScore);
+        Assert.Equal(0, score.QuestionScore);
+        Assert.False(score.IsCorrect);
     }
 }

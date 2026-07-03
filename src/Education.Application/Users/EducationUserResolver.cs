@@ -5,7 +5,7 @@ namespace Education.Application.Users;
 public sealed class EducationUserResolver(ICurrentUser currentUser, IUserProfileRepository userProfileRepository)
     : IEducationUserResolver
 {
-    public async Task<long> ResolveLegacyUserIdAsync(Guid identityUserId, CancellationToken cancellationToken = default)
+    public async Task<Guid> ResolveLegacyUserIdAsync(Guid identityUserId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userProfileRepository.FindLegacyUserIdByIdentityUserIdAsync(
             identityUserId,
@@ -14,7 +14,7 @@ public sealed class EducationUserResolver(ICurrentUser currentUser, IUserProfile
         return legacyUserId ?? throw new EducationUserLinkNotFoundException(identityUserId);
     }
 
-    public Task<long> ResolveCurrentLegacyUserIdAsync(CancellationToken cancellationToken = default)
+    public Task<Guid> ResolveCurrentLegacyUserIdAsync(CancellationToken cancellationToken = default)
     {
         if (!currentUser.IsAuthenticated || currentUser.UserId == Guid.Empty)
         {
@@ -24,3 +24,4 @@ public sealed class EducationUserResolver(ICurrentUser currentUser, IUserProfile
         return ResolveLegacyUserIdAsync(currentUser.UserId, cancellationToken);
     }
 }
+

@@ -4,9 +4,10 @@
 /// Команда настройки вопросов и порогов оценивания практического материала.
 /// </summary>
 public sealed record ConfigurePracticalQuestionsCommand(
-    long PracticalId,
-    IReadOnlyList<long> QuestionIds,
+    Guid PracticalId,
+    IReadOnlyList<Guid> QuestionIds,
     int TriesCount,
     double PercentForFive,
     double PercentForFour,
     double PercentForThree);
+

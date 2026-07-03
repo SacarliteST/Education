@@ -8,7 +8,7 @@ internal sealed class CreatePracticalRequestValidator : AbstractValidator<Create
     public CreatePracticalRequestValidator()
     {
         RuleFor(request => request.ModuleId)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(request => request.Name)
             .NotEmpty()
@@ -36,3 +36,4 @@ internal sealed class ConfigurePracticalQuestionsRequestValidator : AbstractVali
             .InclusiveBetween(0, 100);
     }
 }
+

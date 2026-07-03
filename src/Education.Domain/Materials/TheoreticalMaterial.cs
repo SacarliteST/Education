@@ -7,7 +7,7 @@ public sealed class TheoreticalMaterial : Entity
 {
     public string Name { get; private set; } = String.Empty;
     public string Text { get; private set; } = String.Empty;
-    public long ModuleId { get; private set; }
+    public Guid ModuleId { get; private set; }
     public Module Module { get; private set; } = null!;
     public List<TheoreticalMaterialFile> Files { get; private set; } = [];
     public List<TheoreticalMaterialLink> Links { get; private set; } = [];
@@ -16,7 +16,7 @@ public sealed class TheoreticalMaterial : Entity
     {
     }
 
-    public TheoreticalMaterial(long moduleId, string name, string text)
+    public TheoreticalMaterial(Guid moduleId, string name, string text)
     {
         ModuleId = moduleId;
         Name = name;
@@ -26,3 +26,4 @@ public sealed class TheoreticalMaterial : Entity
     public void Rename(string name) => Name = name;
     public void UpdateText(string text) => Text = text;
 }
+

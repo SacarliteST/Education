@@ -8,8 +8,8 @@ namespace Education.Infrastructure.Grades;
 internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRepository
 {
     public async Task<PracticalGrade> GetPracticalGradeAsync(
-        long practicalId,
-        long studentUserId,
+        Guid practicalId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         var totalTasks = await context.Cases.CountAsync(
@@ -57,3 +57,5 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
         return new PracticalGrade(grade, []);
     }
 }
+
+

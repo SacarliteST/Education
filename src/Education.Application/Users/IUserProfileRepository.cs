@@ -8,7 +8,7 @@ public interface IUserProfileRepository
     /// <summary>
     /// Ищет идентификатор пользователя учебной системы по идентификатору пользователя identity-сервиса.
     /// </summary>
-    Task<long?> FindLegacyUserIdByIdentityUserIdAsync(
+    Task<Guid?> FindLegacyUserIdByIdentityUserIdAsync(
         Guid identityUserId,
         CancellationToken cancellationToken = default);
 
@@ -16,13 +16,14 @@ public interface IUserProfileRepository
     /// Ищет профиль пользователя учебной системы по его идентификатору.
     /// </summary>
     Task<UserProfile?> FindProfileByLegacyUserIdAsync(
-        long legacyUserId,
+        Guid legacyUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает снимок связей пользователя с курсами, практическими материалами и результатами.
     /// </summary>
     Task<UserRelationsSnapshot> GetRelationsSnapshotAsync(
-        long legacyUserId,
+        Guid legacyUserId,
         CancellationToken cancellationToken = default);
 }
+

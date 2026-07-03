@@ -13,7 +13,7 @@ internal static class PracticalEndpointMappings
 
     public static ConfigurePracticalQuestionsCommand ToCommand(
         this ConfigurePracticalQuestionsRequest request,
-        long practicalId)
+        Guid practicalId)
     {
         return new ConfigurePracticalQuestionsCommand(
             practicalId,
@@ -55,3 +55,4 @@ internal static class PracticalEndpointMappings
             question.IsSelected);
     }
 }
+

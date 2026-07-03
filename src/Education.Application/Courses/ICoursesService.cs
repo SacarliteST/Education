@@ -20,10 +20,11 @@ public interface ICoursesService
     /// <summary>
     /// Удаляет курс текущего преподавателя.
     /// </summary>
-    Task DeleteCourseAsync(long courseId, CancellationToken cancellationToken = default);
+    Task DeleteCourseAsync(Guid courseId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает курсы, назначенные текущему студенту.
     /// </summary>
     Task<IReadOnlyList<Course>> GetStudentCoursesAsync(CancellationToken cancellationToken = default);
 }
+

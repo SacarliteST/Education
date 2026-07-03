@@ -4,6 +4,8 @@
 /// Запрос на добавление внешней ссылки к теоретическому материалу.
 /// </summary>
 public sealed record CreateTheoryLinkRequest(
-    long TheoryMaterialId,
+    Guid TheoryMaterialId,
     string Link,
     string Description);
+
+

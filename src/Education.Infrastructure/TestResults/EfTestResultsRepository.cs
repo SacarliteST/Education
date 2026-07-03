@@ -10,8 +10,8 @@ namespace Education.Infrastructure.TestResults;
 internal sealed class EfTestResultsRepository(EducationDbContext context) : ITestResultsRepository
 {
     public Task<bool> IsPracticalAssignedToStudentAsync(
-        long practicalId,
-        long studentUserId,
+        Guid practicalId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         return context.PracticalBindUsers.AnyAsync(
@@ -20,8 +20,8 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
     }
 
     public async Task<TestStatus> GetStatusAsync(
-        long practicalId,
-        long userId,
+        Guid practicalId,
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         var testResult = await context.TestResults
@@ -36,8 +36,8 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
     }
 
     public async Task<int> StartTestAsync(
-        long practicalId,
-        long userId,
+        Guid practicalId,
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         var activeAttempt = await context.TestResults.FirstOrDefaultAsync(
@@ -67,8 +67,8 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
     }
 
     public async Task<TestQuestions?> GetQuestionsAsync(
-        long practicalId,
-        long userId,
+        Guid practicalId,
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         var activeAttempt = await context.TestResults
@@ -97,7 +97,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
 
     public async Task<TestProtocolSummary> SubmitTestAsync(
         SubmitTestCommand command,
-        long userId,
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         var testResult = await context.TestResults
@@ -149,8 +149,8 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
     }
 
     public async Task<IReadOnlyList<TestProtocolSummary>> GetStudentProtocolsAsync(
-        long practicalId,
-        long userId,
+        Guid practicalId,
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         var results = await context.TestResults
@@ -163,7 +163,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
     }
 
     public async Task<IReadOnlyList<TestProtocolSummary>> GetTeacherProtocolsAsync(
-        long practicalId,
+        Guid practicalId,
         CancellationToken cancellationToken = default)
     {
         var results = await context.TestResults
@@ -175,7 +175,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
         return results.Select(ToSummary).ToList();
     }
 
-    public async Task<TestProtocol?> GetProtocolAsync(long testResultId, CancellationToken cancellationToken = default)
+    public async Task<TestProtocol?> GetProtocolAsync(Guid testResultId, CancellationToken cancellationToken = default)
     {
         var testResult = await context.TestResults
             .Include(result => result.PracticalMaterial)
@@ -216,3 +216,5 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             testResult.PracticalMaterial.CalculateTestGrade(testResult.Score, testResult.MaxScore));
     }
 }
+
+

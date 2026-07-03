@@ -6,7 +6,7 @@ public sealed class Case : Entity
 {
     public string Name { get; private set; } = String.Empty;
     public string Text { get; private set; } = String.Empty;
-    public long PracticalMaterialId { get; private set; }
+    public Guid PracticalMaterialId { get; private set; }
     public PracticalMaterial PracticalMaterial { get; private set; } = null!;
     public List<CaseFile> CaseFiles { get; private set; } = [];
 
@@ -14,7 +14,7 @@ public sealed class Case : Entity
     {
     }
 
-    public Case(long practicalMaterialId, string name, string text)
+    public Case(Guid practicalMaterialId, string name, string text)
     {
         PracticalMaterialId = practicalMaterialId;
         Name = name;
@@ -23,3 +23,4 @@ public sealed class Case : Entity
 
     public void UpdateText(string text) => Text = text;
 }
+

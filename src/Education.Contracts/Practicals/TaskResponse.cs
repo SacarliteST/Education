@@ -4,6 +4,8 @@
 /// Данные задания практического материала.
 /// </summary>
 public sealed record TaskResponse(
-    long Id,
+    Guid Id,
     string Name,
     string Text);
+
+

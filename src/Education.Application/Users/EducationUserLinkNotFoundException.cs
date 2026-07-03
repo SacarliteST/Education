@@ -5,3 +5,4 @@ public sealed class EducationUserLinkNotFoundException(Guid identityUserId)
 {
     public Guid IdentityUserId { get; } = identityUserId;
 }
+

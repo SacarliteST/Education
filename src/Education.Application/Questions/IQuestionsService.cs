@@ -10,7 +10,7 @@ public interface IQuestionsService
     /// <summary>
     /// Возвращает вопросы модуля.
     /// </summary>
-    Task<IReadOnlyList<Question>> GetQuestionsAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Question>> GetQuestionsAsync(Guid moduleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт вопрос.
@@ -20,10 +20,11 @@ public interface IQuestionsService
     /// <summary>
     /// Обновляет вопрос.
     /// </summary>
-    Task UpdateQuestionAsync(long questionId, UpdateQuestionCommand command, CancellationToken cancellationToken = default);
+    Task UpdateQuestionAsync(Guid questionId, UpdateQuestionCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Удаляет вопрос.
     /// </summary>
-    Task DeleteQuestionAsync(long questionId, CancellationToken cancellationToken = default);
+    Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default);
 }
+

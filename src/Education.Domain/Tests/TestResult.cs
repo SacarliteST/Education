@@ -12,9 +12,9 @@ public sealed class TestResult : Entity
     public bool IsCompleted { get; private set; }
     public double? Score { get; private set; }
     public double? MaxScore { get; private set; }
-    public long UserId { get; private set; }
+    public Guid UserId { get; private set; }
     public User User { get; private set; } = null!;
-    public long PracticalMaterialId { get; private set; }
+    public Guid PracticalMaterialId { get; private set; }
     public PracticalMaterial PracticalMaterial { get; private set; } = null!;
     public List<Answer> Answers { get; private set; } = [];
 
@@ -22,7 +22,7 @@ public sealed class TestResult : Entity
     {
     }
 
-    public TestResult(long userId, long practicalMaterialId, int tryNumber)
+    public TestResult(Guid userId, Guid practicalMaterialId, int tryNumber)
     {
         UserId = userId;
         PracticalMaterialId = practicalMaterialId;
@@ -42,3 +42,4 @@ public sealed class TestResult : Entity
         IsCompleted = true;
     }
 }
+

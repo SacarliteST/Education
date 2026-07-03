@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Education.Web.Endpoints;
 
-public static class TaskFilesEndpointGroup
+internal static class TaskFilesEndpointGroup
 {
     public static IEndpointRouteBuilder MapTaskFilesEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.TaskFiles.StudentTaskFile, async (
-                long taskId,
+                Guid taskId,
                 ITaskFilesService service,
                 CancellationToken cancellationToken) =>
             await EndpointResults.ExecuteStudentCommandAsync(async () =>
@@ -21,10 +21,17 @@ public static class TaskFilesEndpointGroup
                 return file is null ? Results.NotFound() : Results.Ok(file.ToResponse());
             }))
             .WithTags("TaskFiles")
+            .WithName("GetStudentTaskFile")
+            .WithSummary("Получение файла задания студента")
+            .WithDescription("Возвращает файл решения текущего студента по задаче.")
+            .Produces<TaskFileResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);
 
         app.MapPut(ApiRoutes.TaskFiles.StudentTaskFile, async (
-                long taskId,
+                Guid taskId,
                 [FromForm] IFormFile file,
                 ITaskFilesService service,
                 CancellationToken cancellationToken) =>
@@ -36,29 +43,48 @@ public static class TaskFilesEndpointGroup
             }))
             .DisableAntiforgery()
             .WithTags("TaskFiles")
+            .WithName("UploadStudentTaskFile")
+            .WithSummary("Загрузка файла задания студентом")
+            .WithDescription("Загружает или заменяет файл решения текущего студента по задаче.")
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<TaskFileResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);
 
         app.MapGet(ApiRoutes.TaskFiles.TaskFilesByTask, async (
-                long taskId,
+                Guid taskId,
                 ITaskFilesService service,
                 CancellationToken cancellationToken) =>
             await EndpointResults.ExecuteTeacherCommandAsync(async () =>
                 Results.Ok((await service.GetTeacherTaskFilesAsync(taskId, cancellationToken)).Select(file => file.ToResponse()))))
             .WithTags("TaskFiles")
+            .WithName("GetTeacherTaskFilesByTask")
+            .WithSummary("Получение решений по задаче")
+            .WithDescription("Возвращает файлы решений студентов по задаче преподавателя.")
+            .Produces<IEnumerable<TaskFileResponse>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
         app.MapGet(ApiRoutes.TaskFiles.PracticalTaskFiles, async (
-                long practicalId,
+                Guid practicalId,
                 ITaskFilesService service,
                 CancellationToken cancellationToken) =>
             await EndpointResults.ExecuteTeacherCommandAsync(async () =>
                 Results.Ok((await service.GetTeacherPracticalTaskFilesAsync(practicalId, cancellationToken))
                     .Select(file => file.ToResponse()))))
             .WithTags("TaskFiles")
+            .WithName("GetTeacherTaskFilesByPractical")
+            .WithSummary("Получение решений по практике")
+            .WithDescription("Возвращает файлы решений студентов по всем задачам практики преподавателя.")
+            .Produces<IEnumerable<TaskFileResponse>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
         app.MapPost(ApiRoutes.TaskFiles.Comments, async (
-                long taskFileId,
+                Guid taskFileId,
                 AddTaskFileCommentRequest request,
                 IValidator<AddTaskFileCommentRequest> validator,
                 ITaskFilesService service,
@@ -75,10 +101,18 @@ public static class TaskFilesEndpointGroup
                 return Results.Ok(comment.ToResponse());
             }))
             .WithTags("TaskFiles")
+            .WithName("AddTaskFileComment")
+            .WithSummary("Добавление комментария к решению")
+            .WithDescription("Добавляет комментарий преподавателя к файлу решения студента.")
+            .Produces<TaskFileCommentResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
         app.MapPut(ApiRoutes.TaskFiles.Accept, async (
-                long taskFileId,
+                Guid taskFileId,
                 AcceptTaskFileRequest request,
                 IValidator<AcceptTaskFileRequest> validator,
                 ITaskFilesService service,
@@ -95,8 +129,17 @@ public static class TaskFilesEndpointGroup
                 return Results.NoContent();
             }))
             .WithTags("TaskFiles")
+            .WithName("AcceptTaskFile")
+            .WithSummary("Приём решения студента")
+            .WithDescription("Фиксирует оценку и статус принятия файла решения студента.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
         return app;
     }
 }
+

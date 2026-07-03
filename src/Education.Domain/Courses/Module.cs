@@ -8,7 +8,7 @@ namespace Education.Domain.Courses;
 public sealed class Module : Entity
 {
     public string Name { get; private set; } = String.Empty;
-    public long CourseId { get; private set; }
+    public Guid CourseId { get; private set; }
     public Course Course { get; private set; } = null!;
     public List<PracticalMaterial> PracticalMaterials { get; private set; } = [];
     public List<Question> Questions { get; private set; } = [];
@@ -18,9 +18,10 @@ public sealed class Module : Entity
     {
     }
 
-    public Module(long courseId, string name)
+    public Module(Guid courseId, string name)
     {
         CourseId = courseId;
         Name = name;
     }
 }
+

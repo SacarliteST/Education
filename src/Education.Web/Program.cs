@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Education.Application.AdminProfiles;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.Grades;
@@ -10,6 +11,8 @@ using Education.Application.TaskFiles;
 using Education.Application.TestResults;
 using Education.Application.Theories;
 using Education.Application.Users;
+using Education.Contracts.AdminProfiles;
+using Education.Contracts.Auth;
 using Education.Contracts.Courses;
 using Education.Contracts.Grades;
 using Education.Contracts.Modules;
@@ -31,10 +34,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 var identitySection = builder.Configuration.GetSection("Identity");
 var jwtSection = builder.Configuration.GetSection("Jwt");
+var configuredFrontendOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+var frontendOrigins = configuredFrontendOrigins is { Length: > 0 }
+    ? configuredFrontendOrigins
+    : ["http://localhost:5173", "https://localhost:5173"];
+const string frontendCorsPolicy = "Frontend";
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
+builder.Services.AddScoped<IAdminProfilesService, AdminProfilesService>();
 builder.Services.AddScoped<ICoursesService, CoursesService>();
 builder.Services.AddScoped<IModulesService, ModulesService>();
 builder.Services.AddScoped<IPracticalsService, PracticalsService>();
@@ -44,6 +53,8 @@ builder.Services.AddScoped<IGradesService, GradesService>();
 builder.Services.AddScoped<ITheoriesService, TheoriesService>();
 builder.Services.AddScoped<ITaskFilesService, TaskFilesService>();
 builder.Services.AddScoped<IFilesService, FilesService>();
+builder.Services.AddScoped<IValidator<CreateAdminProfileRequest>, CreateAdminProfileRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateAdminProfileRequest>, UpdateAdminProfileRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateCourseRequest>, CreateCourseRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateModuleRequest>, CreateModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreatePracticalRequest>, CreatePracticalRequestValidator>();
@@ -92,9 +103,19 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddOpenApi();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(frontendCorsPolicy, policy =>
+    {
+        policy.WithOrigins(frontendOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
+app.UseCors(frontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -106,38 +127,68 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy" }))
     .WithName("Health")
-    .WithTags("System");
+    .WithTags("System")
+    .WithSummary("Проверка работоспособности API")
+    .WithDescription("Возвращает успешный ответ, если приложение запущено.")
+    .Produces(StatusCodes.Status200OK);
 
 var authGroup = app.MapGroup("/api/v1/auth")
     .WithTags("Auth");
 
-authGroup.MapGet("/me", (ICurrentUser currentUser) => Results.Ok(new
-{
-    currentUser.UserId,
-    currentUser.Email,
-    currentUser.Name,
-    currentUser.Roles,
-    currentUser.IsAuthenticated
-}))
+authGroup.MapGet("/me", (ICurrentUser currentUser) => Results.Ok(new AuthMeResponse(
+        currentUser.UserId,
+        currentUser.Email,
+        currentUser.Name,
+        currentUser.Roles,
+        currentUser.IsAuthenticated)))
+    .WithName("GetCurrentUser")
+    .WithSummary("Получение текущего пользователя")
+    .WithDescription("Возвращает сведения о пользователе, извлечённые из Bearer JWT-токена.")
+    .Produces<AuthMeResponse>()
+    .Produces(StatusCodes.Status401Unauthorized)
     .RequireAuthorization(AuthorizationPolicies.AuthenticatedEducationUser);
 
 authGroup.MapPost("/logout", () => Results.NoContent())
+    .WithName("LogoutEducationSession")
+    .WithSummary("Завершение локальной сессии Education API")
+    .WithDescription("Education API не хранит cookie-сессию; endpoint оставлен для совместимого выхода клиента после очистки токенов.")
+    .Produces(StatusCodes.Status204NoContent)
+    .Produces(StatusCodes.Status401Unauthorized)
     .RequireAuthorization(AuthorizationPolicies.AuthenticatedEducationUser);
 
 app.MapGet("/api/v1/student/ping", () => Results.Ok())
     .RequireAuthorization(AuthorizationPolicies.StudentOnly)
-    .WithTags("Student");
+    .WithTags("Student")
+    .WithSummary("Проверка доступа студента")
+    .WithDescription("Проверяет, что Bearer-токен содержит роль Student.")
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status403Forbidden);
 
 app.MapGet("/api/v1/teacher/ping", () => Results.Ok())
     .RequireAuthorization(AuthorizationPolicies.TeacherOnly)
-    .WithTags("Teacher");
+    .WithTags("Teacher")
+    .WithSummary("Проверка доступа преподавателя")
+    .WithDescription("Проверяет, что Bearer-токен содержит роль Teacher.")
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status403Forbidden);
 
 app.MapGet("/api/v1/admin/ping", () => Results.Ok())
     .RequireAuthorization(AuthorizationPolicies.AdminOnly)
-    .WithTags("Admin");
+    .WithTags("Admin")
+    .WithSummary("Проверка доступа администратора")
+    .WithDescription("Проверяет, что Bearer-токен содержит роль Admin.")
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status401Unauthorized)
+    .Produces(StatusCodes.Status403Forbidden);
 
 app.MapEducationEndpoints();
 
 app.Run();
 
+/// <summary>
+/// Точка входа Education API, используемая приложением и интеграционными тестами.
+/// </summary>
 public partial class Program;
+

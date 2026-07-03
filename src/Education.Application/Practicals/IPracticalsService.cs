@@ -10,7 +10,7 @@ public interface IPracticalsService
     /// <summary>
     /// Возвращает практические материалы модуля.
     /// </summary>
-    Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(Guid moduleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт практический материал.
@@ -20,20 +20,21 @@ public interface IPracticalsService
     /// <summary>
     /// Публикует практический материал.
     /// </summary>
-    Task PublishPracticalAsync(long practicalId, CancellationToken cancellationToken = default);
+    Task PublishPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает задания практического материала.
     /// </summary>
-    Task<IReadOnlyList<Case>> GetTasksAsync(long practicalId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Case>> GetTasksAsync(Guid practicalId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает данные настройки вопросов практического материала.
     /// </summary>
-    Task<PracticalQuestionsSetup?> GetQuestionsSetupAsync(long practicalId, CancellationToken cancellationToken = default);
+    Task<PracticalQuestionsSetup?> GetQuestionsSetupAsync(Guid practicalId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Настраивает вопросы и пороги оценивания практического материала.
     /// </summary>
     Task ConfigureQuestionsAsync(ConfigurePracticalQuestionsCommand command, CancellationToken cancellationToken = default);
 }
+

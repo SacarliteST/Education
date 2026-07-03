@@ -4,8 +4,10 @@
 /// Данные вопроса тестирования, возвращаемые API системы обучения.
 /// </summary>
 public sealed record QuestionResponse(
-    long Id,
+    Guid Id,
     string Text,
-    long Type,
+    Guid Type,
     double Weight,
     string Answer);
+
+

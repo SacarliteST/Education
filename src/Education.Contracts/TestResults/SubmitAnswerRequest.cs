@@ -4,5 +4,7 @@
 /// Ответ студента на вопрос тестирования.
 /// </summary>
 public sealed record SubmitAnswerRequest(
-    long Id,
+    Guid Id,
     string Answer);
+
+

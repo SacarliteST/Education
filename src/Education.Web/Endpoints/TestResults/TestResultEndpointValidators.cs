@@ -21,9 +21,10 @@ internal sealed class SubmitAnswerRequestValidator : AbstractValidator<SubmitAns
     public SubmitAnswerRequestValidator()
     {
         RuleFor(request => request.Id)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(request => request.Answer)
             .NotNull();
     }
 }
+

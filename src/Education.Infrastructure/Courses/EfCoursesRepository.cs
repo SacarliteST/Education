@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore;
 namespace Education.Infrastructure.Courses;
 
 internal sealed class EfCoursesRepository(EducationDbContext context)
-    : RepositoryBase<Course, long>(context), ICoursesRepository
+    : RepositoryBase<Course, Guid>(context), ICoursesRepository
 {
-    public override Task<Course?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public override Task<Course?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Courses.FirstOrDefaultAsync(course => course.Id == id, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Course>> GetTeacherCoursesAsync(
-        long teacherUserId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default)
     {
         return await DatabaseContext.Courses
@@ -24,7 +24,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
     }
 
     public async Task<Course> CreateCourseAsync(
-        long teacherUserId,
+        Guid teacherUserId,
         CreateCourseCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -35,7 +35,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
         return course;
     }
 
-    public async Task DeleteCourseAsync(long courseId, CancellationToken cancellationToken = default)
+    public async Task DeleteCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Courses
             .Where(course => course.Id == courseId)
@@ -43,7 +43,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
     }
 
     public async Task<IReadOnlyList<Course>> GetStudentCoursesAsync(
-        long studentUserId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         return await DatabaseContext.Courses
@@ -52,10 +52,12 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
-    public Task<bool> IsCourseOwnerAsync(long courseId, long teacherUserId, CancellationToken cancellationToken = default)
+    public Task<bool> IsCourseOwnerAsync(Guid courseId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Courses.AnyAsync(
             course => course.Id == courseId && course.UserId == teacherUserId,
             cancellationToken);
     }
 }
+
+

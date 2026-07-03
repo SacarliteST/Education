@@ -10,3 +10,4 @@ public interface IFilesService
     /// </summary>
     Task<StoredFileContent?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default);
 }
+

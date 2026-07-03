@@ -1,6 +1,7 @@
 ﻿namespace Education.Application.TestResults;
 
-public sealed class TestAttemptLimitExceededException(long practicalId) : Exception
+public sealed class TestAttemptLimitExceededException(Guid practicalId) : Exception
 {
-    public long PracticalId { get; } = practicalId;
+    public Guid PracticalId { get; } = practicalId;
 }
+

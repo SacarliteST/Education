@@ -22,7 +22,7 @@ public sealed class FilesFlowApiTests : IClassFixture<TestWebApplicationFactory>
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Student);
 
-        var response = await UploadTaskFileAsync(client, "solution.txt", "student solution");
+        var response = await UploadTaskFileAsync(client, factory.Seed.AssignedTaskId, "solution.txt", "student solution");
 
         response.EnsureSuccessStatusCode();
         var taskFile = await response.Content.ReadFromJsonAsync<TaskFileResponse>();
@@ -49,7 +49,11 @@ public sealed class FilesFlowApiTests : IClassFixture<TestWebApplicationFactory>
     {
         var studentClient = factory.CreateClient();
         studentClient.AuthenticateAs(EducationRoles.Student);
-        var uploadResponse = await UploadTaskFileAsync(studentClient, "teacher-visible.txt", "visible for teacher");
+        var uploadResponse = await UploadTaskFileAsync(
+            studentClient,
+            factory.Seed.AssignedTaskId,
+            "teacher-visible.txt",
+            "visible for teacher");
         var uploaded = await uploadResponse.Content.ReadFromJsonAsync<TaskFileResponse>();
 
         var teacherClient = factory.CreateClient();
@@ -74,11 +78,15 @@ public sealed class FilesFlowApiTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private static async Task<HttpResponseMessage> UploadTaskFileAsync(HttpClient client, string fileName, string content)
+    private static async Task<HttpResponseMessage> UploadTaskFileAsync(
+        HttpClient client,
+        Guid taskId,
+        string fileName,
+        string content)
     {
         using var form = new MultipartFormDataContent();
         form.Add(new StringContent(content), "file", fileName);
 
-        return await client.PutAsync('/' + ApiRoutes.TaskFiles.ForStudentTaskFile(1), form);
+        return await client.PutAsync('/' + ApiRoutes.TaskFiles.ForStudentTaskFile(taskId), form);
     }
 }

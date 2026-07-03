@@ -10,9 +10,10 @@ public sealed class QuestionType : Entity
     {
     }
 
-    public QuestionType(long id, string name)
+    public QuestionType(Guid id, string name)
     {
         Id = id;
         Name = name;
     }
 }
+

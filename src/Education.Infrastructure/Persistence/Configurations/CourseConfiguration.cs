@@ -18,3 +18,5 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasOne(course => course.User).WithMany(user => user.Courses).HasForeignKey(course => course.UserId);
     }
 }
+
+

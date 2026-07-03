@@ -33,7 +33,7 @@ public sealed class FilesService(
 
     private async Task<StoredFileInfo?> ResolveAccessibleFileAsync(
         string storageKey,
-        long legacyUserId,
+        Guid legacyUserId,
         CancellationToken cancellationToken)
     {
         if (currentUser.Roles.Contains(StudentRole))
@@ -65,3 +65,4 @@ public sealed class FilesService(
         return null;
     }
 }
+

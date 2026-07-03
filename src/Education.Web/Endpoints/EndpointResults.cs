@@ -100,3 +100,4 @@ internal static class EndpointResults
         }
     }
 }
+

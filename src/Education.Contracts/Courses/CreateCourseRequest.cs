@@ -7,3 +7,5 @@ public sealed record CreateCourseRequest(
     DateTimeOffset Date,
     string Description,
     string Name);
+
+

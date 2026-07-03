@@ -10,3 +10,5 @@ public sealed record PracticalQuestionsSetupResponse(
     double PercentForFive,
     double PercentForFour,
     double PercentForThree);
+
+

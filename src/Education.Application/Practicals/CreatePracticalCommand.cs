@@ -3,4 +3,5 @@
 /// <summary>
 /// Команда создания практического материала.
 /// </summary>
-public sealed record CreatePracticalCommand(long ModuleId, string Name);
+public sealed record CreatePracticalCommand(Guid ModuleId, string Name);
+

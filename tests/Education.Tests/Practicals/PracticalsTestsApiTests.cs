@@ -22,7 +22,7 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Student);
 
-        var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(1), null);
+        var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(factory.Seed.AssignedStartPracticalId), null);
 
         response.EnsureSuccessStatusCode();
         var start = await response.Content.ReadFromJsonAsync<StartTestResponse>();
@@ -35,7 +35,7 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Student);
 
-        var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(2), null);
+        var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(factory.Seed.UnassignedPracticalId), null);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -46,10 +46,10 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Student);
 
-        await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(3), null);
+        await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(factory.Seed.SubmitPracticalId), null);
         var submitResponse = await client.PostAsJsonAsync(
-            '/' + ApiRoutes.TestResults.ForSubmit(3),
-            new SubmitTestRequest([new SubmitAnswerRequest(2, "a")]));
+            '/' + ApiRoutes.TestResults.ForSubmit(factory.Seed.SubmitPracticalId),
+            new SubmitTestRequest([new SubmitAnswerRequest(factory.Seed.SubmitQuestionId, "a")]));
 
         submitResponse.EnsureSuccessStatusCode();
         var summary = await submitResponse.Content.ReadFromJsonAsync<TestProtocolSummaryResponse>();
@@ -67,7 +67,7 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Student);
 
-        var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(4), null);
+        var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(factory.Seed.LimitedPracticalId), null);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -78,7 +78,7 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Teacher);
 
-        var response = await client.GetAsync('/' + ApiRoutes.TestResults.ForTeacherPracticalProtocols(6));
+        var response = await client.GetAsync('/' + ApiRoutes.TestResults.ForTeacherPracticalProtocols(factory.Seed.OtherTeacherPracticalId));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }

@@ -5,3 +5,5 @@
 /// </summary>
 /// <param name="Grade">Оценка за сдачу.</param>
 public sealed record AcceptTaskFileRequest(int Grade);
+
+

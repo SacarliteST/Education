@@ -1,6 +1,7 @@
 ﻿namespace Education.Application.TestResults;
 
-public sealed class StudentPracticalAccessDeniedException(long practicalId) : Exception
+public sealed class StudentPracticalAccessDeniedException(Guid practicalId) : Exception
 {
-    public long PracticalId { get; } = practicalId;
+    public Guid PracticalId { get; } = practicalId;
 }
+

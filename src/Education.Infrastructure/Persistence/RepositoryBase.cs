@@ -51,3 +51,5 @@ internal abstract class RepositoryBase<TEntity, TKey> : IBaseRepository<TEntity,
         return DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 }
+
+

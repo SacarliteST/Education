@@ -8,4 +8,6 @@ public sealed record UpdateQuestionRequest(
     string Body,
     string Answer,
     double Weight,
-    long Type);
+    Guid Type);
+
+

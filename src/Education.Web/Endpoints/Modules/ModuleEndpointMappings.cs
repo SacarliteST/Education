@@ -16,3 +16,4 @@ internal static class ModuleEndpointMappings
         return new ModuleResponse(module.Id, module.Name);
     }
 }
+

@@ -10,9 +10,10 @@ public sealed class Role : Entity
     {
     }
 
-    public Role(long id, string name)
+    public Role(Guid id, string name)
     {
         Id = id;
         Name = name;
     }
 }
+

@@ -10,3 +10,4 @@ internal static class GradeEndpointMappings
         return new PracticalGradeResponse(grade.Grade, grade.Messages);
     }
 }
+

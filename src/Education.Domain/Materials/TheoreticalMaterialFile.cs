@@ -7,19 +7,19 @@ public sealed class TheoreticalMaterialFile : Entity
     public string Description { get; private set; } = String.Empty;
     public string Path { get; private set; } = String.Empty;
     public string OriginalFileName { get; private set; } = String.Empty;
-    public long TheoreticalMaterialId { get; private set; }
+    public Guid TheoreticalMaterialId { get; private set; }
     public TheoreticalMaterial TheoreticalMaterial { get; private set; } = null!;
 
     private TheoreticalMaterialFile()
     {
     }
 
-    public TheoreticalMaterialFile(long theoreticalMaterialId, string description, string path)
+    public TheoreticalMaterialFile(Guid theoreticalMaterialId, string description, string path)
         : this(theoreticalMaterialId, description, path, global::System.IO.Path.GetFileName(path))
     {
     }
 
-    public TheoreticalMaterialFile(long theoreticalMaterialId, string description, string path, string originalFileName)
+    public TheoreticalMaterialFile(Guid theoreticalMaterialId, string description, string path, string originalFileName)
     {
         TheoreticalMaterialId = theoreticalMaterialId;
         Description = description;
@@ -27,3 +27,4 @@ public sealed class TheoreticalMaterialFile : Entity
         OriginalFileName = originalFileName;
     }
 }
+

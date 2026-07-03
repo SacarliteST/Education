@@ -13,12 +13,14 @@
 /// <param name="Grade">Оценка за сдачу.</param>
 /// <param name="Comments">Комментарии к файлу сдачи.</param>
 public sealed record TaskFileResponse(
-    long Id,
+    Guid Id,
     string StorageKey,
     string Name,
-    long UserId,
+    Guid UserId,
     string FullName,
     bool IsAccepted,
     bool IsUpdated,
     int Grade,
     IReadOnlyList<TaskFileCommentResponse> Comments);
+
+

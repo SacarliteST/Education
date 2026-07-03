@@ -24,3 +24,5 @@ internal sealed class TheoreticalMaterialFileConfiguration : IEntityTypeConfigur
             .HasForeignKey(file => file.TheoreticalMaterialId);
     }
 }
+
+

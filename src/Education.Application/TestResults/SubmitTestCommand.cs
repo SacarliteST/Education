@@ -3,4 +3,5 @@
 /// <summary>
 /// Команда отправки ответов текущей попытки тестирования.
 /// </summary>
-public sealed record SubmitTestCommand(long PracticalId, IReadOnlyList<SubmitAnswerCommand> Answers);
+public sealed record SubmitTestCommand(Guid PracticalId, IReadOnlyList<SubmitAnswerCommand> Answers);
+

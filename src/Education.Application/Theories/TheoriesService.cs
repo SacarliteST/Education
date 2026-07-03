@@ -13,17 +13,17 @@ public sealed class TheoriesService(
     IFileStorage fileStorage)
     : ITheoriesService
 {
-    public Task<TheoreticalMaterial?> GetTheoryAsync(long theoryId, CancellationToken cancellationToken = default)
+    public Task<TheoreticalMaterial?> GetTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
         return theoriesRepository.GetTheoryAsync(theoryId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(long theoryId, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
         return theoriesRepository.GetTheoryDocsAsync(theoryId, cancellationToken);
     }
 
-    public Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(long theoryId, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
         return theoriesRepository.GetTheoryLinksAsync(theoryId, cancellationToken);
     }
@@ -54,25 +54,25 @@ public sealed class TheoriesService(
             cancellationToken);
     }
 
-    public async Task UpdateTheoryTitleAsync(long theoryId, UpdateTheoryTitleCommand command, CancellationToken cancellationToken = default)
+    public async Task UpdateTheoryTitleAsync(Guid theoryId, UpdateTheoryTitleCommand command, CancellationToken cancellationToken = default)
     {
         await EnsureTheoryOwnerAsync(theoryId, cancellationToken);
         await theoriesRepository.UpdateTheoryTitleAsync(theoryId, command.Title, cancellationToken);
     }
 
-    public async Task UpdateTheoryTextAsync(long theoryId, UpdateTheoryTextCommand command, CancellationToken cancellationToken = default)
+    public async Task UpdateTheoryTextAsync(Guid theoryId, UpdateTheoryTextCommand command, CancellationToken cancellationToken = default)
     {
         await EnsureTheoryOwnerAsync(theoryId, cancellationToken);
         await theoriesRepository.UpdateTheoryTextAsync(theoryId, command.Text, cancellationToken);
     }
 
-    public async Task DeleteTheoryAsync(long theoryId, CancellationToken cancellationToken = default)
+    public async Task DeleteTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
         await EnsureTheoryOwnerAsync(theoryId, cancellationToken);
         await theoriesRepository.DeleteTheoryAsync(theoryId, cancellationToken);
     }
 
-    public async Task DeleteTheoryDocumentAsync(long documentId, CancellationToken cancellationToken = default)
+    public async Task DeleteTheoryDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await theoriesRepository.IsTheoryDocumentOwnerAsync(documentId, legacyUserId, cancellationToken))
@@ -95,7 +95,7 @@ public sealed class TheoriesService(
         return await theoriesRepository.CreateTheoryLinkAsync(command, cancellationToken);
     }
 
-    public async Task DeleteTheoryLinkAsync(long linkId, CancellationToken cancellationToken = default)
+    public async Task DeleteTheoryLinkAsync(Guid linkId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await theoriesRepository.IsTheoryLinkOwnerAsync(linkId, legacyUserId, cancellationToken))
@@ -106,7 +106,7 @@ public sealed class TheoriesService(
         await theoriesRepository.DeleteTheoryLinkAsync(linkId, cancellationToken);
     }
 
-    private async Task EnsureTheoryOwnerAsync(long theoryId, CancellationToken cancellationToken)
+    private async Task EnsureTheoryOwnerAsync(Guid theoryId, CancellationToken cancellationToken)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await theoriesRepository.IsTheoryOwnerAsync(theoryId, legacyUserId, cancellationToken))
@@ -115,3 +115,4 @@ public sealed class TheoriesService(
         }
     }
 }
+

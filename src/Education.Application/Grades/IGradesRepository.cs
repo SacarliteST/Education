@@ -8,5 +8,6 @@ public interface IGradesRepository
     /// <summary>
     /// Возвращает итоговую оценку за практический материал.
     /// </summary>
-    Task<PracticalGrade> GetPracticalGradeAsync(long practicalId, long studentUserId, CancellationToken cancellationToken = default);
+    Task<PracticalGrade> GetPracticalGradeAsync(Guid practicalId, Guid studentUserId, CancellationToken cancellationToken = default);
 }
+

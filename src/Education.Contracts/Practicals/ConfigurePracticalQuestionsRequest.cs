@@ -4,8 +4,10 @@
 /// Запрос на настройку вопросов и порогов оценивания практического материала.
 /// </summary>
 public sealed record ConfigurePracticalQuestionsRequest(
-    IReadOnlyList<long> QuestionIds,
+    IReadOnlyList<Guid> QuestionIds,
     int TriesCount,
     double PercentForFive,
     double PercentForFour,
     double PercentForThree);
+
+

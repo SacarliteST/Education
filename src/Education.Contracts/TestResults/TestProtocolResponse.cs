@@ -9,3 +9,5 @@ public sealed record TestProtocolResponse(
     double? Score,
     double? MaxScore,
     int Grade);
+
+

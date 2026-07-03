@@ -4,8 +4,10 @@
 /// Вопрос с признаком выбора для практического материала.
 /// </summary>
 public sealed record SelectableQuestionResponse(
-    long Id,
+    Guid Id,
     string Text,
-    long Type,
+    Guid Type,
     string Body,
     bool IsSelected);
+
+

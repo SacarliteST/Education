@@ -25,3 +25,5 @@ internal sealed class CaseFileConfiguration : IEntityTypeConfiguration<CaseFile>
         builder.HasOne(file => file.User).WithMany(user => user.CaseFiles).HasForeignKey(file => file.UserId);
     }
 }
+
+

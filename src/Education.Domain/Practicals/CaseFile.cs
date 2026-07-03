@@ -7,9 +7,9 @@ public sealed class CaseFile : Entity
 {
     public string Path { get; private set; } = String.Empty;
     public string OriginalFileName { get; private set; } = String.Empty;
-    public long CaseId { get; private set; }
+    public Guid CaseId { get; private set; }
     public Case Case { get; private set; } = null!;
-    public long UserId { get; private set; }
+    public Guid UserId { get; private set; }
     public User User { get; private set; } = null!;
     public bool IsAccepted { get; private set; }
     public int Grade { get; private set; }
@@ -19,12 +19,12 @@ public sealed class CaseFile : Entity
     {
     }
 
-    public CaseFile(long caseId, long userId, string path)
+    public CaseFile(Guid caseId, Guid userId, string path)
         : this(caseId, userId, path, global::System.IO.Path.GetFileName(path))
     {
     }
 
-    public CaseFile(long caseId, long userId, string path, string originalFileName)
+    public CaseFile(Guid caseId, Guid userId, string path, string originalFileName)
     {
         CaseId = caseId;
         UserId = userId;
@@ -59,3 +59,4 @@ public sealed class CaseFile : Entity
         Grade = grade;
     }
 }
+

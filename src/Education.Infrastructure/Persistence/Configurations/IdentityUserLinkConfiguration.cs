@@ -22,3 +22,5 @@ internal sealed class IdentityUserLinkConfiguration : IEntityTypeConfiguration<I
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+

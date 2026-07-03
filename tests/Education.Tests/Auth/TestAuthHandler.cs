@@ -13,6 +13,7 @@ internal sealed class TestAuthHandler(
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     public const string AuthenticationScheme = "Test";
+    public const string BearerScheme = "Bearer";
     public static readonly Guid TestUserId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -23,12 +24,12 @@ internal sealed class TestAuthHandler(
         }
 
         var authorization = authorizationHeaders.ToString();
-        if (!authorization.StartsWith(AuthenticationScheme + " ", StringComparison.OrdinalIgnoreCase))
+        var rolesValue = GetRolesValue(authorization);
+        if (rolesValue is null)
         {
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        var rolesValue = authorization[(AuthenticationScheme.Length + 1)..];
         var claims = new List<Claim>
         {
             new("sub", TestUserId.ToString()),
@@ -46,5 +47,20 @@ internal sealed class TestAuthHandler(
         var ticket = new AuthenticationTicket(principal, AuthenticationScheme);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+
+    private static string? GetRolesValue(string authorization)
+    {
+        if (authorization.StartsWith(AuthenticationScheme + " ", StringComparison.OrdinalIgnoreCase))
+        {
+            return authorization[(AuthenticationScheme.Length + 1)..];
+        }
+
+        if (authorization.StartsWith(BearerScheme + " ", StringComparison.OrdinalIgnoreCase))
+        {
+            return authorization[(BearerScheme.Length + 1)..];
+        }
+
+        return null;
     }
 }

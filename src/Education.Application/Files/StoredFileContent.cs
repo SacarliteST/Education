@@ -6,3 +6,4 @@
 /// <param name="Content">Поток с содержимым файла.</param>
 /// <param name="OriginalFileName">Исходное имя файла.</param>
 public sealed record StoredFileContent(Stream Content, string OriginalFileName);
+

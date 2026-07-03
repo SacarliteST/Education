@@ -3,4 +3,5 @@
 /// <summary>
 /// Ответ студента на вопрос тестирования.
 /// </summary>
-public sealed record SubmitAnswerCommand(long QuestionId, string Answer);
+public sealed record SubmitAnswerCommand(Guid QuestionId, string Answer);
+

@@ -8,8 +8,8 @@ namespace Education.Infrastructure.TaskFiles;
 internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskFilesRepository
 {
     public Task<bool> IsTaskAssignedToStudentAsync(
-        long taskId,
-        long studentUserId,
+        Guid taskId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         return context.Cases.AnyAsync(
@@ -19,8 +19,8 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public Task<bool> IsTaskOwnedByTeacherAsync(
-        long taskId,
-        long teacherUserId,
+        Guid taskId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default)
     {
         return context.Cases.AnyAsync(
@@ -29,8 +29,8 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public Task<bool> IsPracticalOwnedByTeacherAsync(
-        long practicalId,
-        long teacherUserId,
+        Guid practicalId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default)
     {
         return context.PracticalMaterials.AnyAsync(
@@ -39,8 +39,8 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public Task<bool> IsTaskFileOwnedByTeacherAsync(
-        long taskFileId,
-        long teacherUserId,
+        Guid taskFileId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default)
     {
         return context.CaseFiles.AnyAsync(
@@ -49,8 +49,8 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public Task<CaseFile?> GetStudentTaskFileAsync(
-        long taskId,
-        long studentUserId,
+        Guid taskId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         return IncludeDetails(context.CaseFiles.AsNoTracking())
@@ -58,7 +58,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public async Task<IReadOnlyList<CaseFile>> GetTeacherTaskFilesAsync(
-        long taskId,
+        Guid taskId,
         CancellationToken cancellationToken = default)
     {
         return await IncludeDetails(context.CaseFiles.AsNoTracking())
@@ -67,7 +67,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public async Task<IReadOnlyList<CaseFile>> GetTeacherPracticalTaskFilesAsync(
-        long practicalId,
+        Guid practicalId,
         CancellationToken cancellationToken = default)
     {
         return await IncludeDetails(context.CaseFiles.AsNoTracking())
@@ -76,8 +76,8 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public async Task<TaskFileSaveResult> SaveStudentTaskFileAsync(
-        long taskId,
-        long studentUserId,
+        Guid taskId,
+        Guid studentUserId,
         string storageKey,
         string originalFileName,
         CancellationToken cancellationToken = default)
@@ -115,7 +115,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
     }
 
     public async Task<CaseFileComment> AddTeacherCommentAsync(
-        long taskFileId,
+        Guid taskFileId,
         string comment,
         CancellationToken cancellationToken = default)
     {
@@ -126,7 +126,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
         return taskFileComment;
     }
 
-    public async Task AcceptTaskFileAsync(long taskFileId, int grade, CancellationToken cancellationToken = default)
+    public async Task AcceptTaskFileAsync(Guid taskFileId, int grade, CancellationToken cancellationToken = default)
     {
         var taskFile = await context.CaseFiles.FirstOrDefaultAsync(file => file.Id == taskFileId, cancellationToken);
         taskFile?.Accept(grade);
@@ -141,3 +141,5 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             .Include(file => file.Case);
     }
 }
+
+

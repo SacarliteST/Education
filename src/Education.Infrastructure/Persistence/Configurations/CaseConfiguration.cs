@@ -19,3 +19,5 @@ internal sealed class CaseConfiguration : IEntityTypeConfiguration<Case>
             .HasForeignKey(task => task.PracticalMaterialId);
     }
 }
+
+

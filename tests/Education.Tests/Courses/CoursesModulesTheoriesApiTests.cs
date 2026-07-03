@@ -25,7 +25,7 @@ public sealed class CoursesModulesTheoriesApiTests : IClassFixture<TestWebApplic
         var courses = await client.GetFromJsonAsync<IReadOnlyList<CourseResponse>>('/' + ApiRoutes.Courses.TeacherCourses);
 
         var course = Assert.Single(courses!);
-        Assert.Equal(1, course.Id);
+        Assert.Equal(factory.Seed.OwnCourseId, course.Id);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class CoursesModulesTheoriesApiTests : IClassFixture<TestWebApplic
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Teacher);
 
-        var response = await client.DeleteAsync('/' + ApiRoutes.Courses.ForCourse(2));
+        var response = await client.DeleteAsync('/' + ApiRoutes.Courses.ForCourse(factory.Seed.OtherCourseId));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -48,7 +48,7 @@ public sealed class CoursesModulesTheoriesApiTests : IClassFixture<TestWebApplic
         var courses = await client.GetFromJsonAsync<IReadOnlyList<CourseResponse>>('/' + ApiRoutes.Courses.StudentCourses);
 
         var course = Assert.Single(courses!);
-        Assert.Equal(1, course.Id);
+        Assert.Equal(factory.Seed.OwnCourseId, course.Id);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class CoursesModulesTheoriesApiTests : IClassFixture<TestWebApplic
     {
         var client = factory.CreateClient();
 
-        var response = await client.GetAsync('/' + ApiRoutes.Courses.ForCourseModules(1));
+        var response = await client.GetAsync('/' + ApiRoutes.Courses.ForCourseModules(factory.Seed.OwnCourseId));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -66,7 +66,7 @@ public sealed class CoursesModulesTheoriesApiTests : IClassFixture<TestWebApplic
     {
         var client = factory.CreateClient();
 
-        var response = await client.GetAsync('/' + ApiRoutes.Theories.ForTheory(1));
+        var response = await client.GetAsync('/' + ApiRoutes.Theories.ForTheory(Guid.NewGuid()));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

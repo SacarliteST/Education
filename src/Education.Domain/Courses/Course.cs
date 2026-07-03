@@ -8,7 +8,7 @@ public sealed class Course : Entity
     public string Name { get; private set; } = String.Empty;
     public string Description { get; private set; } = String.Empty;
     public DateTimeOffset Date { get; private set; }
-    public long UserId { get; private set; }
+    public Guid UserId { get; private set; }
     public User User { get; private set; } = null!;
     public List<Module> Modules { get; private set; } = [];
     public List<CourseBindUser> CourseBindUsers { get; private set; } = [];
@@ -17,7 +17,7 @@ public sealed class Course : Entity
     {
     }
 
-    public Course(string name, string description, DateTimeOffset date, long userId)
+    public Course(string name, string description, DateTimeOffset date, Guid userId)
     {
         Name = name;
         Description = description;
@@ -25,3 +25,4 @@ public sealed class Course : Entity
         UserId = userId;
     }
 }
+

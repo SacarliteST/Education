@@ -11,3 +11,4 @@ public sealed class FileAccessDeniedException(string storageKey)
     /// </summary>
     public string StorageKey { get; } = storageKey;
 }
+

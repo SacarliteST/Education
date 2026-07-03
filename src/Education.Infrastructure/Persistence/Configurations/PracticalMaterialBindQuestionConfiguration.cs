@@ -21,3 +21,5 @@ internal sealed class PracticalMaterialBindQuestionConfiguration : IEntityTypeCo
             .HasForeignKey(bind => bind.PracticalMaterialId);
     }
 }
+
+

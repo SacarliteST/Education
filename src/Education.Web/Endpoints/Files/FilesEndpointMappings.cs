@@ -3,3 +3,4 @@
 internal static class FilesEndpointMappings
 {
 }
+

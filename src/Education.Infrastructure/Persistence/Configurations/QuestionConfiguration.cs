@@ -21,3 +21,5 @@ internal sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
         builder.HasOne(question => question.Module).WithMany(module => module.Questions).HasForeignKey(question => question.ModuleId);
     }
 }
+
+

@@ -11,7 +11,7 @@ public sealed class User : Entity
     public string FirstName { get; private set; } = String.Empty;
     public string LastName { get; private set; } = String.Empty;
     public string MiddleName { get; private set; } = String.Empty;
-    public long RoleId { get; private set; }
+    public Guid RoleId { get; private set; }
     public Role Role { get; private set; } = null!;
     public List<Course> Courses { get; private set; } = [];
     public List<CaseFile> CaseFiles { get; private set; } = [];
@@ -22,7 +22,7 @@ public sealed class User : Entity
     {
     }
 
-    public User(string login, string firstName, string lastName, string middleName, long roleId)
+    public User(string login, string firstName, string lastName, string middleName, Guid roleId)
     {
         Login = login;
         FirstName = firstName;
@@ -30,4 +30,18 @@ public sealed class User : Entity
         MiddleName = middleName;
         RoleId = roleId;
     }
+
+    public static User CreateLegacyProfile(string login, string firstName, string lastName, string middleName)
+    {
+        return new User(login, firstName, lastName, middleName, RoleIds.Student);
+    }
+
+    public void UpdateDisplayName(string login, string firstName, string lastName, string middleName)
+    {
+        Login = login;
+        FirstName = firstName;
+        LastName = lastName;
+        MiddleName = middleName;
+    }
 }
+

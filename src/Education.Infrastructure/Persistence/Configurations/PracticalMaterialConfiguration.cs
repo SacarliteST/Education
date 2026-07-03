@@ -23,3 +23,5 @@ internal sealed class PracticalMaterialConfiguration : IEntityTypeConfiguration<
             .HasForeignKey(practical => practical.ModuleId);
     }
 }
+
+

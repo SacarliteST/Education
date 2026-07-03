@@ -13,9 +13,11 @@ internal sealed class QuestionTypeConfiguration : IEntityTypeConfiguration<Quest
         builder.Property(questionType => questionType.Id).HasColumnName("id");
         builder.Property(questionType => questionType.Name).HasColumnName("qt_name").IsRequired();
         builder.HasData(
-            new QuestionType(1, "Вопрос с одним ответом"),
-            new QuestionType(2, "Вопрос с несколькими ответами"),
-            new QuestionType(3, "Вопрос с соотнесением"),
-            new QuestionType(4, "Вопрос с вводом ответа"));
+            new QuestionType(QuestionTypeIds.SingleChoice, "Вопрос с одним ответом"),
+            new QuestionType(QuestionTypeIds.MultipleChoice, "Вопрос с несколькими ответами"),
+            new QuestionType(QuestionTypeIds.Match, "Вопрос с соотнесением"),
+            new QuestionType(QuestionTypeIds.ShortAnswer, "Вопрос с вводом ответа"));
     }
 }
+
+

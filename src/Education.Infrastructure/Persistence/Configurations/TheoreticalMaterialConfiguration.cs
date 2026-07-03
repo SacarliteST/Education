@@ -19,3 +19,5 @@ internal sealed class TheoreticalMaterialConfiguration : IEntityTypeConfiguratio
             .HasForeignKey(theory => theory.ModuleId);
     }
 }
+
+

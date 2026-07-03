@@ -11,3 +11,4 @@ public sealed record TestProtocol(
     double? Score,
     double? MaxScore,
     int Grade);
+

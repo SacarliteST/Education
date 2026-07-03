@@ -13,8 +13,10 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(role => role.Id).HasColumnName("id");
         builder.Property(role => role.Name).HasColumnName("r_name").IsRequired();
         builder.HasData(
-            new Role(1, "Администратор"),
-            new Role(2, "Преподаватель"),
-            new Role(3, "Студент"));
+            new Role(RoleIds.Admin, "Администратор"),
+            new Role(RoleIds.Teacher, "Преподаватель"),
+            new Role(RoleIds.Student, "Студент"));
     }
 }
+
+

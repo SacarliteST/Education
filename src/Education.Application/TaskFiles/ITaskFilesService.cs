@@ -10,17 +10,17 @@ public interface ITaskFilesService
     /// <summary>
     /// Возвращает файл сдачи текущего студента по заданию.
     /// </summary>
-    Task<CaseFile?> GetStudentTaskFileAsync(long taskId, CancellationToken cancellationToken = default);
+    Task<CaseFile?> GetStudentTaskFileAsync(Guid taskId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает файлы сдачи задания для текущего преподавателя.
     /// </summary>
-    Task<IReadOnlyList<CaseFile>> GetTeacherTaskFilesAsync(long taskId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CaseFile>> GetTeacherTaskFilesAsync(Guid taskId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает файлы сдачи практического материала для текущего преподавателя.
     /// </summary>
-    Task<IReadOnlyList<CaseFile>> GetTeacherPracticalTaskFilesAsync(long practicalId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CaseFile>> GetTeacherPracticalTaskFilesAsync(Guid practicalId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Загружает или заменяет файл сдачи текущего студента.
@@ -37,3 +37,4 @@ public interface ITaskFilesService
     /// </summary>
     Task AcceptTaskFileAsync(AcceptTaskFileCommand command, CancellationToken cancellationToken = default);
 }
+

@@ -8,7 +8,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
 {
     public Task<StoredFileInfo?> GetStudentTaskFileAsync(
         string storageKey,
-        long studentUserId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         return context.CaseFiles
@@ -20,7 +20,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
 
     public Task<StoredFileInfo?> GetTeacherTaskFileAsync(
         string storageKey,
-        long teacherUserId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default)
     {
         return context.CaseFiles
@@ -32,7 +32,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
 
     public Task<StoredFileInfo?> GetStudentTheoryDocumentAsync(
         string storageKey,
-        long studentUserId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
         return context.TheoreticalMaterialFiles
@@ -45,7 +45,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
 
     public Task<StoredFileInfo?> GetTeacherTheoryDocumentAsync(
         string storageKey,
-        long teacherUserId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default)
     {
         return context.TheoreticalMaterialFiles
@@ -55,3 +55,5 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
             .FirstOrDefaultAsync(cancellationToken);
     }
 }
+
+

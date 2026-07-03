@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Education.Infrastructure.Questions;
 
 internal sealed class EfQuestionsRepository(EducationDbContext context)
-    : RepositoryBase<Question, long>(context), IQuestionsRepository
+    : RepositoryBase<Question, Guid>(context), IQuestionsRepository
 {
-    public override Task<Question?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public override Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Questions.FirstOrDefaultAsync(question => question.Id == id, cancellationToken);
     }
 
-    public Task<bool> IsQuestionOwnerAsync(long questionId, long teacherUserId, CancellationToken cancellationToken = default)
+    public Task<bool> IsQuestionOwnerAsync(Guid questionId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Questions.AnyAsync(
             question => question.Id == questionId && question.Module.Course.UserId == teacherUserId,
@@ -21,7 +21,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
     }
 
     public async Task<IReadOnlyList<Question>> GetQuestionsAsync(
-        long moduleId,
+        Guid moduleId,
         CancellationToken cancellationToken = default)
     {
         return await DatabaseContext.Questions
@@ -49,7 +49,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
     }
 
     public async Task UpdateQuestionAsync(
-        long questionId,
+        Guid questionId,
         UpdateQuestionCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -60,10 +60,12 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteQuestionAsync(long questionId, CancellationToken cancellationToken = default)
+    public async Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Questions
             .Where(question => question.Id == questionId)
             .ExecuteDeleteAsync(cancellationToken);
     }
 }
+
+

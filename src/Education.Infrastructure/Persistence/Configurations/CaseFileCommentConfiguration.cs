@@ -19,3 +19,5 @@ internal sealed class CaseFileCommentConfiguration : IEntityTypeConfiguration<Ca
             .HasForeignKey(comment => comment.CaseFileId);
     }
 }
+
+

@@ -19,3 +19,4 @@ internal sealed class CreateCourseRequestValidator : AbstractValidator<CreateCou
             .NotEmpty();
     }
 }
+

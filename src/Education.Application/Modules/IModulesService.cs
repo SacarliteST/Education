@@ -11,7 +11,7 @@ public interface IModulesService
     /// <summary>
     /// Возвращает модули указанного курса.
     /// </summary>
-    Task<IReadOnlyList<Module>> GetModulesAsync(long courseId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Module>> GetModulesAsync(Guid courseId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт модуль в курсе текущего преподавателя.
@@ -21,10 +21,11 @@ public interface IModulesService
     /// <summary>
     /// Удаляет модуль из курса текущего преподавателя.
     /// </summary>
-    Task DeleteModuleAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает теоретические материалы указанного модуля.
     /// </summary>
-    Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(Guid moduleId, CancellationToken cancellationToken = default);
 }
+

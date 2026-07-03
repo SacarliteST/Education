@@ -8,19 +8,19 @@ namespace Education.Web.Endpoints;
 
 internal static class TaskFilesEndpointMappings
 {
-    public static UploadTaskFileCommand ToCommand(this IFormFile file, long taskId, Stream content)
+    public static UploadTaskFileCommand ToCommand(this IFormFile file, Guid taskId, Stream content)
     {
         return new UploadTaskFileCommand(
             taskId,
             new UploadFile(file.FileName, file.ContentType, file.Length, content));
     }
 
-    public static AddTaskFileCommentCommand ToCommand(this AddTaskFileCommentRequest request, long taskFileId)
+    public static AddTaskFileCommentCommand ToCommand(this AddTaskFileCommentRequest request, Guid taskFileId)
     {
         return new AddTaskFileCommentCommand(taskFileId, request.Comment);
     }
 
-    public static AcceptTaskFileCommand ToCommand(this AcceptTaskFileRequest request, long taskFileId)
+    public static AcceptTaskFileCommand ToCommand(this AcceptTaskFileRequest request, Guid taskFileId)
     {
         return new AcceptTaskFileCommand(taskFileId, request.Grade);
     }
@@ -56,3 +56,4 @@ internal static class TaskFilesEndpointMappings
             new[] { user.LastName, user.FirstName, user.MiddleName }.Where(part => !String.IsNullOrWhiteSpace(part)));
     }
 }
+

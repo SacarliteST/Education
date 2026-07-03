@@ -22,3 +22,5 @@ internal sealed class AnswerConfiguration : IEntityTypeConfiguration<Answer>
             .HasForeignKey(answer => answer.TestResultId);
     }
 }
+
+

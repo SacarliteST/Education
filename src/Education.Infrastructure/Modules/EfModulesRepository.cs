@@ -7,14 +7,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Education.Infrastructure.Modules;
 
 internal sealed class EfModulesRepository(EducationDbContext context)
-    : RepositoryBase<Module, long>(context), IModulesRepository
+    : RepositoryBase<Module, Guid>(context), IModulesRepository
 {
-    public override Task<Module?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public override Task<Module?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Modules.FirstOrDefaultAsync(module => module.Id == id, cancellationToken);
     }
 
-    public Task<bool> IsModuleOwnerAsync(long moduleId, long teacherUserId, CancellationToken cancellationToken = default)
+    public Task<bool> IsModuleOwnerAsync(Guid moduleId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Modules.AnyAsync(
             module => module.Id == moduleId && module.Course.UserId == teacherUserId,
@@ -22,7 +22,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
     }
 
     public async Task<IReadOnlyList<Module>> GetModulesAsync(
-        long courseId,
+        Guid courseId,
         CancellationToken cancellationToken = default)
     {
         return await DatabaseContext.Modules
@@ -42,7 +42,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
         return module;
     }
 
-    public async Task DeleteModuleAsync(long moduleId, CancellationToken cancellationToken = default)
+    public async Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Modules
             .Where(module => module.Id == moduleId)
@@ -50,7 +50,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
     }
 
     public async Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(
-        long moduleId,
+        Guid moduleId,
         CancellationToken cancellationToken = default)
     {
         return await DatabaseContext.TheoreticalMaterials
@@ -59,3 +59,5 @@ internal sealed class EfModulesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 }
+
+

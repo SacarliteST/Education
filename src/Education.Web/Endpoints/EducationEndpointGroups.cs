@@ -1,9 +1,10 @@
 ﻿namespace Education.Web.Endpoints;
 
-public static class EducationEndpointGroups
+internal static class EducationEndpointGroups
 {
     public static IEndpointRouteBuilder MapEducationEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapAdminProfilesEndpointGroup();
         app.MapCoursesEndpointGroup();
         app.MapModulesEndpointGroup();
         app.MapPracticalsEndpointGroup();
@@ -17,3 +18,4 @@ public static class EducationEndpointGroups
         return app;
     }
 }
+

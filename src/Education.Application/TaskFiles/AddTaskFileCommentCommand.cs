@@ -5,4 +5,5 @@
 /// </summary>
 /// <param name="TaskFileId">Идентификатор файла сдачи.</param>
 /// <param name="Comment">Текст комментария.</param>
-public sealed record AddTaskFileCommentCommand(long TaskFileId, string Comment);
+public sealed record AddTaskFileCommentCommand(Guid TaskFileId, string Comment);
+

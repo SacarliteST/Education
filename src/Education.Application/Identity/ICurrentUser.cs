@@ -30,3 +30,4 @@ public interface ICurrentUser
     /// </summary>
     bool IsAuthenticated { get; }
 }
+

@@ -19,3 +19,5 @@ internal sealed class TheoreticalMaterialLinkConfiguration : IEntityTypeConfigur
             .HasForeignKey(link => link.TheoreticalMaterialId);
     }
 }
+
+

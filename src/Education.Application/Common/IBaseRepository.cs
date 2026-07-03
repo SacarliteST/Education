@@ -32,3 +32,4 @@ public interface IBaseRepository<TEntity, TKey>
     /// </summary>
     Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
 }
+

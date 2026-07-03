@@ -5,4 +5,5 @@
 /// </summary>
 /// <param name="CourseId">Идентификатор курса.</param>
 /// <param name="Name">Название модуля.</param>
-public sealed record CreateModuleCommand(long CourseId, string Name);
+public sealed record CreateModuleCommand(Guid CourseId, string Name);
+

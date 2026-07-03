@@ -8,3 +8,4 @@ namespace Education.Application.TaskFiles;
 /// <param name="TaskFile">Файл сдачи после сохранения метаданных.</param>
 /// <param name="ReplacedStorageKey">Ключ файла, который был заменён новой сдачей.</param>
 public sealed record TaskFileSaveResult(CaseFile TaskFile, string? ReplacedStorageKey);
+

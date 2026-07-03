@@ -7,17 +7,17 @@ namespace Education.Application.Modules;
 /// <summary>
 /// Предоставляет операции чтения и записи данных модулей.
 /// </summary>
-public interface IModulesRepository : IBaseRepository<Module, long>
+public interface IModulesRepository : IBaseRepository<Module, Guid>
 {
     /// <summary>
     /// Проверяет, принадлежит ли модуль курсу указанного преподавателя.
     /// </summary>
-    Task<bool> IsModuleOwnerAsync(long moduleId, long teacherUserId, CancellationToken cancellationToken = default);
+    Task<bool> IsModuleOwnerAsync(Guid moduleId, Guid teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает модули указанного курса.
     /// </summary>
-    Task<IReadOnlyList<Module>> GetModulesAsync(long courseId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Module>> GetModulesAsync(Guid courseId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт модуль.
@@ -27,10 +27,11 @@ public interface IModulesRepository : IBaseRepository<Module, long>
     /// <summary>
     /// Удаляет модуль по идентификатору.
     /// </summary>
-    Task DeleteModuleAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает список теоретических материалов указанного модуля.
     /// </summary>
-    Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(Guid moduleId, CancellationToken cancellationToken = default);
 }
+

@@ -3,4 +3,5 @@
 /// <summary>
 /// Команда обновления вопроса тестирования.
 /// </summary>
-public sealed record UpdateQuestionCommand(string Text, string Body, string Answer, double Weight, long Type);
+public sealed record UpdateQuestionCommand(string Text, string Body, string Answer, double Weight, Guid Type);
+

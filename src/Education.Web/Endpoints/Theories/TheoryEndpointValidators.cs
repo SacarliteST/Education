@@ -8,7 +8,7 @@ internal sealed class CreateTheoryRequestValidator : AbstractValidator<CreateThe
     public CreateTheoryRequestValidator()
     {
         RuleFor(request => request.ModuleId)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(request => request.Name)
             .NotEmpty()
@@ -40,7 +40,7 @@ internal sealed class CreateTheoryDocumentRequestValidator : AbstractValidator<C
     public CreateTheoryDocumentRequestValidator()
     {
         RuleFor(request => request.TheoryMaterialId)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(request => request.Description)
             .NotEmpty()
@@ -53,7 +53,7 @@ internal sealed class CreateTheoryLinkRequestValidator : AbstractValidator<Creat
     public CreateTheoryLinkRequestValidator()
     {
         RuleFor(request => request.TheoryMaterialId)
-            .GreaterThan(0);
+            .NotEmpty();
 
         RuleFor(request => request.Link)
             .NotEmpty()
@@ -64,3 +64,4 @@ internal sealed class CreateTheoryLinkRequestValidator : AbstractValidator<Creat
             .MaximumLength(1000);
     }
 }
+

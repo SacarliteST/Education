@@ -10,7 +10,7 @@ public interface IFileAccessRepository
     /// </summary>
     Task<StoredFileInfo?> GetStudentTaskFileAsync(
         string storageKey,
-        long studentUserId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -18,7 +18,7 @@ public interface IFileAccessRepository
     /// </summary>
     Task<StoredFileInfo?> GetTeacherTaskFileAsync(
         string storageKey,
-        long teacherUserId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -26,7 +26,7 @@ public interface IFileAccessRepository
     /// </summary>
     Task<StoredFileInfo?> GetStudentTheoryDocumentAsync(
         string storageKey,
-        long studentUserId,
+        Guid studentUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -34,6 +34,7 @@ public interface IFileAccessRepository
     /// </summary>
     Task<StoredFileInfo?> GetTeacherTheoryDocumentAsync(
         string storageKey,
-        long teacherUserId,
+        Guid teacherUserId,
         CancellationToken cancellationToken = default);
 }
+

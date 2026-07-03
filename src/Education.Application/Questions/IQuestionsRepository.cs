@@ -6,17 +6,17 @@ namespace Education.Application.Questions;
 /// <summary>
 /// Предоставляет операции чтения и записи вопросов тестирования.
 /// </summary>
-public interface IQuestionsRepository : IBaseRepository<Question, long>
+public interface IQuestionsRepository : IBaseRepository<Question, Guid>
 {
     /// <summary>
     /// Проверяет, принадлежит ли вопрос курсу указанного преподавателя.
     /// </summary>
-    Task<bool> IsQuestionOwnerAsync(long questionId, long teacherUserId, CancellationToken cancellationToken = default);
+    Task<bool> IsQuestionOwnerAsync(Guid questionId, Guid teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает вопросы модуля.
     /// </summary>
-    Task<IReadOnlyList<Question>> GetQuestionsAsync(long moduleId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Question>> GetQuestionsAsync(Guid moduleId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Создаёт вопрос.
@@ -26,10 +26,11 @@ public interface IQuestionsRepository : IBaseRepository<Question, long>
     /// <summary>
     /// Обновляет вопрос.
     /// </summary>
-    Task UpdateQuestionAsync(long questionId, UpdateQuestionCommand command, CancellationToken cancellationToken = default);
+    Task UpdateQuestionAsync(Guid questionId, UpdateQuestionCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Удаляет вопрос.
     /// </summary>
-    Task DeleteQuestionAsync(long questionId, CancellationToken cancellationToken = default);
+    Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default);
 }
+
