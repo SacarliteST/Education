@@ -9,14 +9,19 @@ internal sealed class CreateCourseRequestValidator : AbstractValidator<CreateCou
     {
         RuleFor(request => request.Name)
             .NotEmpty()
-            .MaximumLength(200);
+            .WithMessage("Название курса обязательно.")
+            .MaximumLength(200)
+            .WithMessage("Название курса не должно превышать 200 символов.");
 
         RuleFor(request => request.Description)
             .NotEmpty()
-            .MaximumLength(4000);
+            .WithMessage("Описание курса обязательно.")
+            .MaximumLength(4000)
+            .WithMessage("Описание курса не должно превышать 4000 символов.");
 
         RuleFor(request => request.Date)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Дата курса обязательна.");
     }
 }
 

@@ -9,7 +9,9 @@ internal sealed class SubmitTestRequestValidator : AbstractValidator<SubmitTestR
     {
         RuleFor(request => request.Answers)
             .NotNull()
-            .NotEmpty();
+            .WithMessage("Список ответов обязателен.")
+            .NotEmpty()
+            .WithMessage("Список ответов не должен быть пустым.");
 
         RuleForEach(request => request.Answers)
             .SetValidator(new SubmitAnswerRequestValidator());
@@ -21,10 +23,12 @@ internal sealed class SubmitAnswerRequestValidator : AbstractValidator<SubmitAns
     public SubmitAnswerRequestValidator()
     {
         RuleFor(request => request.Id)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Идентификатор вопроса обязателен.");
 
         RuleFor(request => request.Answer)
-            .NotNull();
+            .NotNull()
+            .WithMessage("Ответ обязателен.");
     }
 }
 

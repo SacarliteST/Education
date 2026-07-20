@@ -7,12 +7,29 @@ internal sealed class CreateQuestionRequestValidator : AbstractValidator<CreateQ
 {
     public CreateQuestionRequestValidator()
     {
-        RuleFor(request => request.ModuleId).NotEmpty();
-        RuleFor(request => request.Type).NotEmpty();
-        RuleFor(request => request.Text).NotEmpty();
-        RuleFor(request => request.Body).NotEmpty();
-        RuleFor(request => request.Answer).NotEmpty();
-        RuleFor(request => request.Weight).GreaterThan(0);
+        RuleFor(request => request.ModuleId)
+            .NotEmpty()
+            .WithMessage("Идентификатор модуля обязателен.");
+
+        RuleFor(request => request.Type)
+            .NotEmpty()
+            .WithMessage("Тип вопроса обязателен.");
+
+        RuleFor(request => request.Text)
+            .NotEmpty()
+            .WithMessage("Текст вопроса обязателен.");
+
+        RuleFor(request => request.Body)
+            .NotEmpty()
+            .WithMessage("Тело вопроса обязательно.");
+
+        RuleFor(request => request.Answer)
+            .NotEmpty()
+            .WithMessage("Правильный ответ обязателен.");
+
+        RuleFor(request => request.Weight)
+            .GreaterThan(0)
+            .WithMessage("Вес вопроса должен быть больше 0.");
     }
 }
 
@@ -20,11 +37,25 @@ internal sealed class UpdateQuestionRequestValidator : AbstractValidator<UpdateQ
 {
     public UpdateQuestionRequestValidator()
     {
-        RuleFor(request => request.Type).NotEmpty();
-        RuleFor(request => request.Text).NotEmpty();
-        RuleFor(request => request.Body).NotEmpty();
-        RuleFor(request => request.Answer).NotEmpty();
-        RuleFor(request => request.Weight).GreaterThan(0);
+        RuleFor(request => request.Type)
+            .NotEmpty()
+            .WithMessage("Тип вопроса обязателен.");
+
+        RuleFor(request => request.Text)
+            .NotEmpty()
+            .WithMessage("Текст вопроса обязателен.");
+
+        RuleFor(request => request.Body)
+            .NotEmpty()
+            .WithMessage("Тело вопроса обязательно.");
+
+        RuleFor(request => request.Answer)
+            .NotEmpty()
+            .WithMessage("Правильный ответ обязателен.");
+
+        RuleFor(request => request.Weight)
+            .GreaterThan(0)
+            .WithMessage("Вес вопроса должен быть больше 0.");
     }
 }
 

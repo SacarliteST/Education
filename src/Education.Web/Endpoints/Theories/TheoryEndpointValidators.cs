@@ -8,11 +8,14 @@ internal sealed class CreateTheoryRequestValidator : AbstractValidator<CreateThe
     public CreateTheoryRequestValidator()
     {
         RuleFor(request => request.ModuleId)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Идентификатор модуля обязателен.");
 
         RuleFor(request => request.Name)
             .NotEmpty()
-            .MaximumLength(200);
+            .WithMessage("Название теоретического материала обязательно.")
+            .MaximumLength(200)
+            .WithMessage("Название теоретического материала не должно превышать 200 символов.");
     }
 }
 
@@ -22,7 +25,9 @@ internal sealed class UpdateTheoryTitleRequestValidator : AbstractValidator<Upda
     {
         RuleFor(request => request.Title)
             .NotEmpty()
-            .MaximumLength(200);
+            .WithMessage("Заголовок теоретического материала обязателен.")
+            .MaximumLength(200)
+            .WithMessage("Заголовок теоретического материала не должен превышать 200 символов.");
     }
 }
 
@@ -31,7 +36,8 @@ internal sealed class UpdateTheoryTextRequestValidator : AbstractValidator<Updat
     public UpdateTheoryTextRequestValidator()
     {
         RuleFor(request => request.Text)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Текст теоретического материала обязателен.");
     }
 }
 
@@ -40,11 +46,14 @@ internal sealed class CreateTheoryDocumentRequestValidator : AbstractValidator<C
     public CreateTheoryDocumentRequestValidator()
     {
         RuleFor(request => request.TheoryMaterialId)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Идентификатор теоретического материала обязателен.");
 
         RuleFor(request => request.Description)
             .NotEmpty()
-            .MaximumLength(1000);
+            .WithMessage("Описание документа обязательно.")
+            .MaximumLength(1000)
+            .WithMessage("Описание документа не должно превышать 1000 символов.");
     }
 }
 
@@ -53,15 +62,20 @@ internal sealed class CreateTheoryLinkRequestValidator : AbstractValidator<Creat
     public CreateTheoryLinkRequestValidator()
     {
         RuleFor(request => request.TheoryMaterialId)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Идентификатор теоретического материала обязателен.");
 
         RuleFor(request => request.Link)
             .NotEmpty()
-            .MaximumLength(2048);
+            .WithMessage("Ссылка обязательна.")
+            .MaximumLength(2048)
+            .WithMessage("Ссылка не должна превышать 2048 символов.");
 
         RuleFor(request => request.Description)
             .NotEmpty()
-            .MaximumLength(1000);
+            .WithMessage("Описание ссылки обязательно.")
+            .MaximumLength(1000)
+            .WithMessage("Описание ссылки не должно превышать 1000 символов.");
     }
 }
 

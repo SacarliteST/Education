@@ -8,22 +8,30 @@ internal sealed class CreateAdminProfileRequestValidator : AbstractValidator<Cre
     public CreateAdminProfileRequestValidator()
     {
         RuleFor(request => request.IdentityUserId)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Идентификатор пользователя Identity обязателен.");
 
         RuleFor(request => request.Login)
             .NotEmpty()
-            .MaximumLength(256);
+            .WithMessage("Логин обязателен.")
+            .MaximumLength(256)
+            .WithMessage("Логин не должен превышать 256 символов.");
 
         RuleFor(request => request.FirstName)
             .NotEmpty()
-            .MaximumLength(256);
+            .WithMessage("Имя обязательно.")
+            .MaximumLength(256)
+            .WithMessage("Имя не должно превышать 256 символов.");
 
         RuleFor(request => request.LastName)
             .NotEmpty()
-            .MaximumLength(256);
+            .WithMessage("Фамилия обязательна.")
+            .MaximumLength(256)
+            .WithMessage("Фамилия не должна превышать 256 символов.");
 
         RuleFor(request => request.MiddleName)
-            .MaximumLength(256);
+            .MaximumLength(256)
+            .WithMessage("Отчество не должно превышать 256 символов.");
     }
 }
 
@@ -33,18 +41,25 @@ internal sealed class UpdateAdminProfileRequestValidator : AbstractValidator<Upd
     {
         RuleFor(request => request.Login)
             .NotEmpty()
-            .MaximumLength(256);
+            .WithMessage("Логин обязателен.")
+            .MaximumLength(256)
+            .WithMessage("Логин не должен превышать 256 символов.");
 
         RuleFor(request => request.FirstName)
             .NotEmpty()
-            .MaximumLength(256);
+            .WithMessage("Имя обязательно.")
+            .MaximumLength(256)
+            .WithMessage("Имя не должно превышать 256 символов.");
 
         RuleFor(request => request.LastName)
             .NotEmpty()
-            .MaximumLength(256);
+            .WithMessage("Фамилия обязательна.")
+            .MaximumLength(256)
+            .WithMessage("Фамилия не должна превышать 256 символов.");
 
         RuleFor(request => request.MiddleName)
-            .MaximumLength(256);
+            .MaximumLength(256)
+            .WithMessage("Отчество не должно превышать 256 символов.");
     }
 }
 
