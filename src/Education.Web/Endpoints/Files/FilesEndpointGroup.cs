@@ -24,6 +24,7 @@ internal static class FilesEndpointGroup
             .WithSummary("Скачивание файла")
             .WithDescription("Возвращает файл из хранилища по ключу, если текущий пользователь имеет к нему доступ.")
             .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)

@@ -4,6 +4,7 @@ using Education.Contracts;
 using Education.Contracts.TestResults;
 using Education.Tests.Auth;
 using Education.Web.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Education.Tests.Practicals;
 
@@ -68,8 +69,10 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         client.AuthenticateAs(EducationRoles.Student);
 
         var response = await client.PutAsync('/' + ApiRoutes.TestResults.ForStart(factory.Seed.LimitedPracticalId), null);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("Лимит попыток прохождения теста исчерпан.", problem!.Detail);
     }
 
     [Fact]

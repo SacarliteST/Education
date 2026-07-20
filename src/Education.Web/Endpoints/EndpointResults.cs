@@ -7,6 +7,8 @@ namespace Education.Web.Endpoints;
 
 internal static class EndpointResults
 {
+    private const string BadRequestTitle = "Некорректный запрос.";
+
     public static async Task<IResult?> ValidateAsync<TRequest>(
         IValidator<TRequest> validator,
         TRequest request,
@@ -40,7 +42,7 @@ internal static class EndpointResults
         }
         catch (FileStorageValidationException exception)
         {
-            return Results.BadRequest(exception.Message);
+            return BadRequestProblem(exception.Message);
         }
     }
 
@@ -56,7 +58,7 @@ internal static class EndpointResults
         }
         catch (FileStorageValidationException exception)
         {
-            return Results.BadRequest(exception.Message);
+            return BadRequestProblem(exception.Message);
         }
     }
 
@@ -72,15 +74,15 @@ internal static class EndpointResults
         }
         catch (TestAttemptLimitExceededException)
         {
-            return Results.BadRequest();
+            return BadRequestProblem("Лимит попыток прохождения теста исчерпан.");
         }
         catch (TestAttemptNotFoundException)
         {
-            return Results.BadRequest();
+            return BadRequestProblem("Активная попытка прохождения теста не найдена.");
         }
         catch (FileStorageValidationException exception)
         {
-            return Results.BadRequest(exception.Message);
+            return BadRequestProblem(exception.Message);
         }
     }
 
@@ -92,12 +94,20 @@ internal static class EndpointResults
         }
         catch (FileStorageValidationException exception)
         {
-            return Results.BadRequest(exception.Message);
+            return BadRequestProblem(exception.Message);
         }
         catch (FileAccessDeniedException)
         {
             return Results.Forbid();
         }
+    }
+
+    private static IResult BadRequestProblem(string detail)
+    {
+        return Results.Problem(
+            title: BadRequestTitle,
+            detail: detail,
+            statusCode: StatusCodes.Status400BadRequest);
     }
 }
 

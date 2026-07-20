@@ -48,6 +48,7 @@ internal static class TaskFilesEndpointGroup
             .WithDescription("Загружает или заменяет файл решения текущего студента по задаче.")
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<TaskFileResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);
