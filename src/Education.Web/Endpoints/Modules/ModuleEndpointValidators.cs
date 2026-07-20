@@ -8,11 +8,14 @@ internal sealed class CreateModuleRequestValidator : AbstractValidator<CreateMod
     public CreateModuleRequestValidator()
     {
         RuleFor(request => request.CourseId)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("Идентификатор курса обязателен.");
 
         RuleFor(request => request.Name)
             .NotEmpty()
-            .MaximumLength(200);
+            .WithMessage("Название модуля обязательно.")
+            .MaximumLength(200)
+            .WithMessage("Название модуля не должно превышать 200 символов.");
     }
 }
 

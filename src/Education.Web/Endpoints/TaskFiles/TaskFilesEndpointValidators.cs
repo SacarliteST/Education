@@ -9,7 +9,9 @@ internal sealed class AddTaskFileCommentRequestValidator : AbstractValidator<Add
     {
         RuleFor(request => request.Comment)
             .NotEmpty()
-            .MaximumLength(1000);
+            .WithMessage("Комментарий обязателен.")
+            .MaximumLength(1000)
+            .WithMessage("Комментарий не должен превышать 1000 символов.");
     }
 }
 
@@ -18,7 +20,8 @@ internal sealed class AcceptTaskFileRequestValidator : AbstractValidator<AcceptT
     public AcceptTaskFileRequestValidator()
     {
         RuleFor(request => request.Grade)
-            .InclusiveBetween(2, 5);
+            .InclusiveBetween(2, 5)
+            .WithMessage("Оценка должна быть от 2 до 5.");
     }
 }
 
