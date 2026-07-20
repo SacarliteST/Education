@@ -100,4 +100,3 @@ dotnet run --project src/Education.Web/Education.Web.csproj
 - Frontend из папки `Frontend` считается временным: его планируется переписывать отдельно.
 - Nullable warning пока не является блокером, если отдельно не договорились иначе.
 - Identity-задачи не смешивать с Education backend: пользователи, пароли и полноценная авторизация должны жить в Identity-сервисе.
-- Папка `Promts` игнорируется git и не должна попадать в коммиты.
