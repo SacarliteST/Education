@@ -4,6 +4,7 @@ using Education.Contracts;
 using Education.Contracts.TaskFiles;
 using Education.Tests.Auth;
 using Education.Web.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Education.Tests.Files;
 
@@ -74,8 +75,10 @@ public sealed class FilesFlowApiTests : IClassFixture<TestWebApplicationFactory>
         client.AuthenticateAs(EducationRoles.Student);
 
         var response = await client.GetAsync("/" + ApiRoutes.PrefixV1 + "/files/..%5Csecret.txt");
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("Некорректный ключ файла.", problem!.Detail);
     }
 
     private static async Task<HttpResponseMessage> UploadTaskFileAsync(

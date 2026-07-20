@@ -191,6 +191,7 @@ internal static class TheoriesEndpointGroup
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<TheoryDocumentResponse>()
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)

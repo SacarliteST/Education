@@ -1,21 +1,10 @@
 ﻿using Education.Domain.Practicals;
 using Education.Domain.Tests;
-using Education.Infrastructure.Persistence;
-using Education.Tests.Auth;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Education.Tests;
 
-public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
+public class DomainRulesTests
 {
-    private readonly TestWebApplicationFactory factory;
-
-    public DomainRulesTests(TestWebApplicationFactory factory)
-    {
-        this.factory = factory;
-    }
-
     [Theory]
     [InlineData(90.0, 100.0, 5)]
     [InlineData(75.0, 100.0, 4)]
@@ -23,11 +12,9 @@ public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
     [InlineData(59.0, 100.0, 2)]
     [InlineData(null, 100.0, 0)]
     [InlineData(10.0, null, 0)]
-    public async Task GradingPolicy_PreservesLegacyThresholds(double? score, double? maxScore, int expectedGrade)
+    public void GradingPolicy_PreservesLegacyThresholds(double? score, double? maxScore, int expectedGrade)
     {
-        using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var practical = await dbContext.PracticalMaterials.SingleAsync(item => item.Id == factory.Seed.SubmitPracticalId);
+        var practical = new PracticalMaterial(Guid.NewGuid(), "Practical");
 
         var grade = practical.CalculateTestGrade(score, maxScore);
 
@@ -35,23 +22,20 @@ public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task PracticalMaterial_ChecksAttemptAvailability()
+    public void PracticalMaterial_ChecksAttemptAvailability()
     {
-        using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var practical = await dbContext.PracticalMaterials
-            .Include(item => item.TestResults)
-            .SingleAsync(item => item.Id == factory.Seed.LimitedPracticalId);
+        var practical = new PracticalMaterial(Guid.NewGuid(), "Practical");
+        var result = new TestResult(Guid.NewGuid(), practical.Id, 1);
+        result.Complete(1, 1, DateTime.UtcNow);
+        practical.TestResults.Add(result);
 
         Assert.False(practical.CanStartAttempt(practical.TestResults.Count(result => result.IsCompleted)));
     }
 
     [Fact]
-    public async Task CaseFile_Accept_AssignsGradeAndLocksReplacement()
+    public void CaseFile_Accept_AssignsGradeAndLocksReplacement()
     {
-        using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var file = await dbContext.CaseFiles.SingleAsync(item => item.Path == "other-student.txt");
+        var file = new CaseFile(Guid.NewGuid(), Guid.NewGuid(), "solution.docx");
 
         file.Accept(5);
 
@@ -61,12 +45,12 @@ public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task TestResult_Complete_StoresScoreAndPreventsSecondCompletion()
+    public void TestResult_Complete_StoresScoreAndPreventsSecondCompletion()
     {
-        using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var result = await dbContext.TestResults.SingleAsync(item => item.PracticalMaterialId == factory.Seed.ProtocolPracticalId);
-        var turnedAt = result.TurnedDate!.Value;
+        var turnedAt = DateTime.UtcNow;
+        var result = new TestResult(Guid.NewGuid(), Guid.NewGuid(), 1);
+
+        result.Complete(1, 1, turnedAt);
 
         Assert.True(result.IsCompleted);
         Assert.Equal(1, result.Score);
@@ -76,13 +60,9 @@ public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task QuestionScoringService_ScoresPersistedSingleChoiceQuestion()
+    public void QuestionScoringService_ScoresSingleChoiceQuestion()
     {
-        using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var question = await dbContext.Questions
-            .Where(item => item.Text == "Submit question")
-            .SingleAsync();
+        var question = CreateSingleChoiceQuestion();
 
         var score = QuestionScoringService.Score(question, "a");
 
@@ -91,17 +71,25 @@ public class DomainRulesTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task QuestionScoringService_ScoresPersistedWrongAnswerAsZero()
+    public void QuestionScoringService_ScoresWrongAnswerAsZero()
     {
-        using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var question = await dbContext.Questions
-            .Where(item => item.Text == "Submit question")
-            .SingleAsync();
+        var question = CreateSingleChoiceQuestion();
 
         var score = QuestionScoringService.Score(question, "b");
 
         Assert.Equal(0, score.QuestionScore);
         Assert.False(score.IsCorrect);
+    }
+
+    private static Question CreateSingleChoiceQuestion()
+    {
+        const string body = """
+            {"answers":[{"id":"a","text":"Right"},{"id":"b","text":"Wrong"}]}
+            """;
+        const string answer = """
+            {"answers":[{"id":"a","text":"Right"},{"id":"b","text":"Wrong"}],"correctAnswerId":"a"}
+            """;
+
+        return new Question(Guid.NewGuid(), QuestionTypeIds.SingleChoice, "Question", body, answer, 1);
     }
 }

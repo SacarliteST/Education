@@ -21,6 +21,7 @@ internal static class TestResultsEndpointGroup
             .WithSummary("Получение статуса теста")
             .WithDescription("Возвращает состояние теста студента по выбранной практике.")
             .Produces<TestStatusResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);
@@ -36,6 +37,7 @@ internal static class TestResultsEndpointGroup
             .WithSummary("Запуск теста")
             .WithDescription("Создаёт новую попытку прохождения теста для текущего студента.")
             .Produces<StartTestResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);
@@ -54,6 +56,7 @@ internal static class TestResultsEndpointGroup
             .WithSummary("Получение вопросов теста")
             .WithDescription("Возвращает вопросы активной попытки тестирования студента.")
             .Produces<TestQuestionsResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
@@ -81,6 +84,7 @@ internal static class TestResultsEndpointGroup
             .WithDescription("Сохраняет ответы студента и завершает попытку тестирования.")
             .Produces<TestProtocolResponse>()
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);
@@ -96,6 +100,7 @@ internal static class TestResultsEndpointGroup
             .WithSummary("Получение протоколов студента")
             .WithDescription("Возвращает протоколы прохождения теста текущим студентом по выбранной практике.")
             .Produces<IEnumerable<TestProtocolSummaryResponse>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.StudentOnly);

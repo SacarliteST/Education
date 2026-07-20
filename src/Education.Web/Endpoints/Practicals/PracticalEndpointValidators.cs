@@ -42,6 +42,14 @@ internal sealed class ConfigurePracticalQuestionsRequestValidator : AbstractVali
         RuleFor(request => request.PercentForThree)
             .InclusiveBetween(0, 100)
             .WithMessage("Процент для оценки 3 должен быть от 0 до 100.");
+
+        RuleFor(request => request)
+            .Must(request => request.PercentForFive >= request.PercentForFour)
+            .WithMessage("Процент для оценки 5 должен быть больше или равен проценту для оценки 4.");
+
+        RuleFor(request => request)
+            .Must(request => request.PercentForFour >= request.PercentForThree)
+            .WithMessage("Процент для оценки 4 должен быть больше или равен проценту для оценки 3.");
     }
 }
 
