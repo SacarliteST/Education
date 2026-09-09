@@ -58,7 +58,8 @@ public sealed class Course : Entity
     {
         Name = name;
         Description = description;
-        Date = date;
+        // PostgreSQL `timestamp with time zone` через Npgsql принимает только UTC-DateTimeOffset.
+        Date = date.ToUniversalTime();
         UserId = userId;
     }
 }

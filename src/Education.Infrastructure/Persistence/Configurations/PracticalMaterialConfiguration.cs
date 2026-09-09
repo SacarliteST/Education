@@ -14,6 +14,12 @@ internal sealed class PracticalMaterialConfiguration : IEntityTypeConfiguration<
         builder.Property(practical => practical.Name).HasColumnName("pm_name").IsRequired();
         builder.Property(practical => practical.ModuleId).HasColumnName("module_id");
         builder.Property(practical => practical.IsPublic).HasColumnName("is_public");
+        builder.Property(practical => practical.Kind)
+            .HasColumnName("kind")
+            .HasConversion(kind => kind.ToWire(), value => PracticalKinds.Parse(value))
+            .IsRequired()
+            .HasMaxLength(20);
+        builder.Property(practical => practical.TimeLimitMinutes).HasColumnName("time_limit_minutes");
         builder.Property(practical => practical.TriesCount).HasColumnName("tries_count");
         builder.Property(practical => practical.PercentForFive).HasColumnName("percent_for_five");
         builder.Property(practical => practical.PercentForFour).HasColumnName("percent_for_four");

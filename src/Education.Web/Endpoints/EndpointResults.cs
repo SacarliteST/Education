@@ -1,5 +1,8 @@
-﻿using Education.Application.Courses;
+﻿using Education.Application.AdminProfiles;
+using Education.Application.Courses;
 using Education.Application.Files;
+using Education.Application.PracticalModules;
+using Education.Application.Practicals;
 using Education.Application.TestResults;
 using FluentValidation;
 
@@ -40,6 +43,10 @@ internal static class EndpointResults
         {
             return Results.Forbid();
         }
+        catch (UnknownStudentsException exception)
+        {
+            return BadRequestProblem(exception.Message);
+        }
         catch (FileStorageValidationException exception)
         {
             return BadRequestProblem(exception.Message);
@@ -55,6 +62,18 @@ internal static class EndpointResults
         catch (CourseAccessDeniedException)
         {
             return Results.Forbid();
+        }
+        catch (PracticalModuleNotFoundException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status404NotFound);
+        }
+        catch (PracticalHasActivityException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (UnknownStudentsException exception)
+        {
+            return BadRequestProblem(exception.Message);
         }
         catch (FileStorageValidationException exception)
         {

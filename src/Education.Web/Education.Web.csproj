@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Education.Application\Education.Application.csproj" />
     <ProjectReference Include="..\Education.Contracts\Education.Contracts.csproj" />
     <ProjectReference Include="..\Education.Infrastructure\Education.Infrastructure.csproj" />
+    <ProjectReference Include="..\Education.Kafka\Education.Kafka.csproj" />
   </ItemGroup>
 
 </Project>

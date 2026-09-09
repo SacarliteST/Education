@@ -52,6 +52,9 @@
     <!-- Security (pin safe version to suppress transitive vulnerability) -->
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.4" />
 
+    <!-- Kafka -->
+    <PackageVersion Include="Confluent.Kafka" Version="2.15.0" />
+
     <!-- JWT / Identity Model -->
     <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.12.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.12.1" />

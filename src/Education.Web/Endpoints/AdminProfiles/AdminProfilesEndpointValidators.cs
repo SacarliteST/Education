@@ -1,7 +1,37 @@
 ﻿using Education.Contracts.AdminProfiles;
+using Education.Contracts.Courses;
+using Education.Contracts.Practicals;
 using FluentValidation;
 
 namespace Education.Web.Endpoints;
+
+internal sealed class UpdateCourseStudentsRequestValidator : AbstractValidator<UpdateCourseStudentsRequest>
+{
+    public UpdateCourseStudentsRequestValidator()
+    {
+        RuleFor(request => request.UserIds)
+            .NotNull()
+            .WithMessage("Список студентов обязателен.");
+
+        RuleForEach(request => request.UserIds)
+            .NotEmpty()
+            .WithMessage("Идентификатор студента не может быть пустым.");
+    }
+}
+
+internal sealed class UpdatePracticalStudentsRequestValidator : AbstractValidator<UpdatePracticalStudentsRequest>
+{
+    public UpdatePracticalStudentsRequestValidator()
+    {
+        RuleFor(request => request.UserIds)
+            .NotNull()
+            .WithMessage("Список студентов обязателен.");
+
+        RuleForEach(request => request.UserIds)
+            .NotEmpty()
+            .WithMessage("Идентификатор студента не может быть пустым.");
+    }
+}
 
 internal sealed class CreateAdminProfileRequestValidator : AbstractValidator<CreateAdminProfileRequest>
 {

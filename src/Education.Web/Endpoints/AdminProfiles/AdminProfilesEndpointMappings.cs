@@ -1,10 +1,22 @@
 ﻿using Education.Application.AdminProfiles;
 using Education.Contracts.AdminProfiles;
+using Education.Contracts.Courses;
+using Education.Contracts.Practicals;
 
 namespace Education.Web.Endpoints;
 
 internal static class AdminProfilesEndpointMappings
 {
+    public static SetCourseStudentsCommand ToCommand(this UpdateCourseStudentsRequest request, Guid courseId)
+    {
+        return new SetCourseStudentsCommand(courseId, request.UserIds ?? []);
+    }
+
+    public static SetPracticalStudentsCommand ToCommand(this UpdatePracticalStudentsRequest request, Guid practicalId)
+    {
+        return new SetPracticalStudentsCommand(practicalId, request.UserIds ?? []);
+    }
+
     public static CreateAdminProfileCommand ToCommand(this CreateAdminProfileRequest request)
     {
         return new CreateAdminProfileCommand(

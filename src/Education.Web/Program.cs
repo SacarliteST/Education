@@ -2,10 +2,12 @@
 using Education.Application.AdminProfiles;
 using Education.Application.Courses;
 using Education.Application.Files;
+using Education.Kafka;
 using Education.Application.Grades;
 using Education.Application.Identity;
 using Education.Application.Modules;
 using Education.Application.Practicals;
+using Education.Application.PracticalModules;
 using Education.Application.Questions;
 using Education.Application.TaskFiles;
 using Education.Application.TestResults;
@@ -17,6 +19,7 @@ using Education.Contracts.Courses;
 using Education.Contracts.Grades;
 using Education.Contracts.Modules;
 using Education.Contracts.Practicals;
+using Education.Contracts.PracticalModules;
 using Education.Contracts.Questions;
 using Education.Contracts.TaskFiles;
 using Education.Contracts.TestResults;
@@ -25,8 +28,11 @@ using Education.Infrastructure;
 using Education.Infrastructure.Files;
 using Education.Web.Endpoints;
 using Education.Web.Identity;
+using Education.Web.Integration;
+using Education.Infrastructure.Persistence;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
@@ -41,12 +47,28 @@ var frontendOrigins = configuredFrontendOrigins is { Length: > 0 }
 const string frontendCorsPolicy = "Frontend";
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddKafkaMessaging(builder.Configuration);
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
 builder.Services.AddScoped<IAdminProfilesService, AdminProfilesService>();
 builder.Services.AddScoped<ICoursesService, CoursesService>();
 builder.Services.AddScoped<IModulesService, ModulesService>();
 builder.Services.AddScoped<IPracticalsService, PracticalsService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IPracticalModulesService, PracticalModulesService>();
+builder.Services.AddScoped<IModuleCatalogService, ModuleCatalogService>();
+builder.Services.AddHttpClient<IModuleCatalogClient, HttpModuleCatalogClient>(client =>
+    client.Timeout = TimeSpan.FromSeconds(3));
+builder.Services.Configure<ModuleIntegrationOptions>(
+    builder.Configuration.GetSection(ModuleIntegrationOptions.SectionKey));
+builder.Services.AddScoped<IModuleIntegrationConfig, ModuleIntegrationConfig>();
+builder.Services.AddScoped<IModuleSessionsService, ModuleSessionsService>();
+builder.Services.AddScoped<IPracticeEventHandler, PracticeEventHandler>();
+builder.Services.AddHttpClient<IModulePushClient, HttpModulePushClient>(client =>
+    client.Timeout = TimeSpan.FromSeconds(5));
+builder.Services.AddHttpClient<ITokenExchangeClient, HttpTokenExchangeClient>(client =>
+    client.Timeout = TimeSpan.FromSeconds(5));
+builder.Services.AddHostedService<PracticeEventConsumer>();
 builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 builder.Services.AddScoped<ITestResultsService, TestResultsService>();
 builder.Services.AddScoped<IGradesService, GradesService>();
@@ -58,6 +80,13 @@ builder.Services.AddScoped<IValidator<UpdateAdminProfileRequest>, UpdateAdminPro
 builder.Services.AddScoped<IValidator<CreateCourseRequest>, CreateCourseRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateModuleRequest>, CreateModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreatePracticalRequest>, CreatePracticalRequestValidator>();
+builder.Services.AddScoped<IValidator<BindPracticalModuleRequest>, BindPracticalModuleRequestValidator>();
+builder.Services.AddScoped<IValidator<CreatePracticalModuleRequest>, CreatePracticalModuleRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdatePracticalModuleRequest>, UpdatePracticalModuleRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateTaskRequest>, CreateTaskRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateTaskTextRequest>, UpdateTaskTextRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateCourseStudentsRequest>, UpdateCourseStudentsRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdatePracticalStudentsRequest>, UpdatePracticalStudentsRequestValidator>();
 builder.Services.AddScoped<IValidator<ConfigurePracticalQuestionsRequest>, ConfigurePracticalQuestionsRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateQuestionRequest>, CreateQuestionRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateQuestionRequest>, UpdateQuestionRequestValidator>();
@@ -114,6 +143,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var developmentDbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+    await developmentDbContext.Database.EnsureCreatedAsync();
+}
 
 app.UseCors(frontendCorsPolicy);
 app.UseAuthentication();

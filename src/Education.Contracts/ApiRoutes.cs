@@ -41,6 +41,11 @@ public static class ApiRoutes
         public const string CourseModules = Course + "/modules";
 
         /// <summary>
+        /// Шаблон маршрута набора студентов, назначенных на курс.
+        /// </summary>
+        public const string CourseStudents = Course + "/students";
+
+        /// <summary>
         /// Создаёт маршрут для конкретного курса.
         /// </summary>
         public static string ForCourse(Guid courseId) => ReplaceUrlSegment(Course, "courseId:guid", courseId.ToString());
@@ -50,6 +55,14 @@ public static class ApiRoutes
         /// </summary>
         public static string ForCourseModules(Guid courseId) => ReplaceUrlSegment(
             CourseModules,
+            "courseId:guid",
+            courseId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут набора студентов конкретного курса.
+        /// </summary>
+        public static string ForCourseStudents(Guid courseId) => ReplaceUrlSegment(
+            CourseStudents,
             "courseId:guid",
             courseId.ToString());
     }
@@ -145,6 +158,41 @@ public static class ApiRoutes
         public const string Tasks = Practical + "/tasks";
 
         /// <summary>
+        /// Шаблон маршрута привязки внешнего модуля к практике.
+        /// </summary>
+        public const string Module = Practical + "/module";
+
+        /// <summary>
+        /// Маршрут коллекции сессий внешнего модуля практики (POST — запуск/продолжение).
+        /// </summary>
+        public const string ModuleSessions = Practical + "/module-sessions";
+
+        /// <summary>
+        /// Маршрут гейта: последняя сессия студента по заданию.
+        /// </summary>
+        public const string ModuleSessionCurrent = ModuleSessions + "/current";
+
+        /// <summary>
+        /// Шаблон маршрута конкретной сессии внешнего модуля.
+        /// </summary>
+        public const string ModuleSession = ModuleSessions + "/{sessionId:guid}";
+
+        /// <summary>
+        /// Шаблон маршрута прерывания попытки.
+        /// </summary>
+        public const string ModuleSessionAbandon = ModuleSession + "/abandon";
+
+        /// <summary>
+        /// Шаблон маршрута ленты событий («цифрового следа») попытки.
+        /// </summary>
+        public const string ModuleSessionEvents = ModuleSession + "/events";
+
+        /// <summary>
+        /// Шаблон маршрута набора студентов, назначенных на практический материал.
+        /// </summary>
+        public const string Students = Practical + "/students";
+
+        /// <summary>
         /// Создаёт маршрут для конкретного практического материала.
         /// </summary>
         public static string ForPractical(Guid practicalId) => ReplaceUrlSegment(
@@ -175,6 +223,91 @@ public static class ApiRoutes
             Tasks,
             "practicalId:guid",
             practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут привязки внешнего модуля к практике.
+        /// </summary>
+        public static string ForModule(Guid practicalId) => ReplaceUrlSegment(
+            Module,
+            "practicalId:guid",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут коллекции сессий внешнего модуля практики.
+        /// </summary>
+        public static string ForModuleSessions(Guid practicalId) => ReplaceUrlSegment(
+            ModuleSessions,
+            "practicalId:guid",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут гейта последней сессии.
+        /// </summary>
+        public static string ForModuleSessionCurrent(Guid practicalId) => ReplaceUrlSegment(
+            ModuleSessionCurrent,
+            "practicalId:guid",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут конкретной сессии внешнего модуля.
+        /// </summary>
+        public static string ForModuleSession(Guid practicalId, Guid sessionId) => ReplaceUrlSegment(
+                ModuleSession,
+                "practicalId:guid",
+                practicalId.ToString())
+            .Replace("{sessionId:guid}", sessionId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут прерывания попытки.
+        /// </summary>
+        public static string ForModuleSessionAbandon(Guid practicalId, Guid sessionId) => ReplaceUrlSegment(
+                ModuleSessionAbandon,
+                "practicalId:guid",
+                practicalId.ToString())
+            .Replace("{sessionId:guid}", sessionId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут ленты событий попытки.
+        /// </summary>
+        public static string ForModuleSessionEvents(Guid practicalId, Guid sessionId) => ReplaceUrlSegment(
+                ModuleSessionEvents,
+                "practicalId:guid",
+                practicalId.ToString())
+            .Replace("{sessionId:guid}", sessionId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут набора студентов практического материала.
+        /// </summary>
+        public static string ForStudents(Guid practicalId) => ReplaceUrlSegment(
+            Students,
+            "practicalId:guid",
+            practicalId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов для работы с заданиями практических материалов.
+    /// </summary>
+    public static class Tasks
+    {
+        /// <summary>
+        /// Шаблон маршрута задания по идентификатору.
+        /// </summary>
+        public const string Task = PrefixV1 + "/tasks/{taskId:guid}";
+
+        /// <summary>
+        /// Шаблон маршрута обновления текста задания.
+        /// </summary>
+        public const string TaskText = Task + "/text";
+
+        /// <summary>
+        /// Создаёт маршрут для конкретного задания.
+        /// </summary>
+        public static string ForTask(Guid taskId) => ReplaceUrlSegment(Task, "taskId:guid", taskId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут обновления текста конкретного задания.
+        /// </summary>
+        public static string ForTaskText(Guid taskId) => ReplaceUrlSegment(TaskText, "taskId:guid", taskId.ToString());
     }
 
     /// <summary>
@@ -475,6 +608,54 @@ public static class ApiRoutes
             PracticalAssignableStudents,
             "practicalId:guid",
             practicalId.ToString());
+    }
+
+    /// <summary>
+    /// Шаблоны маршрутов реестра внешних практических модулей (администратор).
+    /// </summary>
+    public static class PracticalModules
+    {
+        /// <summary>
+        /// Маршрут коллекции модулей.
+        /// </summary>
+        public const string ModulesList = PrefixV1 + "/admin/practical-modules";
+
+        /// <summary>
+        /// Шаблон маршрута конкретного модуля.
+        /// </summary>
+        public const string Module = ModulesList + "/{id:guid}";
+
+        /// <summary>
+        /// Маршрут списка включённых модулей для преподавателя (пикер привязки).
+        /// </summary>
+        public const string EnabledModulesList = PrefixV1 + "/practical-modules";
+
+        /// <summary>
+        /// Шаблон маршрута каталога заданий модуля (ядро проксирует ручку модуля).
+        /// </summary>
+        public const string ModuleTasks = PrefixV1 + "/practical-modules/{practicalModuleId:guid}/tasks";
+
+        /// <summary>
+        /// Шаблон маршрута приёма оценки от бэкенда модуля (сервер-сервер, <c>X-Service-Key</c>).
+        /// </summary>
+        public const string SessionComplete = PrefixV1 + "/module-sessions/{sessionId:guid}/complete";
+
+        /// <summary>
+        /// Создаёт маршрут приёма оценки от модуля.
+        /// </summary>
+        public static string ForSessionComplete(Guid sessionId) =>
+            ReplaceUrlSegment(SessionComplete, "sessionId:guid", sessionId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут конкретного модуля.
+        /// </summary>
+        public static string ForModule(Guid id) => ReplaceUrlSegment(Module, "id:guid", id.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут каталога заданий модуля.
+        /// </summary>
+        public static string ForModuleTasks(Guid practicalModuleId) =>
+            ReplaceUrlSegment(ModuleTasks, "practicalModuleId:guid", practicalModuleId.ToString());
     }
 
     /// <summary>
