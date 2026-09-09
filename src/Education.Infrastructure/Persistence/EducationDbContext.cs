@@ -1,6 +1,7 @@
 ﻿using Education.Domain.Courses;
 using Education.Domain.Materials;
 using Education.Domain.Practicals;
+using Education.Domain.PracticalModules;
 using Education.Domain.Tests;
 using Education.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,21 @@ public sealed class EducationDbContext(DbContextOptions<EducationDbContext> opti
     /// Практические материалы.
     /// </summary>
     public DbSet<PracticalMaterial> PracticalMaterials => Set<PracticalMaterial>();
+
+    /// <summary>
+    /// Реестр внешних практических модулей.
+    /// </summary>
+    public DbSet<PracticalModule> PracticalModules => Set<PracticalModule>();
+
+    /// <summary>
+    /// Попытки прохождения внешних практических модулей.
+    /// </summary>
+    public DbSet<PracticalModuleSession> PracticalModuleSessions => Set<PracticalModuleSession>();
+
+    /// <summary>
+    /// «Цифровой след» — журнал действий студента во внешних модулях.
+    /// </summary>
+    public DbSet<PracticalTaskEvent> PracticalTaskEvents => Set<PracticalTaskEvent>();
 
     /// <summary>
     /// Назначения студентов на практические материалы.

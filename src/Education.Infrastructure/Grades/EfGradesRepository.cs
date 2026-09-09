@@ -1,5 +1,6 @@
 ﻿using Education.Application.Grades;
 using Education.Domain.Practicals;
+using Education.Domain.PracticalModules;
 using Education.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,15 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
         Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
+        var kind = await context.PracticalMaterials
+            .Where(practical => practical.Id == practicalId)
+            .Select(practical => practical.Kind)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (kind == PracticalKind.External)
+        {
+            return await GetExternalPracticalGradeAsync(practicalId, studentUserId, cancellationToken);
+        }
+
         var totalTasks = await context.Cases.CountAsync(
             task => task.PracticalMaterialId == practicalId,
             cancellationToken);
@@ -55,6 +65,24 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
             : (int)Math.Ceiling((bestTestGrade + taskGrades.Average()) / 2);
 
         return new PracticalGrade(grade, []);
+    }
+
+    private async Task<PracticalGrade> GetExternalPracticalGradeAsync(
+        Guid practicalId,
+        Guid studentUserId,
+        CancellationToken cancellationToken)
+    {
+        var bestGrade = await context.PracticalModuleSessions
+            .Where(session => session.UserId == studentUserId
+                && session.Status == ModuleSessionState.Completed
+                && session.Grade != null
+                && context.Cases.Any(task =>
+                    task.Id == session.PracticalTaskId && task.PracticalMaterialId == practicalId))
+            .MaxAsync(session => (int?)session.Grade, cancellationToken);
+
+        return bestGrade is null
+            ? new PracticalGrade(null, ["Пройдите практику"])
+            : new PracticalGrade(bestGrade, []);
     }
 }
 

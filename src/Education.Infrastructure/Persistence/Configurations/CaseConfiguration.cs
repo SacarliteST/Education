@@ -1,4 +1,5 @@
-﻿using Education.Domain.Practicals;
+﻿using Education.Domain.PracticalModules;
+using Education.Domain.Practicals;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,9 +15,16 @@ internal sealed class CaseConfiguration : IEntityTypeConfiguration<Case>
         builder.Property(task => task.Name).HasColumnName("pm_name").IsRequired();
         builder.Property(task => task.Text).HasColumnName("case_text").IsRequired();
         builder.Property(task => task.PracticalMaterialId).HasColumnName("practical_material_id");
+        builder.Property(task => task.PracticalModuleId).HasColumnName("practical_module_id");
+        builder.Property(task => task.ExternalTaskRef).HasColumnName("external_task_ref").HasMaxLength(200);
         builder.HasOne(task => task.PracticalMaterial)
             .WithMany(practical => practical.Cases)
             .HasForeignKey(task => task.PracticalMaterialId);
+        builder.HasOne<PracticalModule>()
+            .WithMany()
+            .HasForeignKey(task => task.PracticalModuleId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

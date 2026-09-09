@@ -4,3 +4,25 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 Promts/
+src/Education.Web/Files/
+
+# Local documentation and agent artifacts
+*.[mM][dD]
+/docs/
+/promts/
+/prompts/
+.codex/
+.agents/
+.claude/
+.cursor/
+.aider*
+*.log
+/tmp/
+
+# Local IDE settings
+.idea/
+.vs/
+*.user
+
+# Legacy project retained locally
+/Education/

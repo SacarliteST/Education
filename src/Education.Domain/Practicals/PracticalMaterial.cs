@@ -25,6 +25,16 @@ public sealed class PracticalMaterial : Entity
     public bool IsPublic { get; private set; }
 
     /// <summary>
+    /// Вид практики: внутренняя (тест/задания на платформе) или внешняя (модуль).
+    /// </summary>
+    public PracticalKind Kind { get; private set; } = PracticalKind.Internal;
+
+    /// <summary>
+    /// Лимит времени на одну попытку внешнего модуля в минутах. <see langword="null"/> — без лимита.
+    /// </summary>
+    public int? TimeLimitMinutes { get; private set; }
+
+    /// <summary>
     /// Количество доступных попыток прохождения теста.
     /// </summary>
     public int TriesCount { get; private set; } = 1;
@@ -90,6 +100,28 @@ public sealed class PracticalMaterial : Entity
     public void Publish()
     {
         IsPublic = true;
+    }
+
+    /// <summary>
+    /// Переводит практику на внешний модуль: вид <c>external</c>, лимит попыток и времени.
+    /// </summary>
+    /// <param name="triesCount">Количество запусков (та же семантика, что у внутреннего теста).</param>
+    /// <param name="timeLimitMinutes">Лимит времени на попытку в минутах или <see langword="null"/>.</param>
+    public void BindExternalModule(int triesCount, int? timeLimitMinutes)
+    {
+        if (triesCount < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(triesCount));
+        }
+
+        if (timeLimitMinutes is < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeLimitMinutes));
+        }
+
+        Kind = PracticalKind.External;
+        TriesCount = triesCount;
+        TimeLimitMinutes = timeLimitMinutes;
     }
 
     /// <summary>

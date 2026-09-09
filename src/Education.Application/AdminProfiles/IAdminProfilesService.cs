@@ -43,5 +43,23 @@ public interface IAdminProfilesService
     Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Заменяет набор студентов, назначенных на курс.
+    /// </summary>
+    /// <exception cref="Courses.CourseAccessDeniedException">Курс не принадлежит текущему преподавателю (или не существует).</exception>
+    /// <exception cref="UnknownStudentsException">Часть переданных идентификаторов не сопоставлена с привязанным профилем.</exception>
+    Task SetCourseStudentsAsync(
+        SetCourseStudentsCommand command,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Заменяет набор студентов, назначенных на практический материал.
+    /// </summary>
+    /// <exception cref="Courses.CourseAccessDeniedException">Практика не принадлежит текущему преподавателю (или не существует).</exception>
+    /// <exception cref="UnknownStudentsException">Часть переданных идентификаторов не сопоставлена с привязанным профилем.</exception>
+    Task SetPracticalStudentsAsync(
+        SetPracticalStudentsCommand command,
+        CancellationToken cancellationToken = default);
 }
 

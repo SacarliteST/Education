@@ -1,4 +1,6 @@
 ﻿using Education.Application.AdminProfiles;
+using Education.Domain.Courses;
+using Education.Domain.Practicals;
 using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +11,12 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
 {
     public async Task<IReadOnlyList<AdminProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
     {
-        return await ProfilesQuery()
-            .OrderBy(profile => profile.LastName)
-            .ThenBy(profile => profile.FirstName)
-            .ToListAsync(cancellationToken);
+        var profiles = await ProfilesQuery().ToListAsync(cancellationToken);
+
+        return profiles
+            .OrderBy(profile => profile.LastName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(profile => profile.FirstName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     public async Task<AdminProfile> CreateLinkedProfileAsync(
@@ -116,26 +120,103 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             .ToListAsync(cancellationToken);
     }
 
+    public async Task SetCourseStudentsAsync(
+        SetCourseStudentsCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var desiredIds = command.UserIds.ToHashSet();
+        await EnsureLinkedUsersAsync(desiredIds, cancellationToken);
+
+        var currentBinds = await context.CourseBindUsers
+            .Where(bind => bind.CourseId == command.CourseId)
+            .ToListAsync(cancellationToken);
+
+        context.CourseBindUsers.RemoveRange(currentBinds.Where(bind => !desiredIds.Contains(bind.UserId)));
+
+        var currentIds = currentBinds.Select(bind => bind.UserId).ToHashSet();
+        var newBinds = desiredIds
+            .Where(userId => !currentIds.Contains(userId))
+            .Select(userId => new CourseBindUser(command.CourseId, userId));
+
+        await context.CourseBindUsers.AddRangeAsync(newBinds, cancellationToken);
+        await SaveOrTranslateAsync(desiredIds, cancellationToken);
+    }
+
+    public async Task SetPracticalStudentsAsync(
+        SetPracticalStudentsCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var desiredIds = command.UserIds.ToHashSet();
+        await EnsureLinkedUsersAsync(desiredIds, cancellationToken);
+
+        var currentBinds = await context.PracticalBindUsers
+            .Where(bind => bind.PracticalMaterialId == command.PracticalId)
+            .ToListAsync(cancellationToken);
+
+        context.PracticalBindUsers.RemoveRange(currentBinds.Where(bind => !desiredIds.Contains(bind.UserId)));
+
+        var currentIds = currentBinds.Select(bind => bind.UserId).ToHashSet();
+        var newBinds = desiredIds
+            .Where(userId => !currentIds.Contains(userId))
+            .Select(userId => new PracticalBindUser(command.PracticalId, userId));
+
+        await context.PracticalBindUsers.AddRangeAsync(newBinds, cancellationToken);
+        await SaveOrTranslateAsync(desiredIds, cancellationToken);
+    }
+
+    /// <summary>Каждый id должен быть учебным профилем с активной связью с identity-сервисом.</summary>
+    private async Task EnsureLinkedUsersAsync(
+        IReadOnlyCollection<Guid> desiredIds,
+        CancellationToken cancellationToken)
+    {
+        if (desiredIds.Count == 0)
+        {
+            return;
+        }
+
+        var linkedIds = await context.Users
+            .AsNoTracking()
+            .Where(user => desiredIds.Contains(user.Id)
+                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+            .Select(user => user.Id)
+            .ToHashSetAsync(cancellationToken);
+
+        var unknown = desiredIds.Where(id => !linkedIds.Contains(id)).ToArray();
+        if (unknown.Length > 0)
+        {
+            throw new UnknownStudentsException(unknown);
+        }
+    }
+
+    /// <summary>Страховка на гонку: если строку пользователя удалили между проверкой и записью — переводим FK в 400.</summary>
+    private async Task SaveOrTranslateAsync(IReadOnlyCollection<Guid> desiredIds, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            context.ChangeTracker.Clear();
+            throw new UnknownStudentsException(desiredIds);
+        }
+    }
+
     private IQueryable<AdminProfile> ProfilesQuery(Guid? legacyUserId = null)
     {
-        var users = context.Users
-            .AsNoTracking()
-            .Where(user => legacyUserId == null || user.Id == legacyUserId);
-
-        return users
-            .GroupJoin(
-                context.IdentityUserLinks.Where(link => link.IsActive),
-                user => user.Id,
-                link => link.LegacyUserId,
-                (user, links) => new { user, link = links.FirstOrDefault() })
-            .Select(item => new AdminProfile(
-                item.user.Id,
-                item.link == null ? null : item.link.IdentityUserId,
-                item.user.Login,
-                item.user.FirstName,
-                item.user.LastName,
-                item.user.MiddleName,
-                item.link != null && item.link.IsActive));
+        return from user in context.Users.AsNoTracking()
+               where legacyUserId == null || user.Id == legacyUserId
+               from link in context.IdentityUserLinks
+                   .Where(item => item.IsActive && item.LegacyUserId == user.Id)
+                   .DefaultIfEmpty()
+               select new AdminProfile(
+                   user.Id,
+                   link != null ? (Guid?)link.IdentityUserId : null,
+                   user.Login,
+                   user.FirstName,
+                   user.LastName,
+                   user.MiddleName,
+                   link != null && link.IsActive);
     }
 
 }

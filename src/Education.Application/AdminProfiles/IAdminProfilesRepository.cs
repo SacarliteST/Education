@@ -43,5 +43,21 @@ public interface IAdminProfilesRepository
     Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Заменяет набор студентов, назначенных на курс. Владельца курса проверяет вызывающий сервис.
+    /// </summary>
+    /// <exception cref="UnknownStudentsException">Часть идентификаторов не сопоставлена с профилем + активной связью.</exception>
+    Task SetCourseStudentsAsync(
+        SetCourseStudentsCommand command,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Заменяет набор студентов, назначенных на практический материал. Владельца проверяет вызывающий сервис.
+    /// </summary>
+    /// <exception cref="UnknownStudentsException">Часть идентификаторов не сопоставлена с профилем + активной связью.</exception>
+    Task SetPracticalStudentsAsync(
+        SetPracticalStudentsCommand command,
+        CancellationToken cancellationToken = default);
 }
 

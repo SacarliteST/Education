@@ -19,6 +19,53 @@ internal sealed class CreatePracticalRequestValidator : AbstractValidator<Create
     }
 }
 
+internal sealed class CreateTaskRequestValidator : AbstractValidator<CreateTaskRequest>
+{
+    public CreateTaskRequestValidator()
+    {
+        RuleFor(request => request.Name)
+            .NotEmpty()
+            .WithMessage("Название задания обязательно.")
+            .MaximumLength(200)
+            .WithMessage("Название задания не должно превышать 200 символов.");
+    }
+}
+
+internal sealed class UpdateTaskTextRequestValidator : AbstractValidator<UpdateTaskTextRequest>
+{
+    public UpdateTaskTextRequestValidator()
+    {
+        RuleFor(request => request.Text)
+            .NotEmpty()
+            .WithMessage("Текст задания обязателен.");
+    }
+}
+
+internal sealed class BindPracticalModuleRequestValidator : AbstractValidator<BindPracticalModuleRequest>
+{
+    public BindPracticalModuleRequestValidator()
+    {
+        RuleFor(request => request.PracticalModuleId)
+            .NotEmpty()
+            .WithMessage("Идентификатор модуля обязателен.");
+
+        RuleFor(request => request.ExternalTaskRef)
+            .NotEmpty()
+            .WithMessage("Ключ задания модуля обязателен.")
+            .MaximumLength(200)
+            .WithMessage("Ключ задания модуля не должен превышать 200 символов.");
+
+        RuleFor(request => request.TriesCount)
+            .GreaterThan(0)
+            .WithMessage("Количество попыток должно быть больше 0.");
+
+        RuleFor(request => request.TimeLimitMinutes)
+            .GreaterThan(0)
+            .When(request => request.TimeLimitMinutes.HasValue)
+            .WithMessage("Лимит времени должен быть больше 0 минут.");
+    }
+}
+
 internal sealed class ConfigurePracticalQuestionsRequestValidator : AbstractValidator<ConfigurePracticalQuestionsRequest>
 {
     public ConfigurePracticalQuestionsRequestValidator()

@@ -1,6 +1,8 @@
 ﻿using Education.Application.AdminProfiles;
 using Education.Contracts;
 using Education.Contracts.AdminProfiles;
+using Education.Contracts.Courses;
+using Education.Contracts.Practicals;
 using Education.Web.Identity;
 using FluentValidation;
 
@@ -101,35 +103,91 @@ internal static class AdminProfilesEndpointGroup
             .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.AdminOnly);
 
-        app.MapGet(ApiRoutes.AdminProfiles.CourseAssignableStudents, async (
+        app.MapGet(ApiRoutes.AdminProfiles.CourseAssignableStudents, (
                 Guid courseId,
                 IAdminProfilesService service,
                 CancellationToken cancellationToken) =>
-            Results.Ok((await service.GetAssignableStudentsForCourseAsync(courseId, cancellationToken))
-                .Select(student => student.ToResponse())))
+            EndpointResults.ExecuteTeacherCommandAsync(async () =>
+                Results.Ok((await service.GetAssignableStudentsForCourseAsync(courseId, cancellationToken))
+                    .Select(student => student.ToResponse()))))
             .WithTags("AdminProfiles")
             .WithName("GetCourseAssignableStudents")
             .WithSummary("Получение студентов для назначения на курс")
-            .WithDescription("Возвращает студентов с признаком назначения на выбранный курс.")
+            .WithDescription("Студенты с признаком назначения на выбранный курс. Только для преподавателя-владельца курса.")
             .Produces<IEnumerable<AssignableStudentResponse>>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization(AuthorizationPolicies.AdminOnly);
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
-        app.MapGet(ApiRoutes.AdminProfiles.PracticalAssignableStudents, async (
+        app.MapGet(ApiRoutes.AdminProfiles.PracticalAssignableStudents, (
                 Guid practicalId,
                 IAdminProfilesService service,
                 CancellationToken cancellationToken) =>
-            Results.Ok((await service.GetAssignableStudentsForPracticalAsync(practicalId, cancellationToken))
-                .Select(student => student.ToResponse())))
+            EndpointResults.ExecuteTeacherCommandAsync(async () =>
+                Results.Ok((await service.GetAssignableStudentsForPracticalAsync(practicalId, cancellationToken))
+                    .Select(student => student.ToResponse()))))
             .WithTags("AdminProfiles")
             .WithName("GetPracticalAssignableStudents")
             .WithSummary("Получение студентов для назначения на практику")
-            .WithDescription("Возвращает студентов с признаком назначения на выбранную практику.")
+            .WithDescription("Студенты с признаком назначения на выбранную практику. Только для преподавателя-владельца практики.")
             .Produces<IEnumerable<AssignableStudentResponse>>()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization(AuthorizationPolicies.AdminOnly);
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
+        app.MapPut(ApiRoutes.Courses.CourseStudents, async (
+                Guid courseId,
+                UpdateCourseStudentsRequest request,
+                IValidator<UpdateCourseStudentsRequest> validator,
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
+                if (validation is not null)
+                {
+                    return validation;
+                }
+
+                return await EndpointResults.ExecuteTeacherCommandAsync(() =>
+                    service.SetCourseStudentsAsync(request.ToCommand(courseId), cancellationToken));
+            })
+            .WithTags("AdminProfiles")
+            .WithName("SetCourseStudents")
+            .WithSummary("Назначение студентов на курс")
+            .WithDescription("Заменяет набор студентов курса. Только для преподавателя-владельца; неизвестные / не привязанные id → 400.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
+        app.MapPut(ApiRoutes.Practicals.Students, async (
+                Guid practicalId,
+                UpdatePracticalStudentsRequest request,
+                IValidator<UpdatePracticalStudentsRequest> validator,
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
+                if (validation is not null)
+                {
+                    return validation;
+                }
+
+                return await EndpointResults.ExecuteTeacherCommandAsync(() =>
+                    service.SetPracticalStudentsAsync(request.ToCommand(practicalId), cancellationToken));
+            })
+            .WithTags("AdminProfiles")
+            .WithName("SetPracticalStudents")
+            .WithSummary("Назначение студентов на практику")
+            .WithDescription("Заменяет набор студентов практики. Только для преподавателя-владельца; неизвестные / не привязанные id → 400.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
         return app;
     }
