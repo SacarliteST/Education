@@ -24,7 +24,7 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>, 
 
     internal TestSeedSnapshot Seed { get; private set; } = TestSeedSnapshot.Empty;
 
-    private readonly PostgreSqlContainer postgreSqlContainer = new PostgreSqlBuilder()
+    private readonly PostgreSqlContainer postgreSqlContainer = new PostgreSqlBuilder("postgres:15-alpine")
         .WithDatabase(TestDbName)
         .WithUsername(TestUser)
         .WithPassword(TestPassword)
