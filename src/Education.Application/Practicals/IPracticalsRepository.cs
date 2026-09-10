@@ -60,6 +60,11 @@ public interface IPracticalsRepository : IBaseRepository<PracticalMaterial, Guid
     Task<IReadOnlyList<Case>> GetTasksAsync(Guid practicalId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Возвращает задание по идентификатору. <see langword="null"/> — не найдено.
+    /// </summary>
+    Task<Case?> GetTaskAsync(Guid taskId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Создаёт задание практического материала.
     /// </summary>
     Task<Case> CreateTaskAsync(CreateTaskCommand command, CancellationToken cancellationToken = default);

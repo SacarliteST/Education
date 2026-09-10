@@ -30,6 +30,7 @@ using Education.Web.Endpoints;
 using Education.Web.Identity;
 using Education.Web.Integration;
 using Education.Infrastructure.Persistence;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -130,6 +131,12 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthorizationPolicies.StudentOnly, policy =>
         policy.RequireRole(EducationRoles.Student));
 });
+
+// TD-001: web-дефолт System.Text.Json включает AllowReadingFromString → .NET-OpenAPI
+// документирует каждое числовое поле как union [integer|number, string] + pattern,
+// Orval генерирует `number | string`. Strict — числа только числами, схема чистая.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict);
 
 builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>

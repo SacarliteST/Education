@@ -16,6 +16,11 @@ public sealed class ModulesService(
         return modulesRepository.GetModulesAsync(courseId, cancellationToken);
     }
 
+    public Task<Module?> GetModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
+    {
+        return modulesRepository.GetByIdAsync(moduleId, cancellationToken);
+    }
+
     public async Task<Module> CreateModuleAsync(CreateModuleCommand command, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
