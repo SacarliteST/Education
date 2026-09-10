@@ -42,7 +42,8 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
         Assert.False(body!.Resumed);
         Assert.Equal(1, body.TryNumber);
         Assert.Contains($"/launch?session={body.SessionId}", body.LaunchUrl);
-        Assert.Contains("#access_token=fake-token-", body.LaunchUrl);
+        // токен обменян с непустым session_id (fake кодирует его в значение)
+        Assert.Contains($"#access_token=fake-token-{body.SessionId:N}", body.LaunchUrl);
 
         Assert.Single(push.Pushes);
         Assert.Equal(context.ExternalTaskRef, push.Pushes[0].TaskRef);
