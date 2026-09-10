@@ -151,11 +151,30 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// TD-011: вне Development миграции накатываются при старте только по флагу
+// Database:ApplyMigrationsOnStartup (по умолчанию false) — тогда схему на
+// прод/стейджинге догоняет сам процесс на деплое, без отдельного шага
+// `dotnet ef database update`. В Development — всегда, для удобства разработки.
+var applyMigrationsOnStartup = app.Environment.IsDevelopment()
+    || app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false);
+
+if (applyMigrationsOnStartup)
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var developmentDbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-    await developmentDbContext.Database.MigrateAsync();
+    await using var migrationScope = app.Services.CreateAsyncScope();
+    var migrationDbContext = migrationScope.ServiceProvider.GetRequiredService<EducationDbContext>();
+
+    var pendingMigrations = (await migrationDbContext.Database.GetPendingMigrationsAsync()).ToList();
+    if (pendingMigrations.Count > 0)
+    {
+        app.Logger.LogInformation(
+            "Применяю миграции EducationDb при старте ({Count}): {Migrations}",
+            pendingMigrations.Count,
+            String.Join(", ", pendingMigrations));
+    }
+
+    // MigrateAsync берёт advisory-lock на __EFMigrationsHistory — безопасно,
+    // когда стартует несколько реплик одновременно.
+    await migrationDbContext.Database.MigrateAsync();
 }
 
 app.UseCors(frontendCorsPolicy);
