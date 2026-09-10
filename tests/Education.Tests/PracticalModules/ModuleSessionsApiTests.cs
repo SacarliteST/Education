@@ -432,8 +432,9 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     private sealed class FakeExchangeClient : ITokenExchangeClient
     {
         public Task<ExchangedToken> ExchangeAsync(
-            string audience, Guid sessionId, DateTimeOffset? sessionExpiresAt,
+            string audience, Guid? sessionId = null, DateTimeOffset? sessionExpiresAt = null,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(new ExchangedToken("fake-token-" + sessionId.ToString("N"), 1800));
+            => Task.FromResult(new ExchangedToken(
+                "fake-token-" + (sessionId?.ToString("N") ?? "no-session"), 1800));
     }
 }
