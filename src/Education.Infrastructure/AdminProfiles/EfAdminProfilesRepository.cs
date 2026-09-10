@@ -34,11 +34,12 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             throw new AdminProfileAlreadyLinkedException();
         }
 
-        var user = User.CreateLegacyProfile(
+        var user = new User(
             command.Login,
             command.FirstName,
             command.LastName,
-            command.MiddleName);
+            command.MiddleName,
+            command.RoleId);
         await context.Users.AddAsync(user, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
@@ -94,7 +95,8 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
     {
         return await context.Users
             .AsNoTracking()
-            .Where(user => context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+            .Where(user => user.RoleId == RoleIds.Student
+                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
             .OrderBy(user => user.LastName)
             .ThenBy(user => user.FirstName)
             .Select(user => new AssignableStudent(
@@ -110,7 +112,8 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
     {
         return await context.Users
             .AsNoTracking()
-            .Where(user => context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+            .Where(user => user.RoleId == RoleIds.Student
+                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
             .OrderBy(user => user.LastName)
             .ThenBy(user => user.FirstName)
             .Select(user => new AssignableStudent(
