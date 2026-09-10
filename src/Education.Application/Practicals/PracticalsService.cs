@@ -51,6 +51,11 @@ public sealed class PracticalsService(
         return practicalsRepository.GetTasksAsync(practicalId, cancellationToken);
     }
 
+    public Task<Case?> GetTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
+    {
+        return practicalsRepository.GetTaskAsync(taskId, cancellationToken);
+    }
+
     public async Task<Case> CreateTaskAsync(CreateTaskCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);

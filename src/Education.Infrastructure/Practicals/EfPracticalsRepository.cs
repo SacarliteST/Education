@@ -148,6 +148,13 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    public Task<Case?> GetTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
+    {
+        return DatabaseContext.Cases
+            .AsNoTracking()
+            .FirstOrDefaultAsync(task => task.Id == taskId, cancellationToken);
+    }
+
     public async Task<Case> CreateTaskAsync(CreateTaskCommand command, CancellationToken cancellationToken = default)
     {
         var task = new Case(command.PracticalId, command.Name, "Текст задания");
