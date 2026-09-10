@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.AdminProfiles;
+using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
 using Education.Web.Identity;
@@ -47,6 +48,60 @@ public sealed class AdminProfilesApiTests : IClassFixture<TestWebApplicationFact
         Assert.Equal(String.Empty, user!.Password);
         Assert.Equal(identityUserId, link.IdentityUserId);
         Assert.True(link.IsActive);
+    }
+
+    [Theory]
+    [InlineData(ProfileRole.Student)]
+    [InlineData(ProfileRole.Teacher)]
+    [InlineData(ProfileRole.Admin)]
+    public async Task Admin_CreatesProfile_WithRequestedRole(ProfileRole role)
+    {
+        var client = factory.CreateClient();
+        client.AuthenticateAs(EducationRoles.Admin);
+
+        var response = await client.PostAsJsonAsync(
+            '/' + ApiRoutes.AdminProfiles.ProfilesList,
+            new CreateAdminProfileRequest(
+                Guid.NewGuid(),
+                $"role.{role}.user",
+                "Role",
+                "User",
+                String.Empty,
+                role));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<AdminProfileResponse>();
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var user = await dbContext.Users.FindAsync(profile!.LegacyUserId);
+
+        var expected = role switch
+        {
+            ProfileRole.Admin => RoleIds.Admin,
+            ProfileRole.Teacher => RoleIds.Teacher,
+            _ => RoleIds.Student,
+        };
+        Assert.Equal(expected, user!.RoleId);
+    }
+
+    [Fact]
+    public async Task Admin_CreatesProfile_DefaultsToStudentRole()
+    {
+        var client = factory.CreateClient();
+        client.AuthenticateAs(EducationRoles.Admin);
+
+        var response = await client.PostAsJsonAsync(
+            '/' + ApiRoutes.AdminProfiles.ProfilesList,
+            new CreateAdminProfileRequest(Guid.NewGuid(), "default.role.user", "Default", "Role", String.Empty));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<AdminProfileResponse>();
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var user = await dbContext.Users.FindAsync(profile!.LegacyUserId);
+        Assert.Equal(RoleIds.Student, user!.RoleId);
     }
 
     [Theory]

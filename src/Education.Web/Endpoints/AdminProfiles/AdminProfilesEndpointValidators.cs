@@ -62,6 +62,10 @@ internal sealed class CreateAdminProfileRequestValidator : AbstractValidator<Cre
         RuleFor(request => request.MiddleName)
             .MaximumLength(256)
             .WithMessage("Отчество не должно превышать 256 символов.");
+
+        RuleFor(request => request.Role)
+            .IsInEnum()
+            .WithMessage("Недопустимая роль профиля.");
     }
 }
 
