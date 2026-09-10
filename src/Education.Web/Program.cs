@@ -148,7 +148,7 @@ if (app.Environment.IsDevelopment())
 {
     await using var scope = app.Services.CreateAsyncScope();
     var developmentDbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-    await developmentDbContext.Database.EnsureCreatedAsync();
+    await developmentDbContext.Database.MigrateAsync();
 }
 
 app.UseCors(frontendCorsPolicy);
