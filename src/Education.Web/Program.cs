@@ -63,6 +63,7 @@ builder.Services.AddHttpClient<IModuleCatalogClient, HttpModuleCatalogClient>(cl
 builder.Services.Configure<ModuleIntegrationOptions>(
     builder.Configuration.GetSection(ModuleIntegrationOptions.SectionKey));
 builder.Services.AddScoped<IModuleIntegrationConfig, ModuleIntegrationConfig>();
+builder.Services.AddScoped<IModuleAuthoringService, ModuleAuthoringService>();
 builder.Services.AddScoped<IModuleSessionsService, ModuleSessionsService>();
 builder.Services.AddScoped<IPracticeEventHandler, PracticeEventHandler>();
 builder.Services.AddHttpClient<IModulePushClient, HttpModulePushClient>(client =>
