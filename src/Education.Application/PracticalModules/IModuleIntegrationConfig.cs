@@ -8,4 +8,10 @@ public interface IModuleIntegrationConfig
 
     /// <summary><c>{origin}{basePath}/launch?session={id}#access_token={token}</c>.</summary>
     string BuildLaunchUrl(string moduleBasePath, Guid sessionId, string accessToken);
+
+    /// <summary>
+    /// <c>{origin}{basePath}/teacher/launch#access_token={token}</c> — SSO преподавателя
+    /// в контур авторинга модуля. Без сессии и <c>?session=</c>.
+    /// </summary>
+    string BuildAuthoringUrl(string moduleBasePath, string accessToken);
 }
