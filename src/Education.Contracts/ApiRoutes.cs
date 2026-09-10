@@ -636,6 +636,12 @@ public static class ApiRoutes
         public const string ModuleTasks = PrefixV1 + "/practical-modules/{practicalModuleId:guid}/tasks";
 
         /// <summary>
+        /// Шаблон маршрута SSO-ссылки преподавателя в контур авторинга модуля.
+        /// </summary>
+        public const string ModuleAuthoringLink =
+            PrefixV1 + "/practical-modules/{practicalModuleId:guid}/authoring-link";
+
+        /// <summary>
         /// Шаблон маршрута приёма оценки от бэкенда модуля (сервер-сервер, <c>X-Service-Key</c>).
         /// </summary>
         public const string SessionComplete = PrefixV1 + "/module-sessions/{sessionId:guid}/complete";
@@ -656,6 +662,12 @@ public static class ApiRoutes
         /// </summary>
         public static string ForModuleTasks(Guid practicalModuleId) =>
             ReplaceUrlSegment(ModuleTasks, "practicalModuleId:guid", practicalModuleId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут SSO-ссылки преподавателя в контур авторинга модуля.
+        /// </summary>
+        public static string ForModuleAuthoringLink(Guid practicalModuleId) =>
+            ReplaceUrlSegment(ModuleAuthoringLink, "practicalModuleId:guid", practicalModuleId.ToString());
     }
 
     /// <summary>

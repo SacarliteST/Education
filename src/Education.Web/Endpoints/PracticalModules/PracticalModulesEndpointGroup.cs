@@ -145,6 +145,43 @@ internal static class PracticalModulesEndpointGroup
             .Produces(StatusCodes.Status502BadGateway)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapPost(ApiRoutes.PracticalModules.ModuleAuthoringLink, async (
+                Guid practicalModuleId,
+                IModuleAuthoringService authoringService,
+                CancellationToken cancellationToken) =>
+            {
+                try
+                {
+                    var link = await authoringService.CreateAuthoringLinkAsync(practicalModuleId, cancellationToken);
+                    return link is null
+                        ? Results.NotFound()
+                        : Results.Ok(new ModuleAuthoringLinkResponse(link.Url, link.ExpiresInSeconds));
+                }
+                catch (ModuleDisabledException)
+                {
+                    return Results.Json(new { reason = "ModuleDisabled" }, statusCode: StatusCodes.Status409Conflict);
+                }
+                catch (ModulePushFailedException exception)
+                {
+                    return Results.Json(
+                        new { reason = "IdentityUnavailable", detail = exception.Message },
+                        statusCode: StatusCodes.Status502BadGateway);
+                }
+            })
+            .WithTags("PracticalModules")
+            .WithName("CreatePracticalModuleAuthoringLink")
+            .WithSummary("SSO-ссылка преподавателя в контур авторинга модуля")
+            .WithDescription(
+                "Обменивает токен преподавателя на токен под audience модуля без сессии и " +
+                "возвращает URL перехода в /teacher-контур модуля. Открывать новой вкладкой.")
+            .Produces<ModuleAuthoringLinkResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status502BadGateway)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
         return app;
     }
 }
