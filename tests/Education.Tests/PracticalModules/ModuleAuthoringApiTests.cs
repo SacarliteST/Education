@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Education.Application.PracticalModules;
 using Education.Contracts;
 using Education.Contracts.PracticalModules;
@@ -83,6 +84,35 @@ public sealed class ModuleAuthoringApiTests : IClassFixture<TestWebApplicationFa
             '/' + ApiRoutes.PracticalModules.ForModuleAuthoringLink(moduleId), null);
 
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task OpenApi_DescribesAuthoringLink_CleanlyForOrval()
+    {
+        var openApi = await factory.CreateClient().GetStringAsync("/openapi/v1.json");
+        using var document = JsonDocument.Parse(openApi);
+        var root = document.RootElement;
+
+        var operation = root
+            .GetProperty("paths")
+            .GetProperty("/api/v1/practical-modules/{practicalModuleId}/authoring-link")
+            .GetProperty("post");
+        Assert.Equal("CreatePracticalModuleAuthoringLink", operation.GetProperty("operationId").GetString());
+
+        var schemaRef = operation
+            .GetProperty("responses").GetProperty("200")
+            .GetProperty("content").GetProperty("application/json")
+            .GetProperty("schema").GetProperty("$ref").GetString();
+        Assert.Equal("#/components/schemas/ModuleAuthoringLinkResponse", schemaRef);
+
+        var expiresIn = root
+            .GetProperty("components").GetProperty("schemas")
+            .GetProperty("ModuleAuthoringLinkResponse")
+            .GetProperty("properties").GetProperty("expiresInSeconds");
+        // TD-001: числовое поле — чистый integer, без union [integer|string] и без pattern
+        Assert.Equal(JsonValueKind.String, expiresIn.GetProperty("type").ValueKind);
+        Assert.Equal("integer", expiresIn.GetProperty("type").GetString());
+        Assert.False(expiresIn.TryGetProperty("pattern", out _));
     }
 
     // ---- helpers ----
