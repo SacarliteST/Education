@@ -1,6 +1,5 @@
 ﻿using Education.Application.TestResults;
 using Education.Contracts.TestResults;
-using Education.Domain.Tests;
 
 namespace Education.Web.Endpoints;
 
@@ -56,7 +55,7 @@ internal static class TestResultEndpointMappings
             protocol.Grade);
     }
 
-    private static TestProtocolAnswerResponse ToResponse(this QuestionAnswerScore answer)
+    private static TestProtocolAnswerResponse ToResponse(this TestProtocolAnswer answer)
     {
         return new TestProtocolAnswerResponse(
             answer.QuestionId,
@@ -64,7 +63,9 @@ internal static class TestResultEndpointMappings
             answer.QuestionWeight,
             answer.QuestionScore,
             answer.UserAnswer,
-            answer.IsCorrect);
+            answer.IsCorrect,
+            answer.QuestionType,
+            answer.QuestionBody);
     }
 }
 

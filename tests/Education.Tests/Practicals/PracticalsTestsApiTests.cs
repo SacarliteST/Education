@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.TestResults;
+using Education.Domain.Tests;
 using Education.Tests.Auth;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,10 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         var answer = Assert.Single(protocol!.Answers);
         Assert.True(answer.IsCorrect);
         Assert.Equal(1, answer.QuestionScore);
+
+        // TD-010: протокол несёт тип и тело вопроса, чтобы UI расшифровал вариант.
+        Assert.Equal(QuestionTypeIds.SingleChoice, answer.QuestionType);
+        Assert.Contains("Right", answer.QuestionBody);
     }
 
     [Fact]
