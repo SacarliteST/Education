@@ -191,10 +191,36 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             .Where(answer => answer.TestResultId == testResultId)
             .Select(answer => answer.Answers)
             .ToListAsync(cancellationToken);
-        var protocolAnswers = answers
+        var scores = answers
             .Select(answer => JsonSerializer.Deserialize<QuestionAnswerScore>(answer))
             .Where(answer => answer is not null)
             .Select(answer => answer!)
+            .ToList();
+
+        // TD-010: обогащаем ответ типом и телом вопроса, чтобы UI показал текст
+        // выбранного варианта, а не его id. Джойн по актуальному вопросу —
+        // работает и для старых протоколов (в сериализованном ответе этих полей нет).
+        var questionIds = scores.Select(score => score.QuestionId).ToHashSet();
+        var questions = await context.Questions
+            .AsNoTracking()
+            .Where(question => questionIds.Contains(question.Id))
+            .Select(question => new { question.Id, question.QuestionTypeId, question.Options })
+            .ToDictionaryAsync(question => question.Id, cancellationToken);
+
+        var protocolAnswers = scores
+            .Select(score =>
+            {
+                questions.TryGetValue(score.QuestionId, out var question);
+                return new TestProtocolAnswer(
+                    score.QuestionId,
+                    score.QuestionText,
+                    score.QuestionWeight,
+                    score.QuestionScore,
+                    score.UserAnswer,
+                    score.IsCorrect,
+                    question?.QuestionTypeId ?? Guid.Empty,
+                    question?.Options ?? string.Empty);
+            })
             .ToList();
 
         return new TestProtocol(
