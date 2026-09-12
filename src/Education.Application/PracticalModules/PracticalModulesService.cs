@@ -1,11 +1,13 @@
 using Education.Application.Audit;
 using Education.Domain.PracticalModules;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
 public sealed class PracticalModulesService(
     IPracticalModulesRepository repository,
-    IAdminEventRecorder eventRecorder) : IPracticalModulesService
+    IAdminEventRecorder eventRecorder,
+    ILogger<PracticalModulesService> logger) : IPracticalModulesService
 {
     public Task<IReadOnlyList<PracticalModule>> GetAllAsync(CancellationToken cancellationToken = default)
     {
@@ -18,6 +20,7 @@ public sealed class PracticalModulesService(
     {
         if (await repository.SlugExistsAsync(command.Slug, cancellationToken))
         {
+            logger.LogWarning("Отклонена регистрация модуля: slug «{Slug}» уже занят.", command.Slug);
             throw new PracticalModuleSlugTakenException();
         }
 

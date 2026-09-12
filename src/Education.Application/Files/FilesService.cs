@@ -1,5 +1,6 @@
 ﻿using Education.Application.Identity;
 using Education.Application.Users;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Files;
 
@@ -7,7 +8,8 @@ public sealed class FilesService(
     ICurrentUser currentUser,
     IEducationUserResolver userResolver,
     IFileAccessRepository fileAccessRepository,
-    IFileStorage fileStorage)
+    IFileStorage fileStorage,
+    ILogger<FilesService> logger)
     : IFilesService
 {
     private const string TeacherRole = "Teacher";
@@ -17,6 +19,7 @@ public sealed class FilesService(
     {
         if (String.IsNullOrWhiteSpace(storageKey) || storageKey != Path.GetFileName(storageKey))
         {
+            logger.LogWarning("Отклонён запрос файла с некорректным ключом «{StorageKey}».", storageKey);
             throw new FileStorageValidationException("Некорректный ключ файла.");
         }
 
@@ -24,6 +27,9 @@ public sealed class FilesService(
         var fileInfo = await ResolveAccessibleFileAsync(storageKey, legacyUserId, cancellationToken);
         if (fileInfo is null)
         {
+            logger.LogWarning(
+                "Отказано в скачивании файла {StorageKey}: пользователь {LegacyUserId} не имеет доступа.",
+                storageKey, legacyUserId);
             throw new FileAccessDeniedException(storageKey);
         }
 

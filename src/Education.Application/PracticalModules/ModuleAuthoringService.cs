@@ -1,10 +1,13 @@
-﻿namespace Education.Application.PracticalModules;
+using Microsoft.Extensions.Logging;
+
+namespace Education.Application.PracticalModules;
 
 /// <inheritdoc />
 public sealed class ModuleAuthoringService(
     IPracticalModulesRepository repository,
     ITokenExchangeClient tokenExchangeClient,
-    IModuleIntegrationConfig integrationConfig) : IModuleAuthoringService
+    IModuleIntegrationConfig integrationConfig,
+    ILogger<ModuleAuthoringService> logger) : IModuleAuthoringService
 {
     /// <inheritdoc />
     public async Task<ModuleAuthoringLink?> CreateAuthoringLinkAsync(
@@ -14,11 +17,15 @@ public sealed class ModuleAuthoringService(
         var module = await repository.GetByIdAsync(practicalModuleId, cancellationToken);
         if (module is null)
         {
+            logger.LogWarning("Запрошена authoring-ссылка на несуществующий модуль {PracticalModuleId}.", practicalModuleId);
             return null;
         }
 
         if (!module.IsEnabled)
         {
+            logger.LogWarning(
+                "Отклонена authoring-ссылка на модуль {ModuleSlug} ({PracticalModuleId}): модуль отключён.",
+                module.Slug, practicalModuleId);
             throw new ModuleDisabledException(practicalModuleId);
         }
 
@@ -28,6 +35,9 @@ public sealed class ModuleAuthoringService(
             module.IdentityAudience, cancellationToken: cancellationToken);
 
         var url = integrationConfig.BuildAuthoringUrl(module.BasePath, exchanged.AccessToken);
+        logger.LogInformation(
+            "Выдана authoring-ссылка на модуль {ModuleSlug} ({PracticalModuleId}), TTL {ExpiresIn} c.",
+            module.Slug, practicalModuleId, exchanged.ExpiresIn);
         return new ModuleAuthoringLink(url, exchanged.ExpiresIn);
     }
 }

@@ -1,15 +1,17 @@
-﻿using Education.Application.Courses;
+using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.TestResults;
 using Education.Application.Users;
 using Education.Domain.Practicals;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.TaskFiles;
 
 public sealed class TaskFilesService(
     IEducationUserResolver userResolver,
     ITaskFilesRepository taskFilesRepository,
-    IFileStorage fileStorage)
+    IFileStorage fileStorage,
+    ILogger<TaskFilesService> logger)
     : ITaskFilesService
 {
     public async Task<CaseFile?> GetStudentTaskFileAsync(Guid taskId, CancellationToken cancellationToken = default)
@@ -56,6 +58,9 @@ public sealed class TaskFilesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await taskFilesRepository.IsTaskAssignedToStudentAsync(command.TaskId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в загрузке файла сдачи по заданию {TaskId}: студент {UserId} не назначен.",
+                command.TaskId, legacyUserId);
             throw new StudentPracticalAccessDeniedException(command.TaskId);
         }
 
@@ -72,6 +77,10 @@ public sealed class TaskFilesService(
             await fileStorage.DeleteAsync(result.ReplacedStorageKey, cancellationToken);
         }
 
+        logger.LogInformation(
+            "Студент {UserId} загрузил файл сдачи «{FileName}» по заданию {TaskId} " +
+            "({ReplacedPrevious}).",
+            legacyUserId, storedFile.OriginalFileName, command.TaskId, result.ReplacedStorageKey is not null ? "замена предыдущего" : "первая сдача");
         return result.TaskFile;
     }
 
@@ -87,6 +96,8 @@ public sealed class TaskFilesService(
     {
         await EnsureTaskFileOwnerAsync(command.TaskFileId, cancellationToken);
         await taskFilesRepository.AcceptTaskFileAsync(command.TaskFileId, command.Grade, cancellationToken);
+        logger.LogInformation(
+            "Файл сдачи {TaskFileId} принят с оценкой {Grade}.", command.TaskFileId, command.Grade);
     }
 
     private async Task EnsureTaskFileOwnerAsync(Guid taskFileId, CancellationToken cancellationToken)
@@ -94,8 +105,10 @@ public sealed class TaskFilesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await taskFilesRepository.IsTaskFileOwnedByTeacherAsync(taskFileId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в доступе к файлу сдачи {TaskFileId}: пользователь {LegacyUserId} не владелец.",
+                taskFileId, legacyUserId);
             throw new CourseAccessDeniedException(taskFileId);
         }
     }
 }
-
