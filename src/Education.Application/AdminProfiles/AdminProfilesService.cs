@@ -1,4 +1,5 @@
-﻿using Education.Application.Courses;
+﻿using Education.Application.Audit;
+using Education.Application.Courses;
 using Education.Application.Practicals;
 using Education.Application.Users;
 
@@ -8,18 +9,24 @@ public sealed class AdminProfilesService(
     IAdminProfilesRepository repository,
     IEducationUserResolver userResolver,
     ICoursesRepository coursesRepository,
-    IPracticalsRepository practicalsRepository) : IAdminProfilesService
+    IPracticalsRepository practicalsRepository,
+    IAdminEventRecorder eventRecorder) : IAdminProfilesService
 {
     public Task<IReadOnlyList<AdminProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
     {
         return repository.GetProfilesAsync(cancellationToken);
     }
 
-    public Task<AdminProfile> CreateLinkedProfileAsync(
+    public async Task<AdminProfile> CreateLinkedProfileAsync(
         CreateAdminProfileCommand command,
         CancellationToken cancellationToken = default)
     {
-        return repository.CreateLinkedProfileAsync(command, cancellationToken);
+        var profile = await repository.CreateLinkedProfileAsync(command, cancellationToken);
+        await eventRecorder.RecordAsync(
+            AdminEventTypes.ProfileLinked,
+            $"Связан профиль «{command.Login}» (роль {command.RoleId}) с identity-пользователем {command.IdentityUserId}.",
+            cancellationToken);
+        return profile;
     }
 
     public Task<AdminProfile?> UpdateProfileAsync(
@@ -30,9 +37,18 @@ public sealed class AdminProfilesService(
         return repository.UpdateProfileAsync(legacyUserId, command, cancellationToken);
     }
 
-    public Task<bool> DeactivateProfileLinkAsync(Guid legacyUserId, CancellationToken cancellationToken = default)
+    public async Task<bool> DeactivateProfileLinkAsync(Guid legacyUserId, CancellationToken cancellationToken = default)
     {
-        return repository.DeactivateProfileLinkAsync(legacyUserId, cancellationToken);
+        var deactivated = await repository.DeactivateProfileLinkAsync(legacyUserId, cancellationToken);
+        if (deactivated)
+        {
+            await eventRecorder.RecordAsync(
+                AdminEventTypes.ProfileUnlinked,
+                $"Отвязан профиль {legacyUserId}.",
+                cancellationToken);
+        }
+
+        return deactivated;
     }
 
     public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForCourseAsync(

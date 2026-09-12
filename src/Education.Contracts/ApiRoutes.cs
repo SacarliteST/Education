@@ -611,6 +611,17 @@ public static class ApiRoutes
     }
 
     /// <summary>
+    /// Шаблоны маршрутов журнала административных действий Education.
+    /// </summary>
+    public static class AdminEvents
+    {
+        /// <summary>
+        /// Маршрут коллекции событий журнала.
+        /// </summary>
+        public const string EventsList = PrefixV1 + "/admin/events";
+    }
+
+    /// <summary>
     /// Шаблоны маршрутов реестра внешних практических модулей (администратор).
     /// </summary>
     public static class PracticalModules
