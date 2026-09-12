@@ -2,6 +2,7 @@
 using Education.Application.Courses;
 using Education.Application.Practicals;
 using Education.Application.Users;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.AdminProfiles;
 
@@ -10,7 +11,8 @@ public sealed class AdminProfilesService(
     IEducationUserResolver userResolver,
     ICoursesRepository coursesRepository,
     IPracticalsRepository practicalsRepository,
-    IAdminEventRecorder eventRecorder) : IAdminProfilesService
+    IAdminEventRecorder eventRecorder,
+    ILogger<AdminProfilesService> logger) : IAdminProfilesService
 {
     public Task<IReadOnlyList<AdminProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
     {
@@ -88,6 +90,9 @@ public sealed class AdminProfilesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await coursesRepository.IsCourseOwnerAsync(courseId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в назначении студентов на курс {CourseId}: пользователь {LegacyUserId} не владелец.",
+                courseId, legacyUserId);
             throw new CourseAccessDeniedException(courseId);
         }
     }
@@ -97,6 +102,9 @@ public sealed class AdminProfilesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await practicalsRepository.IsPracticalOwnerAsync(practicalId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в назначении студентов на практику {PracticalId}: пользователь {LegacyUserId} не владелец.",
+                practicalId, legacyUserId);
             throw new CourseAccessDeniedException(practicalId);
         }
     }

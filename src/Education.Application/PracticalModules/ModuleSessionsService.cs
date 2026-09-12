@@ -4,6 +4,7 @@ using Education.Application.Identity;
 using Education.Application.Practicals;
 using Education.Application.Users;
 using Education.Domain.PracticalModules;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
@@ -17,7 +18,8 @@ public sealed class ModuleSessionsService(
     IModulePushClient pushClient,
     ITokenExchangeClient tokenExchangeClient,
     IModuleIntegrationConfig integrationConfig,
-    TimeProvider timeProvider) : IModuleSessionsService
+    TimeProvider timeProvider,
+    ILogger<ModuleSessionsService> logger) : IModuleSessionsService
 {
     public async Task<StartModuleSessionResult> StartAsync(
         Guid practicalId,
@@ -40,6 +42,9 @@ public sealed class ModuleSessionsService(
         {
             var launchUrl = await PushAndBuildLaunchUrlAsync(
                 module, latest, binding.ExternalTaskRef, identityUserId, cancellationToken);
+            logger.LogInformation(
+                "Возобновлена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} (задание {TaskId}).",
+                latest.Id, module.Slug, userId, taskId);
             return new StartModuleSessionResult(
                 latest.Id, launchUrl, latest.ExpiresAt, latest.TryNumber, Resumed: true);
         }
@@ -53,6 +58,10 @@ public sealed class ModuleSessionsService(
         var attemptsCount = await sessionsRepository.CountForUserTaskAsync(userId, taskId, cancellationToken);
         if (attemptsCount >= binding.TriesCount)
         {
+            logger.LogWarning(
+                "Отказано в запуске сессии модуля {ModuleSlug}: пользователь {UserId} исчерпал попытки " +
+                "({AttemptsCount}/{TriesCount}) по заданию {TaskId}.",
+                module.Slug, userId, attemptsCount, binding.TriesCount, taskId);
             throw new TriesExhaustedException();
         }
 
@@ -77,6 +86,10 @@ public sealed class ModuleSessionsService(
         await sessionsRepository.AddAsync(session, cancellationToken);
 
         var newLaunchUrl = await BuildLaunchUrlAsync(module, session, cancellationToken);
+        logger.LogInformation(
+            "Запущена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} " +
+            "(задание {TaskId}, попытка {TryNumber}/{TriesCount}).",
+            session.Id, module.Slug, userId, taskId, session.TryNumber, binding.TriesCount);
         return new StartModuleSessionResult(
             session.Id, newLaunchUrl, session.ExpiresAt, session.TryNumber, Resumed: false);
     }
@@ -142,6 +155,7 @@ public sealed class ModuleSessionsService(
 
         session.Expire(timeProvider.GetUtcNow(), ModuleSessionEndReason.Abandoned);
         await sessionsRepository.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Сессия {SessionId} прервана пользователем {UserId}.", sessionId, userId);
         return AbandonOutcome.Abandoned;
     }
 
@@ -199,6 +213,9 @@ public sealed class ModuleSessionsService(
         var session = await sessionsRepository.GetByIdAsync(sessionId, cancellationToken);
         if (session is null || session.SessionKey != sessionKey)
         {
+            logger.LogWarning(
+                "Отклонено завершение сессии {SessionId}: сессия не найдена или sessionKey не совпадает.",
+                sessionId);
             return CompleteOutcome.Unauthorized;
         }
 
@@ -212,12 +229,20 @@ public sealed class ModuleSessionsService(
         switch (session.Status)
         {
             case ModuleSessionState.Completed:
+                logger.LogWarning("Повторное завершение уже завершённой сессии {SessionId} проигнорировано.", sessionId);
                 return CompleteOutcome.AlreadyCompleted;
             case ModuleSessionState.Expired:
+                logger.LogWarning(
+                    "Модуль прислал результат по уже закрытой (expired) сессии {SessionId} — результат отброшен.",
+                    sessionId);
                 return CompleteOutcome.SessionClosed;
             default:
-                session.Complete(now, Math.Clamp(grade, 0, 100), completionData);
+                var clampedGrade = Math.Clamp(grade, 0, 100);
+                session.Complete(now, clampedGrade, completionData);
                 await sessionsRepository.SaveChangesAsync(cancellationToken);
+                logger.LogInformation(
+                    "Сессия {SessionId} завершена модулем с оценкой {Grade} (пользователь {UserId}).",
+                    sessionId, clampedGrade, session.UserId);
                 return CompleteOutcome.Accepted;
         }
     }
@@ -232,6 +257,9 @@ public sealed class ModuleSessionsService(
 
         session.Expire(now, ModuleSessionEndReason.Timeout);
         await sessionsRepository.SaveChangesAsync(cancellationToken);
+        logger.LogInformation(
+            "Сессия {SessionId} помечена истёкшей при обращении (lazy expire), пользователь {UserId}.",
+            session.Id, session.UserId);
     }
 
     private async Task<string> PushAndBuildLaunchUrlAsync(

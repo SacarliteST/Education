@@ -1,8 +1,9 @@
-﻿using Education.Application.Courses;
+using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.Modules;
 using Education.Application.Users;
 using Education.Domain.Materials;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Theories;
 
@@ -10,7 +11,8 @@ public sealed class TheoriesService(
     IEducationUserResolver userResolver,
     IModulesRepository modulesRepository,
     ITheoriesRepository theoriesRepository,
-    IFileStorage fileStorage)
+    IFileStorage fileStorage,
+    ILogger<TheoriesService> logger)
     : ITheoriesService
 {
     public Task<TheoreticalMaterial?> GetTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default)
@@ -33,10 +35,15 @@ public sealed class TheoriesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await modulesRepository.IsModuleOwnerAsync(command.ModuleId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в создании темы в модуле {ModuleId}: пользователь {LegacyUserId} не владелец.",
+                command.ModuleId, legacyUserId);
             throw new CourseAccessDeniedException(command.ModuleId);
         }
 
-        return await theoriesRepository.CreateTheoryAsync(command, cancellationToken);
+        var theory = await theoriesRepository.CreateTheoryAsync(command, cancellationToken);
+        logger.LogInformation("Тема {TheoryId} создана в модуле {ModuleId}.", theory.Id, command.ModuleId);
+        return theory;
     }
 
     public async Task<TheoreticalMaterialFile> CreateTheoryDocumentAsync(
@@ -46,12 +53,16 @@ public sealed class TheoriesService(
         await EnsureTheoryOwnerAsync(command.TheoryMaterialId, cancellationToken);
 
         var storedFile = await fileStorage.SaveAsync(command.File, cancellationToken);
-        return await theoriesRepository.CreateTheoryDocumentAsync(
+        var document = await theoriesRepository.CreateTheoryDocumentAsync(
             command.TheoryMaterialId,
             command.Description,
             storedFile.StorageKey,
             storedFile.OriginalFileName,
             cancellationToken);
+        logger.LogInformation(
+            "Документ {DocumentId} «{FileName}» добавлен к теме {TheoryId}.",
+            document.Id, storedFile.OriginalFileName, command.TheoryMaterialId);
+        return document;
     }
 
     public async Task UpdateTheoryTitleAsync(Guid theoryId, UpdateTheoryTitleCommand command, CancellationToken cancellationToken = default)
@@ -70,6 +81,7 @@ public sealed class TheoriesService(
     {
         await EnsureTheoryOwnerAsync(theoryId, cancellationToken);
         await theoriesRepository.DeleteTheoryAsync(theoryId, cancellationToken);
+        logger.LogInformation("Тема {TheoryId} удалена.", theoryId);
     }
 
     public async Task DeleteTheoryDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
@@ -77,6 +89,9 @@ public sealed class TheoriesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await theoriesRepository.IsTheoryDocumentOwnerAsync(documentId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в удалении документа {DocumentId}: пользователь {LegacyUserId} не владелец.",
+                documentId, legacyUserId);
             throw new CourseAccessDeniedException(documentId);
         }
 
@@ -87,6 +102,7 @@ public sealed class TheoriesService(
         }
 
         await theoriesRepository.DeleteTheoryDocumentAsync(documentId, cancellationToken);
+        logger.LogInformation("Документ {DocumentId} удалён.", documentId);
     }
 
     public async Task<TheoreticalMaterialLink> CreateTheoryLinkAsync(CreateTheoryLinkCommand command, CancellationToken cancellationToken = default)
@@ -100,6 +116,9 @@ public sealed class TheoriesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await theoriesRepository.IsTheoryLinkOwnerAsync(linkId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в удалении ссылки {LinkId}: пользователь {LegacyUserId} не владелец.",
+                linkId, legacyUserId);
             throw new CourseAccessDeniedException(linkId);
         }
 
@@ -111,8 +130,10 @@ public sealed class TheoriesService(
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await theoriesRepository.IsTheoryOwnerAsync(theoryId, legacyUserId, cancellationToken))
         {
+            logger.LogWarning(
+                "Отказано в доступе к теме {TheoryId}: пользователь {LegacyUserId} не владелец.",
+                theoryId, legacyUserId);
             throw new CourseAccessDeniedException(theoryId);
         }
     }
 }
-
