@@ -1,4 +1,5 @@
-﻿using Education.Domain.Courses;
+﻿using Education.Domain.Audit;
+using Education.Domain.Courses;
 using Education.Domain.Materials;
 using Education.Domain.Practicals;
 using Education.Domain.PracticalModules;
@@ -14,6 +15,12 @@ namespace Education.Infrastructure.Persistence;
 /// <param name="options">Параметры подключения и настройки Entity Framework Core.</param>
 public sealed class EducationDbContext(DbContextOptions<EducationDbContext> options) : DbContext(options)
 {
+    /// <summary>
+    /// Журнал административных действий Education (не путать с аудитом
+    /// IdentityService — тот про логины/роли/блокировки).
+    /// </summary>
+    public DbSet<AdminEvent> AdminEvents => Set<AdminEvent>();
+
     /// <summary>
     /// Связи пользователей identity-сервиса с пользователями учебной системы.
     /// </summary>

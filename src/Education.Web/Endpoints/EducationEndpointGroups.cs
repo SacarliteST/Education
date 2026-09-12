@@ -5,6 +5,7 @@ internal static class EducationEndpointGroups
     public static IEndpointRouteBuilder MapEducationEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapAdminProfilesEndpointGroup();
+        app.MapAdminEventsEndpointGroup();
         app.MapPracticalModulesEndpointGroup();
         app.MapModuleSessionsEndpointGroup();
         app.MapCoursesEndpointGroup();
