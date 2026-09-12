@@ -1,6 +1,7 @@
 ﻿using Education.Application.Courses;
 using Education.Application.Modules;
 using Education.Application.PracticalModules;
+using Education.Application.Questions;
 using Education.Application.Users;
 using Education.Domain.Practicals;
 
@@ -10,7 +11,8 @@ public sealed class PracticalsService(
     IEducationUserResolver userResolver,
     IModulesRepository modulesRepository,
     IPracticalsRepository practicalsRepository,
-    IPracticalModulesRepository practicalModulesRepository)
+    IPracticalModulesRepository practicalModulesRepository,
+    IQuestionsRepository questionsRepository)
     : IPracticalsService
 {
     public Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(Guid moduleId, CancellationToken cancellationToken = default)
@@ -80,9 +82,19 @@ public sealed class PracticalsService(
         return await practicalsRepository.GetQuestionsSetupAsync(practicalId, cancellationToken);
     }
 
+    private const double MaxQuestionsWeightSum = 100;
+
     public async Task ConfigureQuestionsAsync(ConfigurePracticalQuestionsCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
+
+        var totalWeight = await questionsRepository.SumWeightsAsync(
+            command.QuestionIds.ToArray(), cancellationToken);
+        if (totalWeight > MaxQuestionsWeightSum)
+        {
+            throw new PracticalQuestionsWeightExceededException(totalWeight);
+        }
+
         await practicalsRepository.ConfigureQuestionsAsync(command, cancellationToken);
     }
 

@@ -203,6 +203,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
                 question.Text,
                 question.QuestionTypeId,
                 question.Options,
+                question.Weight,
                 question.PracticalMaterialBindQuestions.Any(bind => bind.PracticalMaterialId == practicalId)))
             .ToListAsync(cancellationToken);
 
