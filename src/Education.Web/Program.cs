@@ -33,6 +33,7 @@ using Education.Infrastructure.Persistence;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -48,6 +49,17 @@ var frontendOrigins = configuredFrontendOrigins is { Length: > 0 }
 const string frontendCorsPolicy = "Frontend";
 
 builder.Services.AddHttpContextAccessor();
+// Каждый запрос — одна Information-строка (метод/путь/статус/длительность).
+// Специально БЕЗ заголовков и тела запроса/ответа — иначе в лог попал бы
+// Authorization: Bearer <JWT>. См. SQLTren/PLATFORM.md, задачи по
+// логированию кода, п.2.
+builder.Services.AddHttpLogging(options =>
+{
+    options.LoggingFields = HttpLoggingFields.RequestMethod
+        | HttpLoggingFields.RequestPath
+        | HttpLoggingFields.ResponseStatusCode
+        | HttpLoggingFields.Duration;
+});
 builder.Services.AddKafkaMessaging(builder.Configuration);
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
@@ -151,6 +163,12 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Первым в конвейере — ловит исключения из всего, что ниже. Раньше у
+// Education глобального обработчика не было вообще (см. Endpoints/
+// ExceptionHandlerExtensions.cs).
+app.UseApiExceptionHandler();
+app.UseHttpLogging();
 
 // TD-011: вне Development миграции накатываются при старте только по флагу
 // Database:ApplyMigrationsOnStartup (по умолчанию false) — тогда схему на
