@@ -19,12 +19,24 @@ internal sealed class ModuleIntegrationConfig(IOptions<ModuleIntegrationOptions>
 
     public string BuildLaunchUrl(string moduleBasePath, Guid sessionId, string accessToken)
     {
-        // За общим reverse-proxy: {PlatformOrigin}{basePath}/launch (SPA модуля смонтирована в basePath).
-        // Безшлюзовая разработка (ModuleWebOrigin задан): SPA модуля отдаётся с корня своего порта,
-        // basePath не добавляем.
+        var (origin, basePath) = ResolveModuleBase(moduleBasePath);
+        return $"{origin}{basePath}/launch?session={sessionId}#access_token={accessToken}";
+    }
+
+    public string BuildAuthoringUrl(string moduleBasePath, string accessToken)
+    {
+        var (origin, basePath) = ResolveModuleBase(moduleBasePath);
+        return $"{origin}{basePath}/teacher/launch#access_token={accessToken}";
+    }
+
+    // За общим reverse-proxy: {PlatformOrigin}{basePath}/... (SPA модуля смонтирована в basePath).
+    // Безшлюзовая разработка (ModuleWebOrigin задан): SPA модуля отдаётся с корня своего порта,
+    // basePath не добавляем.
+    private (string Origin, string BasePath) ResolveModuleBase(string moduleBasePath)
+    {
         var gatewayless = !String.IsNullOrWhiteSpace(options.ModuleWebOrigin);
         var origin = (gatewayless ? options.ModuleWebOrigin : options.PlatformOrigin).TrimEnd('/');
         var basePath = gatewayless ? String.Empty : "/" + moduleBasePath.Trim('/');
-        return $"{origin}{basePath}/launch?session={sessionId}#access_token={accessToken}";
+        return (origin, basePath);
     }
 }

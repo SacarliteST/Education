@@ -139,6 +139,23 @@ internal static class PracticalsEndpointGroup
             .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapGet(ApiRoutes.Tasks.Task, async (
+                Guid taskId,
+                IPracticalsService service,
+                CancellationToken cancellationToken) =>
+            {
+                var task = await service.GetTaskAsync(taskId, cancellationToken);
+                return task is null ? Results.NotFound() : Results.Ok(task.ToResponse());
+            })
+            .WithTags("Practicals")
+            .WithName("GetTask")
+            .WithSummary("Задание по идентификатору")
+            .WithDescription("Название и текст задания. Доступно преподавателю и студенту.")
+            .Produces<TaskResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(AuthorizationPolicies.AuthenticatedEducationUser);
+
         app.MapPut(ApiRoutes.Tasks.TaskText, async (
                 Guid taskId,
                 UpdateTaskTextRequest request,

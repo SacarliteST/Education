@@ -91,6 +91,7 @@ internal static class PracticalEndpointMappings
             question.Text,
             question.Type,
             question.Body,
+            question.Weight,
             question.IsSelected);
     }
 }

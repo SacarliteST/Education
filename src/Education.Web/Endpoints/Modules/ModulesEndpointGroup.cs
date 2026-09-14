@@ -52,6 +52,23 @@ internal static class ModulesEndpointGroup
             .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapGet(ApiRoutes.Modules.Module, async (
+                Guid moduleId,
+                IModulesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var module = await service.GetModuleAsync(moduleId, cancellationToken);
+                return module is null ? Results.NotFound() : Results.Ok(module.ToResponse());
+            })
+            .WithTags("Modules")
+            .WithName("GetModule")
+            .WithSummary("Модуль по идентификатору")
+            .WithDescription("Название модуля. Доступно преподавателю и студенту.")
+            .Produces<ModuleResponse>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(AuthorizationPolicies.AuthenticatedEducationUser);
+
         app.MapGet(ApiRoutes.Modules.ModuleTheories, async (
                 Guid moduleId,
                 IModulesService service,

@@ -1,10 +1,12 @@
 using Education.Domain.PracticalModules;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
 public sealed class PracticeEventHandler(
     IPracticalModuleSessionsRepository sessionsRepository,
-    IPracticalTaskEventsRepository eventsRepository) : IPracticeEventHandler
+    IPracticalTaskEventsRepository eventsRepository,
+    ILogger<PracticeEventHandler> logger) : IPracticeEventHandler
 {
     public async Task HandleAsync(PracticeEventInput input, CancellationToken cancellationToken = default)
     {
@@ -13,6 +15,9 @@ public sealed class PracticeEventHandler(
         // Неизвестная сессия или неверный секрет — молча отбрасываем (не наш продюсер).
         if (session is null || session.SessionKey != input.SessionKey)
         {
+            logger.LogWarning(
+                "Событие {EventId} по сессии {SessionId} отброшено: сессия не найдена или sessionKey не совпадает.",
+                input.EventId, input.SessionId);
             return;
         }
 
@@ -24,5 +29,8 @@ public sealed class PracticeEventHandler(
             new PracticalTaskEvent(
                 input.EventId, input.SessionId, input.Kind, input.OccurredAt, input.PayloadJson),
             cancellationToken);
+        logger.LogDebug(
+            "Событие {EventId} ({Kind}) добавлено в цифровой след сессии {SessionId}.",
+            input.EventId, input.Kind, input.SessionId);
     }
 }

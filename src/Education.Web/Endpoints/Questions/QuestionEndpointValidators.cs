@@ -29,7 +29,9 @@ internal sealed class CreateQuestionRequestValidator : AbstractValidator<CreateQ
 
         RuleFor(request => request.Weight)
             .GreaterThan(0)
-            .WithMessage("Вес вопроса должен быть больше 0.");
+            .WithMessage("Вес вопроса должен быть больше 0.")
+            .LessThanOrEqualTo(100)
+            .WithMessage("Вес вопроса не должен превышать 100.");
     }
 }
 
@@ -55,7 +57,9 @@ internal sealed class UpdateQuestionRequestValidator : AbstractValidator<UpdateQ
 
         RuleFor(request => request.Weight)
             .GreaterThan(0)
-            .WithMessage("Вес вопроса должен быть больше 0.");
+            .WithMessage("Вес вопроса должен быть больше 0.")
+            .LessThanOrEqualTo(100)
+            .WithMessage("Вес вопроса не должен превышать 100.");
     }
 }
 

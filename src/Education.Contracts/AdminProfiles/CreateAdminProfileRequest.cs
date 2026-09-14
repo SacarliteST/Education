@@ -8,11 +8,13 @@
 /// <param name="FirstName">Имя пользователя.</param>
 /// <param name="LastName">Фамилия пользователя.</param>
 /// <param name="MiddleName">Отчество пользователя.</param>
+/// <param name="Role">Роль профиля (по умолчанию — студент).</param>
 public sealed record CreateAdminProfileRequest(
     Guid IdentityUserId,
     string Login,
     string FirstName,
     string LastName,
-    string MiddleName);
+    string MiddleName,
+    ProfileRole Role = ProfileRole.Student);
 
 

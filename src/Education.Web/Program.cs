@@ -30,8 +30,10 @@ using Education.Web.Endpoints;
 using Education.Web.Identity;
 using Education.Web.Integration;
 using Education.Infrastructure.Persistence;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -47,6 +49,17 @@ var frontendOrigins = configuredFrontendOrigins is { Length: > 0 }
 const string frontendCorsPolicy = "Frontend";
 
 builder.Services.AddHttpContextAccessor();
+// Каждый запрос — одна Information-строка (метод/путь/статус/длительность).
+// Специально БЕЗ заголовков и тела запроса/ответа — иначе в лог попал бы
+// Authorization: Bearer <JWT>. См. SQLTren/PLATFORM.md, задачи по
+// логированию кода, п.2.
+builder.Services.AddHttpLogging(options =>
+{
+    options.LoggingFields = HttpLoggingFields.RequestMethod
+        | HttpLoggingFields.RequestPath
+        | HttpLoggingFields.ResponseStatusCode
+        | HttpLoggingFields.Duration;
+});
 builder.Services.AddKafkaMessaging(builder.Configuration);
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
@@ -62,6 +75,7 @@ builder.Services.AddHttpClient<IModuleCatalogClient, HttpModuleCatalogClient>(cl
 builder.Services.Configure<ModuleIntegrationOptions>(
     builder.Configuration.GetSection(ModuleIntegrationOptions.SectionKey));
 builder.Services.AddScoped<IModuleIntegrationConfig, ModuleIntegrationConfig>();
+builder.Services.AddScoped<IModuleAuthoringService, ModuleAuthoringService>();
 builder.Services.AddScoped<IModuleSessionsService, ModuleSessionsService>();
 builder.Services.AddScoped<IPracticeEventHandler, PracticeEventHandler>();
 builder.Services.AddHttpClient<IModulePushClient, HttpModulePushClient>(client =>
@@ -131,6 +145,12 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole(EducationRoles.Student));
 });
 
+// TD-001: web-дефолт System.Text.Json включает AllowReadingFromString → .NET-OpenAPI
+// документирует каждое числовое поле как union [integer|number, string] + pattern,
+// Orval генерирует `number | string`. Strict — числа только числами, схема чистая.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict);
+
 builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
 {
@@ -144,11 +164,36 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Первым в конвейере — ловит исключения из всего, что ниже. Раньше у
+// Education глобального обработчика не было вообще (см. Endpoints/
+// ExceptionHandlerExtensions.cs).
+app.UseApiExceptionHandler();
+app.UseHttpLogging();
+
+// TD-011: вне Development миграции накатываются при старте только по флагу
+// Database:ApplyMigrationsOnStartup (по умолчанию false) — тогда схему на
+// прод/стейджинге догоняет сам процесс на деплое, без отдельного шага
+// `dotnet ef database update`. В Development — всегда, для удобства разработки.
+var applyMigrationsOnStartup = app.Environment.IsDevelopment()
+    || app.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false);
+
+if (applyMigrationsOnStartup)
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var developmentDbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-    await developmentDbContext.Database.EnsureCreatedAsync();
+    await using var migrationScope = app.Services.CreateAsyncScope();
+    var migrationDbContext = migrationScope.ServiceProvider.GetRequiredService<EducationDbContext>();
+
+    var pendingMigrations = (await migrationDbContext.Database.GetPendingMigrationsAsync()).ToList();
+    if (pendingMigrations.Count > 0)
+    {
+        app.Logger.LogInformation(
+            "Применяю миграции EducationDb при старте ({Count}): {Migrations}",
+            pendingMigrations.Count,
+            String.Join(", ", pendingMigrations));
+    }
+
+    // MigrateAsync берёт advisory-lock на __EFMigrationsHistory — безопасно,
+    // когда стартует несколько реплик одновременно.
+    await migrationDbContext.Database.MigrateAsync();
 }
 
 app.UseCors(frontendCorsPolicy);
