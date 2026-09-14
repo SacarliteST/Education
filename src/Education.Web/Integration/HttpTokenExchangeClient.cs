@@ -9,7 +9,8 @@ namespace Education.Web.Integration;
 
 /// <summary>
 /// Обменивает Bearer-токен текущего пользователя (из входящего запроса) на токен под
-/// audience модуля с claim <c>session_id</c> через IdentityService Token Exchange.
+/// audience модуля через IdentityService Token Exchange. <c>session_id</c> кладётся в
+/// токен, только если сессия передана.
 /// </summary>
 internal sealed class HttpTokenExchangeClient(
     HttpClient httpClient,
@@ -22,8 +23,8 @@ internal sealed class HttpTokenExchangeClient(
 
     public async Task<ExchangedToken> ExchangeAsync(
         string audience,
-        Guid sessionId,
-        DateTimeOffset? sessionExpiresAt,
+        Guid? sessionId = null,
+        DateTimeOffset? sessionExpiresAt = null,
         CancellationToken cancellationToken = default)
     {
         var subjectToken = ReadSubjectToken();
@@ -36,7 +37,7 @@ internal sealed class HttpTokenExchangeClient(
                     grantType = GrantType,
                     subjectToken,
                     audience,
-                    sessionId = sessionId.ToString(),
+                    sessionId = sessionId?.ToString(),
                     sessionExpiresAt,
                 },
                 options: JsonOptions),

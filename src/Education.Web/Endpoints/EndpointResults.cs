@@ -71,6 +71,10 @@ internal static class EndpointResults
         {
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
         }
+        catch (PracticalQuestionsWeightExceededException exception)
+        {
+            return BadRequestProblem(exception.Message);
+        }
         catch (UnknownStudentsException exception)
         {
             return BadRequestProblem(exception.Message);

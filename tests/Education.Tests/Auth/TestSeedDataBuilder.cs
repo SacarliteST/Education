@@ -4,6 +4,7 @@ using Education.Domain.Practicals;
 using Education.Domain.Tests;
 using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Education.Tests.Auth;
 
@@ -12,7 +13,7 @@ internal sealed class TestSeedDataBuilder(string fileStorageRoot)
     public async Task<TestSeedSnapshot> SeedAsync(EducationDbContext dbContext)
     {
         await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
 
         var testUser = new User("test.user", "Test", "User", String.Empty, RoleIds.Teacher);
         var otherTeacher = new User("other.teacher", "Other", "Teacher", String.Empty, RoleIds.Teacher);
@@ -21,13 +22,21 @@ internal sealed class TestSeedDataBuilder(string fileStorageRoot)
         await dbContext.Users.AddRangeAsync(testUser, otherTeacher, otherStudent);
         await dbContext.SaveChangesAsync();
 
-        await dbContext.IdentityUserLinks.AddAsync(new IdentityUserLink
-        {
-            LegacyUserId = testUser.Id,
-            IdentityUserId = TestAuthHandler.TestUserId,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true,
-        });
+        await dbContext.IdentityUserLinks.AddRangeAsync(
+            new IdentityUserLink
+            {
+                LegacyUserId = testUser.Id,
+                IdentityUserId = TestAuthHandler.TestUserId,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+            },
+            new IdentityUserLink
+            {
+                LegacyUserId = otherStudent.Id,
+                IdentityUserId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+            });
 
         var ownCourse = new Course(
             "Teacher course",

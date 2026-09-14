@@ -32,5 +32,10 @@ public interface IQuestionsRepository : IBaseRepository<Question, Guid>
     /// Удаляет вопрос.
     /// </summary>
     Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Возвращает сумму весов вопросов с указанными идентификаторами.
+    /// </summary>
+    Task<double> SumWeightsAsync(IReadOnlyCollection<Guid> questionIds, CancellationToken cancellationToken = default);
 }
 

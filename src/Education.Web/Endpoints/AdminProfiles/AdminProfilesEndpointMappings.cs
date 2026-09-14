@@ -2,6 +2,7 @@
 using Education.Contracts.AdminProfiles;
 using Education.Contracts.Courses;
 using Education.Contracts.Practicals;
+using Education.Domain.Users;
 
 namespace Education.Web.Endpoints;
 
@@ -24,7 +25,18 @@ internal static class AdminProfilesEndpointMappings
             request.Login,
             request.FirstName,
             request.LastName,
-            request.MiddleName);
+            request.MiddleName,
+            ResolveRoleId(request.Role));
+    }
+
+    private static Guid ResolveRoleId(ProfileRole role)
+    {
+        return role switch
+        {
+            ProfileRole.Admin => RoleIds.Admin,
+            ProfileRole.Teacher => RoleIds.Teacher,
+            _ => RoleIds.Student,
+        };
     }
 
     public static UpdateAdminProfileCommand ToCommand(this UpdateAdminProfileRequest request)

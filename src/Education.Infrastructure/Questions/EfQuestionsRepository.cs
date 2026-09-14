@@ -66,6 +66,20 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
             .Where(question => question.Id == questionId)
             .ExecuteDeleteAsync(cancellationToken);
     }
+
+    public async Task<double> SumWeightsAsync(
+        IReadOnlyCollection<Guid> questionIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (questionIds.Count == 0)
+        {
+            return 0;
+        }
+
+        return await DatabaseContext.Questions
+            .Where(question => questionIds.Contains(question.Id))
+            .SumAsync(question => question.Weight, cancellationToken);
+    }
 }
 
 

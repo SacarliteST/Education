@@ -11,7 +11,9 @@ internal sealed class EfModulesRepository(EducationDbContext context)
 {
     public override Task<Module?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return DatabaseContext.Modules.FirstOrDefaultAsync(module => module.Id == id, cancellationToken);
+        return DatabaseContext.Modules
+            .AsNoTracking()
+            .FirstOrDefaultAsync(module => module.Id == id, cancellationToken);
     }
 
     public Task<bool> IsModuleOwnerAsync(Guid moduleId, Guid teacherUserId, CancellationToken cancellationToken = default)

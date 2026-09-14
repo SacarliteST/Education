@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.AdminProfiles;
@@ -81,7 +81,7 @@ public sealed class TeacherWriteEndpointsApiTests : IClassFixture<TestWebApplica
 
         var response = await client.PostAsJsonAsync(
             '/' + ApiRoutes.Practicals.ForTasks(factory.Seed.AssignedStartPracticalId),
-            new CreateTaskRequest(string.Empty));
+            new CreateTaskRequest(String.Empty));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -186,12 +186,12 @@ public sealed class TeacherWriteEndpointsApiTests : IClassFixture<TestWebApplica
 
         var assign = await client.PutAsJsonAsync(
             '/' + ApiRoutes.Courses.ForCourseStudents(courseId),
-            new UpdateCourseStudentsRequest([factory.Seed.TestUserId]));
+            new UpdateCourseStudentsRequest([factory.Seed.OtherStudentId]));
         Assert.Equal(HttpStatusCode.NoContent, assign.StatusCode);
 
         var assigned = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
             '/' + ApiRoutes.AdminProfiles.ForCourseAssignableStudents(courseId));
-        Assert.True(assigned!.Single(item => item.LegacyUserId == factory.Seed.TestUserId).IsAssigned);
+        Assert.True(assigned!.Single(item => item.LegacyUserId == factory.Seed.OtherStudentId).IsAssigned);
 
         var clear = await client.PutAsJsonAsync(
             '/' + ApiRoutes.Courses.ForCourseStudents(courseId),
@@ -200,7 +200,25 @@ public sealed class TeacherWriteEndpointsApiTests : IClassFixture<TestWebApplica
 
         var afterClear = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
             '/' + ApiRoutes.AdminProfiles.ForCourseAssignableStudents(courseId));
-        Assert.False(afterClear!.Single(item => item.LegacyUserId == factory.Seed.TestUserId).IsAssigned);
+        Assert.False(afterClear!.Single(item => item.LegacyUserId == factory.Seed.OtherStudentId).IsAssigned);
+    }
+
+    [Fact]
+    public async Task Teacher_AssignableStudents_ExcludesNonStudentProfiles()
+    {
+        var client = TeacherClient();
+
+        var courseStudents = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
+            '/' + ApiRoutes.AdminProfiles.ForCourseAssignableStudents(factory.Seed.OwnCourseId));
+        var practicalStudents = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
+            '/' + ApiRoutes.AdminProfiles.ForPracticalAssignableStudents(factory.Seed.SubmitPracticalId));
+
+        // связанный студенческий профиль в списке есть
+        Assert.Contains(courseStudents!, item => item.LegacyUserId == factory.Seed.OtherStudentId);
+        Assert.Contains(practicalStudents!, item => item.LegacyUserId == factory.Seed.OtherStudentId);
+        // связанный преподавательский профиль — нет
+        Assert.DoesNotContain(courseStudents!, item => item.LegacyUserId == factory.Seed.TestUserId);
+        Assert.DoesNotContain(practicalStudents!, item => item.LegacyUserId == factory.Seed.TestUserId);
     }
 
     [Fact]
@@ -250,12 +268,12 @@ public sealed class TeacherWriteEndpointsApiTests : IClassFixture<TestWebApplica
 
         var assign = await client.PutAsJsonAsync(
             '/' + ApiRoutes.Practicals.ForStudents(practicalId),
-            new UpdatePracticalStudentsRequest([factory.Seed.TestUserId]));
+            new UpdatePracticalStudentsRequest([factory.Seed.OtherStudentId]));
         Assert.Equal(HttpStatusCode.NoContent, assign.StatusCode);
 
         var assigned = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
             '/' + ApiRoutes.AdminProfiles.ForPracticalAssignableStudents(practicalId));
-        Assert.True(assigned!.Single(item => item.LegacyUserId == factory.Seed.TestUserId).IsAssigned);
+        Assert.True(assigned!.Single(item => item.LegacyUserId == factory.Seed.OtherStudentId).IsAssigned);
     }
 
     [Fact]

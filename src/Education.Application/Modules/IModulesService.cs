@@ -14,6 +14,11 @@ public interface IModulesService
     Task<IReadOnlyList<Module>> GetModulesAsync(Guid courseId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Возвращает модуль по идентификатору. <see langword="null"/> — не найден.
+    /// </summary>
+    Task<Module?> GetModuleAsync(Guid moduleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Создаёт модуль в курсе текущего преподавателя.
     /// </summary>
     Task<Module> CreateModuleAsync(CreateModuleCommand command, CancellationToken cancellationToken = default);

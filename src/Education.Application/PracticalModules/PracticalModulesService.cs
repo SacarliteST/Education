@@ -1,8 +1,13 @@
+using Education.Application.Audit;
 using Education.Domain.PracticalModules;
+using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
-public sealed class PracticalModulesService(IPracticalModulesRepository repository) : IPracticalModulesService
+public sealed class PracticalModulesService(
+    IPracticalModulesRepository repository,
+    IAdminEventRecorder eventRecorder,
+    ILogger<PracticalModulesService> logger) : IPracticalModulesService
 {
     public Task<IReadOnlyList<PracticalModule>> GetAllAsync(CancellationToken cancellationToken = default)
     {
@@ -15,6 +20,7 @@ public sealed class PracticalModulesService(IPracticalModulesRepository reposito
     {
         if (await repository.SlugExistsAsync(command.Slug, cancellationToken))
         {
+            logger.LogWarning("Отклонена регистрация модуля: slug «{Slug}» уже занят.", command.Slug);
             throw new PracticalModuleSlugTakenException();
         }
 
@@ -28,6 +34,10 @@ public sealed class PracticalModulesService(IPracticalModulesRepository reposito
             command.Configuration);
 
         await repository.CreateAsync(module, cancellationToken);
+        await eventRecorder.RecordAsync(
+            AdminEventTypes.ModuleRegistered,
+            $"Зарегистрирован модуль «{module.Name}» (slug {module.Slug}, id {module.Id}).",
+            cancellationToken);
         return module;
     }
 
@@ -52,6 +62,10 @@ public sealed class PracticalModulesService(IPracticalModulesRepository reposito
             command.IsEnabled);
 
         await repository.UpdateAsync(module, cancellationToken);
+        await eventRecorder.RecordAsync(
+            AdminEventTypes.ModuleUpdated,
+            $"Изменён модуль «{module.Name}» (slug {module.Slug}, id {module.Id}, включён: {module.IsEnabled}).",
+            cancellationToken);
         return module;
     }
 
@@ -64,6 +78,10 @@ public sealed class PracticalModulesService(IPracticalModulesRepository reposito
         }
 
         await repository.DeleteAsync(module, cancellationToken);
+        await eventRecorder.RecordAsync(
+            AdminEventTypes.ModuleDeleted,
+            $"Удалён модуль «{module.Name}» (slug {module.Slug}, id {module.Id}).",
+            cancellationToken);
         return true;
     }
 }

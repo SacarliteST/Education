@@ -8,6 +8,7 @@ public sealed record SelectableQuestionResponse(
     string Text,
     Guid Type,
     string Body,
+    double Weight,
     bool IsSelected);
 
 
