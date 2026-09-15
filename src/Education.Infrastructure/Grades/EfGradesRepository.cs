@@ -72,7 +72,7 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
         Guid studentUserId,
         CancellationToken cancellationToken)
     {
-        var bestGrade = await context.PracticalModuleSessions
+        var bestScore = await context.PracticalModuleSessions
             .Where(session => session.UserId == studentUserId
                 && session.Status == ModuleSessionState.Completed
                 && session.Grade != null
@@ -80,9 +80,20 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
                     task.Id == session.PracticalTaskId && task.PracticalMaterialId == practicalId))
             .MaxAsync(session => (int?)session.Grade, cancellationToken);
 
-        return bestGrade is null
-            ? new PracticalGrade(null, ["Пройдите практику"])
-            : new PracticalGrade(bestGrade, []);
+        if (bestScore is null)
+        {
+            return new PracticalGrade(null, ["Пройдите практику"]);
+        }
+
+        // session.Grade — составной балл модуля 0..100, а не готовая оценка по
+        // 5-балльной шкале: переводим его теми же порогами, что и обычные
+        // тесты/кейсы этой практики, иначе внешняя и внутренняя практика
+        // показывают студенту оценку в разных, несовместимых шкалах.
+        var practical = await context.PracticalMaterials
+            .FirstAsync(material => material.Id == practicalId, cancellationToken);
+        var grade = practical.CalculateTestGrade(bestScore, 100);
+
+        return new PracticalGrade(grade, []);
     }
 }
 

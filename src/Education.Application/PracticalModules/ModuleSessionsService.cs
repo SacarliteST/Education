@@ -220,12 +220,13 @@ public sealed class ModuleSessionsService(
         }
 
         var now = timeProvider.GetUtcNow();
-        if (session.IsExpiredBy(now))
-        {
-            session.Expire(now, ModuleSessionEndReason.Timeout);
-            await sessionsRepository.SaveChangesAsync(cancellationToken);
-        }
 
+        // Намеренно не вызываем лениво session.Expire() здесь по истечении ExpiresAt:
+        // модуль может прислать итоговую (в том числе позднюю) оценку уже после
+        // формального дедлайна, и такая оценка всё ещё должна быть принята, пока
+        // сессию не закрыл кто-то другой (сам студент через Abandon либо отдельный
+        // процесс истечения). Раньше самовольное истечение прямо в этом методе
+        // гарантированно отбрасывало любую позднюю, но легитимную оценку.
         switch (session.Status)
         {
             case ModuleSessionState.Completed:
