@@ -38,11 +38,16 @@ internal sealed class TestAuthHandler(
             new(ClaimTypes.Email, "test.user@example.test"),
         };
 
+        // ClaimTypes.Role (не короткое "role"), т.к. HttpCurrentUser.Roles ищет claim
+        // строго по Jwt:RoleClaimType из appsettings.Development.json — это длинный
+        // URI, под который в проде маппится JWT-claim "role" стандартным
+        // JwtSecurityTokenHandler; тестовый principal должен нести тот же тип claim,
+        // иначе /auth/me и всё, что читает ICurrentUser.Roles, видит пустой набор ролей.
         claims.AddRange(rolesValue
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(role => new Claim("role", role)));
+            .Select(role => new Claim(ClaimTypes.Role, role)));
 
-        var identity = new ClaimsIdentity(claims, AuthenticationScheme, ClaimTypes.Name, "role");
+        var identity = new ClaimsIdentity(claims, AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, AuthenticationScheme);
 
