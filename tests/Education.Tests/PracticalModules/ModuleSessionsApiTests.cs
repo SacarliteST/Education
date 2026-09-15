@@ -163,6 +163,35 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     }
 
     [Fact]
+    public async Task Complete_AfterExpiresAt_StillAcceptsLateGrade()
+    {
+        // Модуль может прислать итоговую (в т.ч. позднюю) оценку уже после
+        // формального ExpiresAt — CompleteAsync не должен сам себе истекать
+        // сессию прямо в этом вызове и тем самым отбрасывать легитимный результат.
+        var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: 1);
+        var client = StudentClient(new FakePushClient());
+        var started = await StartAsync(client, context);
+        var sessionKey = await ReadSessionKeyAsync(started.SessionId);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+            var session = await db.PracticalModuleSessions.SingleAsync(s => s.Id == started.SessionId);
+            db.Entry(session).Property("ExpiresAt").CurrentValue = DateTimeOffset.UtcNow.AddMinutes(-10);
+            await db.SaveChangesAsync();
+        }
+
+        var completed = await SendCompleteAsync(started.SessionId, DevServiceKey, sessionKey, 75);
+        Assert.Equal(HttpStatusCode.OK, completed.StatusCode);
+
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var final = await verifyDb.PracticalModuleSessions.AsNoTracking().SingleAsync(s => s.Id == started.SessionId);
+        Assert.Equal(ModuleSessionState.Completed, final.Status);
+        Assert.Equal(75, final.Grade);
+    }
+
+    [Fact]
     public async Task ExternalGrade_BestOfN_ViaGradeEndpoint()
     {
         // назначенная студенту практика — GradesService требует назначения
@@ -179,7 +208,11 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
 
         var result = await client.GetFromJsonAsync<PracticalGradeResponse>(
             '/' + ApiRoutes.Grades.ForPracticalGrade(context.PracticalId));
-        Assert.Equal(90, result!.Grade);
+
+        // Лучший составной балл модуля (90 из 100) переводится в 5-балльную шкалу
+        // теми же порогами практики, что и обычные тесты/кейсы (по умолчанию
+        // 90/75/60), а не отдаётся студенту как есть.
+        Assert.Equal(5, result!.Grade);
     }
 
     [Fact]
