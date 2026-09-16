@@ -78,14 +78,10 @@ public sealed class ModuleSessionsService(
             expiresAt);
 
         // Пуш до персиста — неудачный запуск не тратит попытку (спека E4.5).
-        await pushClient.PushAsync(
-            ReadSessionsEndpoint(module),
-            module.Slug,
-            ToPush(session, binding.ExternalTaskRef, identityUserId),
-            cancellationToken);
+        var newLaunchUrl = await PushAndBuildLaunchUrlAsync(
+            module, session, binding.ExternalTaskRef, identityUserId, cancellationToken);
         await sessionsRepository.AddAsync(session, cancellationToken);
 
-        var newLaunchUrl = await BuildLaunchUrlAsync(module, session, cancellationToken);
         logger.LogInformation(
             "Запущена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} " +
             "(задание {TaskId}, попытка {TryNumber}/{TriesCount}).",
