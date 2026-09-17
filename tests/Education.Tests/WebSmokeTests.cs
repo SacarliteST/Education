@@ -70,7 +70,12 @@ public class WebSmokeTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(2, await dbContext.Courses.CountAsync());
         Assert.Equal(6, await dbContext.PracticalMaterials.CountAsync());
 
-        var linkedUser = await dbContext.IdentityUserLinks.SingleAsync();
+        // Сид создаёт связку и для test.user, и для other.student (нужна другим
+        // тестам разграничения доступа) — проверяем конкретно тестового пользователя,
+        // а не полагаемся на то, что в таблице ровно одна строка.
+        Assert.Equal(2, await dbContext.IdentityUserLinks.CountAsync());
+        var linkedUser = await dbContext.IdentityUserLinks.SingleAsync(
+            link => link.IdentityUserId == TestAuthHandler.TestUserId);
         Assert.Equal(factory.Seed.TestUserId, linkedUser.LegacyUserId);
         Assert.Equal(TestAuthHandler.TestUserId, linkedUser.IdentityUserId);
         Assert.NotEqual(Guid.Empty, factory.Seed.OwnCourseId);

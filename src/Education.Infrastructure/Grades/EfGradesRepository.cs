@@ -13,13 +13,11 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
         Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
-        var kind = await context.PracticalMaterials
-            .Where(practical => practical.Id == practicalId)
-            .Select(practical => practical.Kind)
-            .FirstOrDefaultAsync(cancellationToken);
-        if (kind == PracticalKind.External)
+        var practicalMaterial = await context.PracticalMaterials
+            .FirstOrDefaultAsync(practical => practical.Id == practicalId, cancellationToken);
+        if (practicalMaterial?.Kind == PracticalKind.External)
         {
-            return await GetExternalPracticalGradeAsync(practicalId, studentUserId, cancellationToken);
+            return await GetExternalPracticalGradeAsync(practicalMaterial, studentUserId, cancellationToken);
         }
 
         var totalTasks = await context.Cases.CountAsync(
@@ -68,22 +66,30 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
     }
 
     private async Task<PracticalGrade> GetExternalPracticalGradeAsync(
-        Guid practicalId,
+        PracticalMaterial practicalMaterial,
         Guid studentUserId,
         CancellationToken cancellationToken)
     {
-        var bestGrade = await context.PracticalModuleSessions
+        var bestScore = await context.PracticalModuleSessions
             .Where(session => session.UserId == studentUserId
                 && session.Status == ModuleSessionState.Completed
                 && session.Grade != null
                 && context.Cases.Any(task =>
-                    task.Id == session.PracticalTaskId && task.PracticalMaterialId == practicalId))
+                    task.Id == session.PracticalTaskId && task.PracticalMaterialId == practicalMaterial.Id))
             .MaxAsync(session => (int?)session.Grade, cancellationToken);
 
-        return bestGrade is null
-            ? new PracticalGrade(null, ["Пройдите практику"])
-            : new PracticalGrade(bestGrade, []);
+        if (bestScore is null)
+        {
+            return new PracticalGrade(null, ["Пройдите практику"]);
+        }
+
+        // session.Grade — составной балл модуля 0..100, а не готовая оценка по
+        // 5-балльной шкале: переводим его теми же порогами, что и обычные
+        // тесты/кейсы этой практики, иначе внешняя и внутренняя практика
+        // показывают студенту оценку в разных, несовместимых шкалах.
+        var grade = practicalMaterial.CalculateTestGrade(bestScore, 100);
+
+        return new PracticalGrade(grade, []);
     }
 }
-
 
