@@ -46,6 +46,11 @@ public static class ApiRoutes
         public const string CourseStudents = Course + "/students";
 
         /// <summary>
+        /// Шаблон маршрута точечного изменения набора студентов курса (добавить и убрать).
+        /// </summary>
+        public const string CourseStudentChanges = CourseStudents + "/changes";
+
+        /// <summary>
         /// Создаёт маршрут для конкретного курса.
         /// </summary>
         public static string ForCourse(Guid courseId) => ReplaceUrlSegment(Course, "courseId:guid", courseId.ToString());
@@ -63,6 +68,14 @@ public static class ApiRoutes
         /// </summary>
         public static string ForCourseStudents(Guid courseId) => ReplaceUrlSegment(
             CourseStudents,
+            "courseId:guid",
+            courseId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут точечного изменения набора студентов конкретного курса.
+        /// </summary>
+        public static string ForCourseStudentChanges(Guid courseId) => ReplaceUrlSegment(
+            CourseStudentChanges,
             "courseId:guid",
             courseId.ToString());
     }
@@ -193,6 +206,11 @@ public static class ApiRoutes
         public const string Students = Practical + "/students";
 
         /// <summary>
+        /// Шаблон маршрута точечного изменения набора студентов практического материала (добавить и убрать).
+        /// </summary>
+        public const string StudentChanges = Students + "/changes";
+
+        /// <summary>
         /// Создаёт маршрут для конкретного практического материала.
         /// </summary>
         public static string ForPractical(Guid practicalId) => ReplaceUrlSegment(
@@ -280,6 +298,14 @@ public static class ApiRoutes
         /// </summary>
         public static string ForStudents(Guid practicalId) => ReplaceUrlSegment(
             Students,
+            "practicalId:guid",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут точечного изменения набора студентов практического материала.
+        /// </summary>
+        public static string ForStudentChanges(Guid practicalId) => ReplaceUrlSegment(
+            StudentChanges,
             "practicalId:guid",
             practicalId.ToString());
     }
@@ -578,6 +604,16 @@ public static class ApiRoutes
         public const string PracticalAssignableStudents = Practicals.Practical + "/assignable-students";
 
         /// <summary>
+        /// Шаблон маршрута постраничного списка студентов для назначения на курс (поиск, фильтр, пагинация).
+        /// </summary>
+        public const string CourseStudentAssignments = Courses.Course + "/student-assignments";
+
+        /// <summary>
+        /// Шаблон маршрута постраничного списка студентов для назначения на практический материал.
+        /// </summary>
+        public const string PracticalStudentAssignments = Practicals.Practical + "/student-assignments";
+
+        /// <summary>
         /// Создаёт маршрут локального учебного профиля.
         /// </summary>
         public static string ForProfile(Guid legacyUserId) => ReplaceUrlSegment(
@@ -606,6 +642,22 @@ public static class ApiRoutes
         /// </summary>
         public static string ForPracticalAssignableStudents(Guid practicalId) => ReplaceUrlSegment(
             PracticalAssignableStudents,
+            "practicalId:guid",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут постраничного списка студентов для назначения на курс.
+        /// </summary>
+        public static string ForCourseStudentAssignments(Guid courseId) => ReplaceUrlSegment(
+            CourseStudentAssignments,
+            "courseId:guid",
+            courseId.ToString());
+
+        /// <summary>
+        /// Создаёт маршрут постраничного списка студентов для назначения на практический материал.
+        /// </summary>
+        public static string ForPracticalStudentAssignments(Guid practicalId) => ReplaceUrlSegment(
+            PracticalStudentAssignments,
             "practicalId:guid",
             practicalId.ToString());
     }

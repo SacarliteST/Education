@@ -102,6 +102,7 @@ builder.Services.AddScoped<IValidator<CreateTaskRequest>, CreateTaskRequestValid
 builder.Services.AddScoped<IValidator<UpdateTaskTextRequest>, UpdateTaskTextRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateCourseStudentsRequest>, UpdateCourseStudentsRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdatePracticalStudentsRequest>, UpdatePracticalStudentsRequestValidator>();
+builder.Services.AddScoped<IValidator<ChangeStudentsRequest>, ChangeStudentsRequestValidator>();
 builder.Services.AddScoped<IValidator<ConfigurePracticalQuestionsRequest>, ConfigurePracticalQuestionsRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateQuestionRequest>, CreateQuestionRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateQuestionRequest>, UpdateQuestionRequestValidator>();

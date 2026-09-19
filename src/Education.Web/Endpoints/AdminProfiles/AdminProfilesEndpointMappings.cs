@@ -64,5 +64,28 @@ internal static class AdminProfilesEndpointMappings
     {
         return new AssignableStudentResponse(student.LegacyUserId, student.FullName, student.IsAssigned);
     }
+
+    public static StudentAssignmentPageResponse ToResponse(this AssignableStudentsPage page, int pageNumber, int pageSize)
+    {
+        return new StudentAssignmentPageResponse(
+            page.Items
+                .Select(item => new StudentAssignmentEntryResponse(
+                    item.LegacyUserId, item.FullName.Trim(), item.Login, item.IsAssigned))
+                .ToArray(),
+            page.TotalCount,
+            page.AssignedCount,
+            pageNumber,
+            pageSize);
+    }
+
+    public static ChangeCourseStudentsCommand ToCommand(this ChangeStudentsRequest request, Guid courseId)
+    {
+        return new ChangeCourseStudentsCommand(courseId, request.Add, request.Remove);
+    }
+
+    public static ChangePracticalStudentsCommand ToPracticalCommand(this ChangeStudentsRequest request, Guid practicalId)
+    {
+        return new ChangePracticalStudentsCommand(practicalId, request.Add, request.Remove);
+    }
 }
 

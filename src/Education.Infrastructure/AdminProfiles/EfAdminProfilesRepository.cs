@@ -167,6 +167,127 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         await SaveOrTranslateAsync(desiredIds, cancellationToken);
     }
 
+    public Task<AssignableStudentsPage> GetAssignableStudentsPageForCourseAsync(
+        Guid courseId,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var assignedIds = context.CourseBindUsers
+            .Where(bind => bind.CourseId == courseId)
+            .Select(bind => bind.UserId);
+        return GetAssignableStudentsPageAsync(assignedIds, query, cancellationToken);
+    }
+
+    public Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
+        Guid practicalId,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var assignedIds = context.PracticalBindUsers
+            .Where(bind => bind.PracticalMaterialId == practicalId)
+            .Select(bind => bind.UserId);
+        return GetAssignableStudentsPageAsync(assignedIds, query, cancellationToken);
+    }
+
+    public async Task ChangeCourseStudentsAsync(
+        ChangeCourseStudentsCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var addIds = command.Add.ToHashSet();
+        var removeIds = command.Remove.ToHashSet();
+        await EnsureLinkedUsersAsync(addIds, cancellationToken);
+
+        var affected = await context.CourseBindUsers
+            .Where(bind => bind.CourseId == command.CourseId
+                && (addIds.Contains(bind.UserId) || removeIds.Contains(bind.UserId)))
+            .ToListAsync(cancellationToken);
+
+        context.CourseBindUsers.RemoveRange(affected.Where(bind => removeIds.Contains(bind.UserId)));
+
+        var alreadyAssigned = affected.Select(bind => bind.UserId).ToHashSet();
+        var newBinds = addIds
+            .Where(userId => !alreadyAssigned.Contains(userId))
+            .Select(userId => new CourseBindUser(command.CourseId, userId));
+
+        await context.CourseBindUsers.AddRangeAsync(newBinds, cancellationToken);
+        await SaveOrTranslateAsync(addIds, cancellationToken);
+    }
+
+    public async Task ChangePracticalStudentsAsync(
+        ChangePracticalStudentsCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var addIds = command.Add.ToHashSet();
+        var removeIds = command.Remove.ToHashSet();
+        await EnsureLinkedUsersAsync(addIds, cancellationToken);
+
+        var affected = await context.PracticalBindUsers
+            .Where(bind => bind.PracticalMaterialId == command.PracticalId
+                && (addIds.Contains(bind.UserId) || removeIds.Contains(bind.UserId)))
+            .ToListAsync(cancellationToken);
+
+        context.PracticalBindUsers.RemoveRange(affected.Where(bind => removeIds.Contains(bind.UserId)));
+
+        var alreadyAssigned = affected.Select(bind => bind.UserId).ToHashSet();
+        var newBinds = addIds
+            .Where(userId => !alreadyAssigned.Contains(userId))
+            .Select(userId => new PracticalBindUser(command.PracticalId, userId));
+
+        await context.PracticalBindUsers.AddRangeAsync(newBinds, cancellationToken);
+        await SaveOrTranslateAsync(addIds, cancellationToken);
+    }
+
+    private async Task<AssignableStudentsPage> GetAssignableStudentsPageAsync(
+        IQueryable<Guid> assignedIds,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken)
+    {
+        var students = context.Users
+            .AsNoTracking()
+            .Where(user => user.RoleId == RoleIds.Student
+                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive));
+
+        var assignedCount = await students.CountAsync(user => assignedIds.Contains(user.Id), cancellationToken);
+
+        var filtered = students;
+        if (!String.IsNullOrWhiteSpace(query.Search))
+        {
+            var pattern = "%" + EscapeLikePattern(query.Search.Trim()) + "%";
+            filtered = filtered.Where(user =>
+                EF.Functions.ILike(user.LastName + " " + user.FirstName + " " + user.MiddleName, pattern)
+                || EF.Functions.ILike(user.Login, pattern));
+        }
+
+        if (query.Assigned is { } assigned)
+        {
+            filtered = assigned
+                ? filtered.Where(user => assignedIds.Contains(user.Id))
+                : filtered.Where(user => !assignedIds.Contains(user.Id));
+        }
+
+        var totalCount = await filtered.CountAsync(cancellationToken);
+        var items = await filtered
+            .OrderBy(user => user.LastName)
+            .ThenBy(user => user.FirstName)
+            .ThenBy(user => user.Id)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .Select(user => new AssignableStudentEntry(
+                user.Id,
+                user.LastName + " " + user.FirstName + " " + user.MiddleName,
+                user.Login,
+                assignedIds.Contains(user.Id)))
+            .ToListAsync(cancellationToken);
+
+        return new AssignableStudentsPage(items, totalCount, assignedCount);
+    }
+
+    /// <summary>Экранирует служебные символы шаблона LIKE, чтобы поиск шёл по буквальной подстроке.</summary>
+    private static string EscapeLikePattern(string value)
+    {
+        return value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+    }
+
     /// <summary>Каждый id должен быть учебным профилем с активной связью с identity-сервисом.</summary>
     private async Task EnsureLinkedUsersAsync(
         IReadOnlyCollection<Guid> desiredIds,

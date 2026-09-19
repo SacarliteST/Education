@@ -189,7 +189,154 @@ internal static class AdminProfilesEndpointGroup
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapGet(ApiRoutes.AdminProfiles.CourseStudentAssignments, (
+                Guid courseId,
+                string? search,
+                bool? assigned,
+                int? page,
+                int? pageSize,
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var paging = ReadAssignmentPaging(search, assigned, page, pageSize);
+                if (paging.Problem is not null)
+                {
+                    return Task.FromResult(paging.Problem);
+                }
+
+                return EndpointResults.ExecuteTeacherCommandAsync(async () =>
+                    Results.Ok((await service.GetAssignableStudentsPageForCourseAsync(
+                            courseId, paging.Query!, cancellationToken))
+                        .ToResponse(paging.Query!.Page, paging.Query.PageSize)));
+            })
+            .WithTags("AdminProfiles")
+            .WithName("GetCourseStudentAssignments")
+            .WithSummary("Постраничный список студентов для назначения на курс")
+            .WithDescription("Поиск по ФИО и логину, фильтр assigned (true/false), страницы по pageSize ≤ 200. Только для преподавателя-владельца курса.")
+            .Produces<StudentAssignmentPageResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
+        app.MapGet(ApiRoutes.AdminProfiles.PracticalStudentAssignments, (
+                Guid practicalId,
+                string? search,
+                bool? assigned,
+                int? page,
+                int? pageSize,
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var paging = ReadAssignmentPaging(search, assigned, page, pageSize);
+                if (paging.Problem is not null)
+                {
+                    return Task.FromResult(paging.Problem);
+                }
+
+                return EndpointResults.ExecuteTeacherCommandAsync(async () =>
+                    Results.Ok((await service.GetAssignableStudentsPageForPracticalAsync(
+                            practicalId, paging.Query!, cancellationToken))
+                        .ToResponse(paging.Query!.Page, paging.Query.PageSize)));
+            })
+            .WithTags("AdminProfiles")
+            .WithName("GetPracticalStudentAssignments")
+            .WithSummary("Постраничный список студентов для назначения на практику")
+            .WithDescription("Поиск по ФИО и логину, фильтр assigned (true/false), страницы по pageSize ≤ 200. Только для преподавателя-владельца практики.")
+            .Produces<StudentAssignmentPageResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
+        app.MapPost(ApiRoutes.Courses.CourseStudentChanges, async (
+                Guid courseId,
+                ChangeStudentsRequest request,
+                IValidator<ChangeStudentsRequest> validator,
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
+                if (validation is not null)
+                {
+                    return validation;
+                }
+
+                return await EndpointResults.ExecuteTeacherCommandAsync(() =>
+                    service.ChangeCourseStudentsAsync(request.ToCommand(courseId), cancellationToken));
+            })
+            .WithTags("AdminProfiles")
+            .WithName("ChangeCourseStudents")
+            .WithSummary("Точечное изменение студентов курса")
+            .WithDescription("Добавляет студентов из add и снимает студентов из remove, остальных не затрагивает. Только для преподавателя-владельца; неизвестные / не привязанные id в add → 400.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
+        app.MapPost(ApiRoutes.Practicals.StudentChanges, async (
+                Guid practicalId,
+                ChangeStudentsRequest request,
+                IValidator<ChangeStudentsRequest> validator,
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            {
+                var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
+                if (validation is not null)
+                {
+                    return validation;
+                }
+
+                return await EndpointResults.ExecuteTeacherCommandAsync(() =>
+                    service.ChangePracticalStudentsAsync(request.ToPracticalCommand(practicalId), cancellationToken));
+            })
+            .WithTags("AdminProfiles")
+            .WithName("ChangePracticalStudents")
+            .WithSummary("Точечное изменение студентов практики")
+            .WithDescription("Добавляет студентов из add и снимает студентов из remove, остальных не затрагивает. Только для преподавателя-владельца; неизвестные / не привязанные id в add → 400.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
         return app;
+    }
+
+    private const int DefaultAssignmentPageSize = 20;
+    private const int MaxSearchLength = 100;
+
+    private static (AssignableStudentsQuery? Query, IResult? Problem) ReadAssignmentPaging(
+        string? search,
+        bool? assigned,
+        int? page,
+        int? pageSize)
+    {
+        var errors = new Dictionary<string, string[]>();
+        var pageNumber = page ?? 1;
+        var size = pageSize ?? DefaultAssignmentPageSize;
+
+        if (pageNumber < 1)
+        {
+            errors["page"] = ["Номер страницы должен быть не меньше 1."];
+        }
+
+        if (size < 1 || size > AssignableStudentsQuery.MaxPageSize)
+        {
+            errors["pageSize"] = [$"Размер страницы — от 1 до {AssignableStudentsQuery.MaxPageSize}."];
+        }
+
+        if (search is { Length: > MaxSearchLength })
+        {
+            errors["search"] = [$"Строка поиска не длиннее {MaxSearchLength} символов."];
+        }
+
+        return errors.Count > 0
+            ? (null, Results.ValidationProblem(errors))
+            : (new AssignableStudentsQuery(search, assigned, pageNumber, size), null);
     }
 }
 
