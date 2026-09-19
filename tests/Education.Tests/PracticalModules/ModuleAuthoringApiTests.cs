@@ -115,6 +115,61 @@ public sealed class ModuleAuthoringApiTests : IClassFixture<TestWebApplicationFa
         Assert.False(expiresIn.TryGetProperty("pattern", out _));
     }
 
+    [Fact]
+    public async Task Teacher_RequestsAuthoringLink_WithReturnPathAndTask_PutsThemInQuery_TokenStaysInFragment()
+    {
+        var moduleId = await CreateModuleAsync();
+        var exchange = new RecordingExchangeClient();
+
+        var response = await TeacherClient(exchange).PostAsJsonAsync(
+            '/' + ApiRoutes.PracticalModules.ForModuleAuthoringLink(moduleId),
+            new CreateModuleAuthoringLinkRequest("/teacher/courses/c1/practicals/p1?tab=x", "task-42_A"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ModuleAuthoringLinkResponse>();
+        Assert.EndsWith(
+            "/teacher/launch?return=%2Fteacher%2Fcourses%2Fc1%2Fpracticals%2Fp1%3Ftab%3Dx&task=task-42_A" +
+            "#access_token=" + RecordingExchangeClient.Token,
+            body!.Url);
+        Assert.Equal(1, body.Url.Count(character => character == '#'));
+        Assert.DoesNotContain(RecordingExchangeClient.Token, body.Url.Split('#')[0]);
+    }
+
+    [Theory]
+    [InlineData("//evil.example/x")]
+    [InlineData("https://evil.example/x")]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("teacher/courses")]
+    [InlineData("/ok\\..\\evil")]
+    [InlineData("/line\nbreak")]
+    public async Task AuthoringLink_UnsafeReturnPath_IsRejected_WithoutTokenExchange(string returnPath)
+    {
+        var moduleId = await CreateModuleAsync();
+        var exchange = new RecordingExchangeClient();
+
+        var response = await TeacherClient(exchange).PostAsJsonAsync(
+            '/' + ApiRoutes.PracticalModules.ForModuleAuthoringLink(moduleId),
+            new CreateModuleAuthoringLinkRequest(returnPath, null));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(exchange.Calls);
+    }
+
+    [Theory]
+    [InlineData("a b")]
+    [InlineData("../x")]
+    [InlineData("x?y=1")]
+    public async Task AuthoringLink_UnsafeTaskRef_IsRejected(string taskRef)
+    {
+        var moduleId = await CreateModuleAsync();
+
+        var response = await TeacherClient(new RecordingExchangeClient()).PostAsJsonAsync(
+            '/' + ApiRoutes.PracticalModules.ForModuleAuthoringLink(moduleId),
+            new CreateModuleAuthoringLinkRequest(null, taskRef));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     // ---- helpers ----
 
     private async Task<Guid> CreateModuleAsync(bool enabled = true)

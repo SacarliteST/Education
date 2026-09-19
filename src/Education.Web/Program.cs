@@ -96,6 +96,7 @@ builder.Services.AddScoped<IValidator<CreateModuleRequest>, CreateModuleRequestV
 builder.Services.AddScoped<IValidator<CreatePracticalRequest>, CreatePracticalRequestValidator>();
 builder.Services.AddScoped<IValidator<BindPracticalModuleRequest>, BindPracticalModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreatePracticalModuleRequest>, CreatePracticalModuleRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateModuleAuthoringLinkRequest>, CreateModuleAuthoringLinkRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdatePracticalModuleRequest>, UpdatePracticalModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateTaskRequest>, CreateTaskRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateTaskTextRequest>, UpdateTaskTextRequestValidator>();

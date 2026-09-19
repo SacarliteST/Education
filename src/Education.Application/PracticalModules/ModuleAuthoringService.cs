@@ -12,6 +12,8 @@ public sealed class ModuleAuthoringService(
     /// <inheritdoc />
     public async Task<ModuleAuthoringLink?> CreateAuthoringLinkAsync(
         Guid practicalModuleId,
+        string? returnPath = null,
+        string? taskRef = null,
         CancellationToken cancellationToken = default)
     {
         var module = await repository.GetByIdAsync(practicalModuleId, cancellationToken);
@@ -34,7 +36,7 @@ public sealed class ModuleAuthoringService(
         var exchanged = await tokenExchangeClient.ExchangeAsync(
             module.IdentityAudience, cancellationToken: cancellationToken);
 
-        var url = integrationConfig.BuildAuthoringUrl(module.BasePath, exchanged.AccessToken);
+        var url = integrationConfig.BuildAuthoringUrl(module.BasePath, exchanged.AccessToken, returnPath, taskRef);
         logger.LogInformation(
             "Выдана authoring-ссылка на модуль {ModuleSlug} ({PracticalModuleId}), TTL {ExpiresIn} c.",
             module.Slug, practicalModuleId, exchanged.ExpiresIn);

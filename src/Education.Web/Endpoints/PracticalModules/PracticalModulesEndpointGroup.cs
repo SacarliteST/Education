@@ -147,12 +147,24 @@ internal static class PracticalModulesEndpointGroup
 
         app.MapPost(ApiRoutes.PracticalModules.ModuleAuthoringLink, async (
                 Guid practicalModuleId,
+                CreateModuleAuthoringLinkRequest? request,
+                IValidator<CreateModuleAuthoringLinkRequest> validator,
                 IModuleAuthoringService authoringService,
                 CancellationToken cancellationToken) =>
             {
+                if (request is not null)
+                {
+                    var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
+                    if (validation is not null)
+                    {
+                        return validation;
+                    }
+                }
+
                 try
                 {
-                    var link = await authoringService.CreateAuthoringLinkAsync(practicalModuleId, cancellationToken);
+                    var link = await authoringService.CreateAuthoringLinkAsync(
+                        practicalModuleId, request?.ReturnPath, request?.TaskRef, cancellationToken);
                     return link is null
                         ? Results.NotFound()
                         : Results.Ok(new ModuleAuthoringLinkResponse(link.Url, link.ExpiresInSeconds));
@@ -173,8 +185,11 @@ internal static class PracticalModulesEndpointGroup
             .WithSummary("SSO-ссылка преподавателя в контур авторинга модуля")
             .WithDescription(
                 "Обменивает токен преподавателя на токен под audience модуля без сессии и " +
-                "возвращает URL перехода в /teacher-контур модуля. Открывать новой вкладкой.")
+                "возвращает URL перехода в /teacher-контур модуля. Открывать в текущей вкладке; " +
+                "необязательные returnPath/taskRef добавляют кнопку возврата на платформу и " +
+                "открытие конкретного задания.")
             .Produces<ModuleAuthoringLinkResponse>()
+            .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
