@@ -59,5 +59,37 @@ public interface IAdminProfilesRepository
     Task SetPracticalStudentsAsync(
         SetPracticalStudentsCommand command,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Возвращает страницу студентов для назначения на курс. Владельца курса проверяет вызывающий сервис.
+    /// </summary>
+    Task<AssignableStudentsPage> GetAssignableStudentsPageForCourseAsync(
+        Guid courseId,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Возвращает страницу студентов для назначения на практику. Владельца практики проверяет вызывающий сервис.
+    /// </summary>
+    Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
+        Guid practicalId,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Точечно добавляет и убирает студентов курса. Владельца курса проверяет вызывающий сервис.
+    /// </summary>
+    /// <exception cref="UnknownStudentsException">Часть добавляемых идентификаторов не сопоставлена с профилем + активной связью.</exception>
+    Task ChangeCourseStudentsAsync(
+        ChangeCourseStudentsCommand command,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Точечно добавляет и убирает студентов практики. Владельца практики проверяет вызывающий сервис.
+    /// </summary>
+    /// <exception cref="UnknownStudentsException">Часть добавляемых идентификаторов не сопоставлена с профилем + активной связью.</exception>
+    Task ChangePracticalStudentsAsync(
+        ChangePracticalStudentsCommand command,
+        CancellationToken cancellationToken = default);
 }
 

@@ -85,6 +85,40 @@ public sealed class AdminProfilesService(
         await repository.SetPracticalStudentsAsync(command, cancellationToken);
     }
 
+    public async Task<AssignableStudentsPage> GetAssignableStudentsPageForCourseAsync(
+        Guid courseId,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureCourseOwnerAsync(courseId, cancellationToken);
+        return await repository.GetAssignableStudentsPageForCourseAsync(courseId, query, cancellationToken);
+    }
+
+    public async Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
+        Guid practicalId,
+        AssignableStudentsQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
+        return await repository.GetAssignableStudentsPageForPracticalAsync(practicalId, query, cancellationToken);
+    }
+
+    public async Task ChangeCourseStudentsAsync(
+        ChangeCourseStudentsCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureCourseOwnerAsync(command.CourseId, cancellationToken);
+        await repository.ChangeCourseStudentsAsync(command, cancellationToken);
+    }
+
+    public async Task ChangePracticalStudentsAsync(
+        ChangePracticalStudentsCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
+        await repository.ChangePracticalStudentsAsync(command, cancellationToken);
+    }
+
     private async Task EnsureCourseOwnerAsync(Guid courseId, CancellationToken cancellationToken)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
