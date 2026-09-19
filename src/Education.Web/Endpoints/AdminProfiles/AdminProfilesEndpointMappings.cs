@@ -26,7 +26,8 @@ internal static class AdminProfilesEndpointMappings
             request.FirstName,
             request.LastName,
             request.MiddleName,
-            ResolveRoleId(request.Role));
+            ResolveRoleId(request.Role),
+            request.Group);
     }
 
     private static Guid ResolveRoleId(ProfileRole role)
@@ -45,7 +46,8 @@ internal static class AdminProfilesEndpointMappings
             request.Login,
             request.FirstName,
             request.LastName,
-            request.MiddleName);
+            request.MiddleName,
+            request.Group);
     }
 
     public static AdminProfileResponse ToResponse(this AdminProfile profile)
@@ -57,7 +59,8 @@ internal static class AdminProfilesEndpointMappings
             profile.FirstName,
             profile.LastName,
             profile.MiddleName,
-            profile.IsActive);
+            profile.IsActive,
+            profile.GroupName);
     }
 
     public static AssignableStudentResponse ToResponse(this AssignableStudent student)
@@ -70,7 +73,7 @@ internal static class AdminProfilesEndpointMappings
         return new StudentAssignmentPageResponse(
             page.Items
                 .Select(item => new StudentAssignmentEntryResponse(
-                    item.LegacyUserId, item.FullName.Trim(), item.Login, item.IsAssigned))
+                    item.LegacyUserId, item.FullName.Trim(), item.Login, item.IsAssigned, item.GroupName))
                 .ToArray(),
             page.TotalCount,
             page.AssignedCount,

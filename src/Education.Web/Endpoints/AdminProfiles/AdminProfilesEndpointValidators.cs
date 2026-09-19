@@ -1,6 +1,7 @@
 ﻿using Education.Contracts.AdminProfiles;
 using Education.Contracts.Courses;
 using Education.Contracts.Practicals;
+using Education.Domain.Users;
 using FluentValidation;
 
 namespace Education.Web.Endpoints;
@@ -98,6 +99,10 @@ internal sealed class CreateAdminProfileRequestValidator : AbstractValidator<Cre
         RuleFor(request => request.Role)
             .IsInEnum()
             .WithMessage("Недопустимая роль профиля.");
+
+        RuleFor(request => request.Group)
+            .MaximumLength(User.GroupNameMaxLength)
+            .WithMessage($"Название группы не должно превышать {User.GroupNameMaxLength} символов.");
     }
 }
 
@@ -126,6 +131,10 @@ internal sealed class UpdateAdminProfileRequestValidator : AbstractValidator<Upd
         RuleFor(request => request.MiddleName)
             .MaximumLength(256)
             .WithMessage("Отчество не должно превышать 256 символов.");
+
+        RuleFor(request => request.Group)
+            .MaximumLength(User.GroupNameMaxLength)
+            .WithMessage($"Название группы не должно превышать {User.GroupNameMaxLength} символов.");
     }
 }
 

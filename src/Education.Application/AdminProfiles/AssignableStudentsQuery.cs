@@ -7,7 +7,8 @@ namespace Education.Application.AdminProfiles;
 /// <param name="Assigned"><see langword="true"/> — только назначенные, <see langword="false"/> — только не назначенные, <see langword="null"/> — все.</param>
 /// <param name="Page">Номер страницы, начиная с 1.</param>
 /// <param name="PageSize">Размер страницы.</param>
-public sealed record AssignableStudentsQuery(string? Search, bool? Assigned, int Page, int PageSize)
+/// <param name="Group">Только студенты этой учебной группы (без учёта регистра); пусто — все группы.</param>
+public sealed record AssignableStudentsQuery(string? Search, bool? Assigned, int Page, int PageSize, string? Group = null)
 {
     /// <summary>Максимальный размер страницы.</summary>
     public const int MaxPageSize = 200;

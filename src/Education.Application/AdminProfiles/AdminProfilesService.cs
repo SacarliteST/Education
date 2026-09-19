@@ -119,6 +119,11 @@ public sealed class AdminProfilesService(
         await repository.ChangePracticalStudentsAsync(command, cancellationToken);
     }
 
+    public Task<IReadOnlyList<StudentGroup>> GetStudentGroupsAsync(CancellationToken cancellationToken = default)
+    {
+        return repository.GetStudentGroupsAsync(cancellationToken);
+    }
+
     private async Task EnsureCourseOwnerAsync(Guid courseId, CancellationToken cancellationToken)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);

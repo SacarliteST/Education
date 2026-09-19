@@ -35,6 +35,16 @@ public sealed class User : Entity
     public string MiddleName { get; private set; } = String.Empty;
 
     /// <summary>
+    /// Учебная группа студента (например, «ИС-21»). Необязательна; для преподавателей и администраторов обычно пуста.
+    /// </summary>
+    public string? GroupName { get; private set; }
+
+    /// <summary>
+    /// Максимальная длина названия учебной группы.
+    /// </summary>
+    public const int GroupNameMaxLength = 50;
+
+    /// <summary>
     /// Идентификатор роли пользователя.
     /// </summary>
     public Guid RoleId { get; private set; }
@@ -76,13 +86,15 @@ public sealed class User : Entity
     /// <param name="lastName">Фамилия пользователя.</param>
     /// <param name="middleName">Отчество пользователя.</param>
     /// <param name="roleId">Идентификатор роли пользователя.</param>
-    public User(string login, string firstName, string lastName, string middleName, Guid roleId)
+    /// <param name="groupName">Учебная группа; пустая строка приравнивается к отсутствию группы.</param>
+    public User(string login, string firstName, string lastName, string middleName, Guid roleId, string? groupName = null)
     {
         Login = login;
         FirstName = firstName;
         LastName = lastName;
         MiddleName = middleName;
         RoleId = roleId;
+        GroupName = NormalizeGroupName(groupName);
     }
 
     /// <summary>
@@ -111,6 +123,26 @@ public sealed class User : Entity
         FirstName = firstName;
         LastName = lastName;
         MiddleName = middleName;
+    }
+
+    /// <summary>
+    /// Меняет учебную группу пользователя.
+    /// </summary>
+    /// <param name="groupName">Новая группа; пустая строка или <see langword="null"/> снимают группу.</param>
+    public void ChangeGroup(string? groupName)
+    {
+        GroupName = NormalizeGroupName(groupName);
+    }
+
+    /// <summary>
+    /// Приводит название группы к каноническому виду: без пробелов по краям, пустое значение — <see langword="null"/>.
+    /// </summary>
+    /// <param name="groupName">Исходное название группы.</param>
+    /// <returns>Нормализованное название или <see langword="null"/>.</returns>
+    public static string? NormalizeGroupName(string? groupName)
+    {
+        var trimmed = groupName?.Trim();
+        return String.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 }
 

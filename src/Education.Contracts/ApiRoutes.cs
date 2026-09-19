@@ -584,6 +584,11 @@ public static class ApiRoutes
         public const string ProfilesList = PrefixV1 + "/admin/profiles";
 
         /// <summary>
+        /// Шаблон маршрута списка учебных групп студентов (для преподавателя и администратора).
+        /// </summary>
+        public const string StudentGroups = PrefixV1 + "/student-groups";
+
+        /// <summary>
         /// Шаблон маршрута локального учебного профиля.
         /// </summary>
         public const string Profile = ProfilesList + "/{legacyUserId:guid}";

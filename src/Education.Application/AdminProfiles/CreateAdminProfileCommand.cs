@@ -15,5 +15,6 @@ public sealed record CreateAdminProfileCommand(
     string FirstName,
     string LastName,
     string MiddleName,
-    Guid RoleId);
+    Guid RoleId,
+    string? GroupName = null);
 

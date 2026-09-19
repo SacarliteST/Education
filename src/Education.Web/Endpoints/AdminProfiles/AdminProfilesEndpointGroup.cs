@@ -193,12 +193,13 @@ internal static class AdminProfilesEndpointGroup
                 Guid courseId,
                 string? search,
                 bool? assigned,
+                string? group,
                 int? page,
                 int? pageSize,
                 IAdminProfilesService service,
                 CancellationToken cancellationToken) =>
             {
-                var paging = ReadAssignmentPaging(search, assigned, page, pageSize);
+                var paging = ReadAssignmentPaging(search, assigned, group, page, pageSize);
                 if (paging.Problem is not null)
                 {
                     return Task.FromResult(paging.Problem);
@@ -212,7 +213,7 @@ internal static class AdminProfilesEndpointGroup
             .WithTags("AdminProfiles")
             .WithName("GetCourseStudentAssignments")
             .WithSummary("Постраничный список студентов для назначения на курс")
-            .WithDescription("Поиск по ФИО и логину, фильтр assigned (true/false), страницы по pageSize ≤ 200. Только для преподавателя-владельца курса.")
+            .WithDescription("Поиск по ФИО, логину и группе, фильтры assigned (true/false) и group, страницы по pageSize ≤ 200. Только для преподавателя-владельца курса.")
             .Produces<StudentAssignmentPageResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
@@ -223,12 +224,13 @@ internal static class AdminProfilesEndpointGroup
                 Guid practicalId,
                 string? search,
                 bool? assigned,
+                string? group,
                 int? page,
                 int? pageSize,
                 IAdminProfilesService service,
                 CancellationToken cancellationToken) =>
             {
-                var paging = ReadAssignmentPaging(search, assigned, page, pageSize);
+                var paging = ReadAssignmentPaging(search, assigned, group, page, pageSize);
                 if (paging.Problem is not null)
                 {
                     return Task.FromResult(paging.Problem);
@@ -242,7 +244,7 @@ internal static class AdminProfilesEndpointGroup
             .WithTags("AdminProfiles")
             .WithName("GetPracticalStudentAssignments")
             .WithSummary("Постраничный список студентов для назначения на практику")
-            .WithDescription("Поиск по ФИО и логину, фильтр assigned (true/false), страницы по pageSize ≤ 200. Только для преподавателя-владельца практики.")
+            .WithDescription("Поиск по ФИО, логину и группе, фильтры assigned (true/false) и group, страницы по pageSize ≤ 200. Только для преподавателя-владельца практики.")
             .Produces<StudentAssignmentPageResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)
@@ -303,6 +305,20 @@ internal static class AdminProfilesEndpointGroup
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapGet(ApiRoutes.AdminProfiles.StudentGroups, async (
+                IAdminProfilesService service,
+                CancellationToken cancellationToken) =>
+            Results.Ok((await service.GetStudentGroupsAsync(cancellationToken))
+                .Select(group => new StudentGroupResponse(group.Name, group.StudentsCount))))
+            .WithTags("AdminProfiles")
+            .WithName("GetStudentGroups")
+            .WithSummary("Учебные группы студентов")
+            .WithDescription("Названия групп привязанных студентов с числом студентов в каждой, по алфавиту. Для преподавателя и администратора.")
+            .Produces<IEnumerable<StudentGroupResponse>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(policy => policy.RequireRole(EducationRoles.Teacher, EducationRoles.Admin));
+
         return app;
     }
 
@@ -312,6 +328,7 @@ internal static class AdminProfilesEndpointGroup
     private static (AssignableStudentsQuery? Query, IResult? Problem) ReadAssignmentPaging(
         string? search,
         bool? assigned,
+        string? group,
         int? page,
         int? pageSize)
     {
@@ -334,9 +351,14 @@ internal static class AdminProfilesEndpointGroup
             errors["search"] = [$"Строка поиска не длиннее {MaxSearchLength} символов."];
         }
 
+        if (group is { Length: > Education.Domain.Users.User.GroupNameMaxLength })
+        {
+            errors["group"] = [$"Название группы не длиннее {Education.Domain.Users.User.GroupNameMaxLength} символов."];
+        }
+
         return errors.Count > 0
             ? (null, Results.ValidationProblem(errors))
-            : (new AssignableStudentsQuery(search, assigned, pageNumber, size), null);
+            : (new AssignableStudentsQuery(search, assigned, pageNumber, size, group), null);
     }
 }
 

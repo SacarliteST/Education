@@ -17,5 +17,6 @@ public sealed record AdminProfile(
     string FirstName,
     string LastName,
     string MiddleName,
-    bool IsActive);
+    bool IsActive,
+    string? GroupName = null);
 
