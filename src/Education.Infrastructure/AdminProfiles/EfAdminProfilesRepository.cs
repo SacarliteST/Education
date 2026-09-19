@@ -39,7 +39,8 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             command.FirstName,
             command.LastName,
             command.MiddleName,
-            command.RoleId);
+            command.RoleId,
+            command.GroupName);
         await context.Users.AddAsync(user, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
@@ -69,6 +70,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         }
 
         user.UpdateDisplayName(command.Login, command.FirstName, command.LastName, command.MiddleName);
+        user.ChangeGroup(command.GroupName);
         await context.SaveChangesAsync(cancellationToken);
 
         return await ProfilesQuery(legacyUserId).FirstAsync(cancellationToken);
@@ -255,7 +257,15 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             var pattern = "%" + EscapeLikePattern(query.Search.Trim()) + "%";
             filtered = filtered.Where(user =>
                 EF.Functions.ILike(user.LastName + " " + user.FirstName + " " + user.MiddleName, pattern)
-                || EF.Functions.ILike(user.Login, pattern));
+                || EF.Functions.ILike(user.Login, pattern)
+                || (user.GroupName != null && EF.Functions.ILike(user.GroupName, pattern)));
+        }
+
+        if (!String.IsNullOrWhiteSpace(query.Group))
+        {
+            // ILike без подстановочных символов — точное совпадение без учёта регистра.
+            var groupPattern = EscapeLikePattern(query.Group.Trim());
+            filtered = filtered.Where(user => user.GroupName != null && EF.Functions.ILike(user.GroupName, groupPattern));
         }
 
         if (query.Assigned is { } assigned)
@@ -276,10 +286,28 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
                 user.Id,
                 user.LastName + " " + user.FirstName + " " + user.MiddleName,
                 user.Login,
-                assignedIds.Contains(user.Id)))
+                assignedIds.Contains(user.Id),
+                user.GroupName))
             .ToListAsync(cancellationToken);
 
         return new AssignableStudentsPage(items, totalCount, assignedCount);
+    }
+
+    public async Task<IReadOnlyList<StudentGroup>> GetStudentGroupsAsync(CancellationToken cancellationToken = default)
+    {
+        var groups = await context.Users
+            .AsNoTracking()
+            .Where(user => user.RoleId == RoleIds.Student
+                && user.GroupName != null
+                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+            .GroupBy(user => user.GroupName!)
+            .Select(group => new { Name = group.Key, Count = group.Count() })
+            .ToListAsync(cancellationToken);
+
+        return groups
+            .OrderBy(group => group.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new StudentGroup(group.Name, group.Count))
+            .ToList();
     }
 
     /// <summary>Экранирует служебные символы шаблона LIKE, чтобы поиск шёл по буквальной подстроке.</summary>
@@ -340,7 +368,8 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
                    user.FirstName,
                    user.LastName,
                    user.MiddleName,
-                   link != null && link.IsActive);
+                   link != null && link.IsActive,
+                   user.GroupName);
     }
 
 }

@@ -10,6 +10,7 @@
 /// <param name="LastName">Фамилия пользователя.</param>
 /// <param name="MiddleName">Отчество пользователя.</param>
 /// <param name="IsActive">Признак активной связи с identity-сервисом.</param>
+/// <param name="Group">Учебная группа или <see langword="null"/>, если не задана.</param>
 public sealed record AdminProfileResponse(
     Guid LegacyUserId,
     Guid? IdentityUserId,
@@ -17,6 +18,7 @@ public sealed record AdminProfileResponse(
     string FirstName,
     string LastName,
     string MiddleName,
-    bool IsActive);
+    bool IsActive,
+    string? Group = null);
 
 

@@ -7,5 +7,10 @@
 /// <param name="FirstName">Имя пользователя.</param>
 /// <param name="LastName">Фамилия пользователя.</param>
 /// <param name="MiddleName">Отчество пользователя.</param>
-public sealed record UpdateAdminProfileCommand(string Login, string FirstName, string LastName, string MiddleName);
+public sealed record UpdateAdminProfileCommand(
+    string Login,
+    string FirstName,
+    string LastName,
+    string MiddleName,
+    string? GroupName = null);
 

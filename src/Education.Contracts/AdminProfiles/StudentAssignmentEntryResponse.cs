@@ -7,4 +7,10 @@ namespace Education.Contracts.AdminProfiles;
 /// <param name="FullName">Полное имя пользователя.</param>
 /// <param name="Login">Логин пользователя — отличает однофамильцев.</param>
 /// <param name="IsAssigned">Признак текущего назначения.</param>
-public sealed record StudentAssignmentEntryResponse(Guid LegacyUserId, string FullName, string Login, bool IsAssigned);
+/// <param name="Group">Учебная группа или <see langword="null"/>, если не задана.</param>
+public sealed record StudentAssignmentEntryResponse(
+    Guid LegacyUserId,
+    string FullName,
+    string Login,
+    bool IsAssigned,
+    string? Group = null);

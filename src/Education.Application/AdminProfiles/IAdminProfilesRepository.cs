@@ -91,5 +91,10 @@ public interface IAdminProfilesRepository
     Task ChangePracticalStudentsAsync(
         ChangePracticalStudentsCommand command,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Возвращает учебные группы привязанных студентов с числом студентов в каждой.
+    /// </summary>
+    Task<IReadOnlyList<StudentGroup>> GetStudentGroupsAsync(CancellationToken cancellationToken = default);
 }
 

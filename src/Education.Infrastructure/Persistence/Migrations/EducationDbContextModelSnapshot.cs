@@ -810,6 +810,11 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("first_name");
 
+                    b.Property<string>("GroupName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("group_name");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text")
@@ -835,6 +840,8 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .HasColumnName("role_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupName");
 
                     b.HasIndex("Login")
                         .IsUnique();

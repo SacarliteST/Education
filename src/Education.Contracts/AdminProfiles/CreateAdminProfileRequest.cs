@@ -9,12 +9,14 @@
 /// <param name="LastName">Фамилия пользователя.</param>
 /// <param name="MiddleName">Отчество пользователя.</param>
 /// <param name="Role">Роль профиля (по умолчанию — студент).</param>
+/// <param name="Group">Учебная группа (до 50 символов); пусто — без группы.</param>
 public sealed record CreateAdminProfileRequest(
     Guid IdentityUserId,
     string Login,
     string FirstName,
     string LastName,
     string MiddleName,
-    ProfileRole Role = ProfileRole.Student);
+    ProfileRole Role = ProfileRole.Student,
+    string? Group = null);
 
 
