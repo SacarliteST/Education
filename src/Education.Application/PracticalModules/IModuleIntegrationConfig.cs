@@ -10,8 +10,13 @@ public interface IModuleIntegrationConfig
     string BuildLaunchUrl(string moduleBasePath, Guid sessionId, string accessToken);
 
     /// <summary>
-    /// <c>{origin}{basePath}/teacher/launch#access_token={token}</c> — SSO преподавателя
-    /// в контур авторинга модуля. Без сессии и <c>?session=</c>.
+    /// <c>{origin}{basePath}/teacher/launch[?return={path}&amp;task={ref}]#access_token={token}</c> —
+    /// SSO преподавателя в контур авторинга модуля. Без сессии и <c>?session=</c>.
+    /// Токен только во фрагменте; <c>return</c> и <c>task</c> — в query и необязательны.
     /// </summary>
-    string BuildAuthoringUrl(string moduleBasePath, string accessToken);
+    /// <param name="moduleBasePath">Базовый путь модуля за общим reverse-proxy.</param>
+    /// <param name="accessToken">Токен под audience модуля.</param>
+    /// <param name="returnPath">Проверенный относительный путь возврата на платформу или <see langword="null"/>.</param>
+    /// <param name="taskRef">Проверенная ссылка на задание модуля или <see langword="null"/>.</param>
+    string BuildAuthoringUrl(string moduleBasePath, string accessToken, string? returnPath = null, string? taskRef = null);
 }

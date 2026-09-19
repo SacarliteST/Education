@@ -23,10 +23,23 @@ internal sealed class ModuleIntegrationConfig(IOptions<ModuleIntegrationOptions>
         return $"{origin}{basePath}/launch?session={sessionId}#access_token={accessToken}";
     }
 
-    public string BuildAuthoringUrl(string moduleBasePath, string accessToken)
+    public string BuildAuthoringUrl(
+        string moduleBasePath, string accessToken, string? returnPath = null, string? taskRef = null)
     {
         var (origin, basePath) = ResolveModuleBase(moduleBasePath);
-        return $"{origin}{basePath}/teacher/launch#access_token={accessToken}";
+        var query = new List<string>(2);
+        if (!String.IsNullOrEmpty(returnPath))
+        {
+            query.Add("return=" + Uri.EscapeDataString(returnPath));
+        }
+
+        if (!String.IsNullOrEmpty(taskRef))
+        {
+            query.Add("task=" + Uri.EscapeDataString(taskRef));
+        }
+
+        var queryString = query.Count == 0 ? String.Empty : "?" + String.Join('&', query);
+        return $"{origin}{basePath}/teacher/launch{queryString}#access_token={accessToken}";
     }
 
     // За общим reverse-proxy: {PlatformOrigin}{basePath}/... (SPA модуля смонтирована в basePath).
