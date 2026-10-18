@@ -44,7 +44,8 @@ public sealed record ModuleSessionEventResponse(
     Guid EventId,
     string Kind,
     DateTimeOffset OccurredAt,
-    JsonElement Payload);
+    JsonElement Payload,
+    string? Markdown = null);
 
 /// <summary>Строка списка попыток внешнего модуля для преподавателя.</summary>
 public sealed record ModuleSessionSummaryResponse(

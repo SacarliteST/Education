@@ -169,7 +169,8 @@ internal static class ModuleSessionsEndpointGroup
                     item.EventId,
                     item.Kind,
                     item.OccurredAt,
-                    JsonDocument.Parse(item.PayloadJson).RootElement.Clone())));
+                    JsonDocument.Parse(item.PayloadJson).RootElement.Clone(),
+                    item.Markdown)));
             })
             .WithTags("ModuleSessions")
             .WithName("GetModuleSessionEvents")

@@ -34,7 +34,8 @@ public sealed record ModuleSessionEvent(
     Guid EventId,
     string Kind,
     DateTimeOffset OccurredAt,
-    string PayloadJson);
+    string PayloadJson,
+    string? Markdown = null);
 
 /// <summary>Строка списка попыток внешнего модуля для преподавателя.</summary>
 public sealed record ModuleSessionSummary(

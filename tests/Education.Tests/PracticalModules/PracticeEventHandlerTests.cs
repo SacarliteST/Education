@@ -85,6 +85,67 @@ public sealed class PracticeEventHandlerTests : IClassFixture<TestWebApplication
         Assert.Single(await ReadEventsAsync(sessionId));
     }
 
+    [Fact]
+    public async Task EventWithMarkdown_MarkdownStoredNextToPayload()
+    {
+        var sessionId = await SeedSessionAsync("key-md-1", "ACTIVE");
+        const string markdown = "**Попытка 1 — верно**\n\n```sql\nSELECT 1\n```";
+
+        await HandleAsync(new PracticeEventInput(
+            sessionId, "key-md-1", Guid.NewGuid(), "sql_submit", DateTimeOffset.UtcNow, "{\"isCorrect\":true}", markdown));
+
+        var stored = Assert.Single(await ReadEventsAsync(sessionId));
+        Assert.Equal(markdown, stored.Markdown);
+        Assert.Contains("isCorrect", stored.Payload);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   \n ")]
+    public async Task EventWithoutMarkdown_StoredAsNull(string? markdown)
+    {
+        var sessionId = await SeedSessionAsync("key-md-2", "ACTIVE");
+
+        await HandleAsync(new PracticeEventInput(
+            sessionId, "key-md-2", Guid.NewGuid(), "sql_submit", DateTimeOffset.UtcNow, "{}", markdown));
+
+        Assert.Null(Assert.Single(await ReadEventsAsync(sessionId)).Markdown);
+    }
+
+    [Fact]
+    public async Task OversizedMarkdown_TruncatedWithMarker_EventNotDropped()
+    {
+        var sessionId = await SeedSessionAsync("key-md-3", "ACTIVE");
+        // 40 000 русских букв = 80 000 байт UTF-8 — больше лимита 64 KiB.
+        var huge = new string('ж', 40_000);
+
+        await HandleAsync(new PracticeEventInput(
+            sessionId, "key-md-3", Guid.NewGuid(), "sql_submit", DateTimeOffset.UtcNow, "{}", huge));
+
+        var stored = Assert.Single(await ReadEventsAsync(sessionId)).Markdown;
+        Assert.NotNull(stored);
+        Assert.EndsWith(PracticalTaskEvent.MarkdownTruncationMarker, stored);
+        Assert.True(System.Text.Encoding.UTF8.GetByteCount(stored) <= PracticalTaskEvent.MaxMarkdownBytes);
+        Assert.True(stored.Length > 30_000);
+    }
+
+    [Fact]
+    public async Task OversizedMarkdown_NotCutInsideSurrogatePair()
+    {
+        var sessionId = await SeedSessionAsync("key-md-4", "ACTIVE");
+        // Эмодзи — суррогатная пара (4 байта UTF-8); граница лимита не должна её рвать.
+        var huge = string.Concat(Enumerable.Repeat("😀", 20_000));
+
+        await HandleAsync(new PracticeEventInput(
+            sessionId, "key-md-4", Guid.NewGuid(), "sql_submit", DateTimeOffset.UtcNow, "{}", huge));
+
+        var stored = Assert.Single(await ReadEventsAsync(sessionId)).Markdown!;
+        var body = stored[..^PracticalTaskEvent.MarkdownTruncationMarker.Length];
+        Assert.False(char.IsHighSurrogate(body[^1]));
+        Assert.True(System.Text.Encoding.UTF8.GetByteCount(stored) <= PracticalTaskEvent.MaxMarkdownBytes);
+    }
+
     private async Task<Guid> SeedSessionAsync(string sessionKey, string status)
     {
         using var scope = factory.Services.CreateScope();

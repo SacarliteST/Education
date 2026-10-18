@@ -195,7 +195,7 @@ public sealed class ModuleSessionsService(
         var events = await eventsRepository.GetForSessionAsync(sessionId, cancellationToken);
         return events
             .Select(taskEvent => new ModuleSessionEvent(
-                taskEvent.Id, taskEvent.Kind, taskEvent.OccurredAt, taskEvent.Payload))
+                taskEvent.Id, taskEvent.Kind, taskEvent.OccurredAt, taskEvent.Payload, taskEvent.Markdown))
             .ToList();
     }
 

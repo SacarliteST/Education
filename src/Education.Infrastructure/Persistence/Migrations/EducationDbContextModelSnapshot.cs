@@ -370,6 +370,10 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("kind");
 
+                    b.Property<string>("Markdown")
+                        .HasColumnType("text")
+                        .HasColumnName("markdown");
+
                     b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("occurred_at");
