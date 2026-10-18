@@ -22,43 +22,6 @@ namespace Education.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Education.Domain.Audit.AdminEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ActorIdentityUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ActorName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActorIdentityUserId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("EventType");
-
-                    b.ToTable("AdminEvents");
-                });
-
             modelBuilder.Entity("Education.Domain.Courses.Course", b =>
                 {
                     b.Property<Guid>("Id")

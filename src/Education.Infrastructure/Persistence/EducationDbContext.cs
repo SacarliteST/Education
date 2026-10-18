@@ -1,5 +1,4 @@
-﻿using Education.Domain.Audit;
-using Education.Domain.Courses;
+﻿using Education.Domain.Courses;
 using Education.Domain.Materials;
 using Education.Domain.Practicals;
 using Education.Domain.PracticalModules;
@@ -19,7 +18,6 @@ public sealed class EducationDbContext(DbContextOptions<EducationDbContext> opti
     /// Журнал административных действий Education (не путать с аудитом
     /// IdentityService — тот про логины/роли/блокировки).
     /// </summary>
-    public DbSet<AdminEvent> AdminEvents => Set<AdminEvent>();
 
     /// <summary>
     /// Связи пользователей identity-сервиса с пользователями учебной системы.

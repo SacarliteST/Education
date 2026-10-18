@@ -1,5 +1,4 @@
 ﻿using Education.Application.AdminProfiles;
-using Education.Application.Audit;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.Grades;
@@ -12,7 +11,6 @@ using Education.Application.TestResults;
 using Education.Application.Theories;
 using Education.Application.Users;
 using Education.Infrastructure.AdminProfiles;
-using Education.Infrastructure.Audit;
 using Education.Infrastructure.Courses;
 using Education.Infrastructure.Files;
 using Education.Infrastructure.Grades;
@@ -50,8 +48,6 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("Default")));
 
         services.AddScoped<IAdminProfilesRepository, EfAdminProfilesRepository>();
-        services.AddScoped<IAdminEventRecorder, EfAdminEventRecorder>();
-        services.AddScoped<IAdminEventsRepository, EfAdminEventsRepository>();
         services.AddScoped<ICoursesRepository, EfCoursesRepository>();
         services.AddScoped<IModulesRepository, EfModulesRepository>();
         services.AddScoped<IPracticalsRepository, EfPracticalsRepository>();
