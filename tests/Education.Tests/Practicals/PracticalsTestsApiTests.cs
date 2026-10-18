@@ -3,9 +3,11 @@ using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.TestResults;
 using Education.Domain.Tests;
+using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Education.Tests.Practicals;
 
@@ -65,6 +67,41 @@ public sealed class PracticalsTestsApiTests : IClassFixture<TestWebApplicationFa
         // TD-010: протокол несёт тип и тело вопроса, чтобы UI расшифровал вариант.
         Assert.Equal(QuestionTypeIds.SingleChoice, answer.QuestionType);
         Assert.Contains("Right", answer.QuestionBody);
+    }
+
+    [Fact]
+    public async Task TeacherProtocolList_HasStudentNameAndTiming_StudentListHasTimingWithoutName()
+    {
+        const int tryNumber = 91;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+            var result = new TestResult(factory.Seed.TestUserId, factory.Seed.SubmitPracticalId, tryNumber);
+            result.Complete(1, 1, DateTime.UtcNow.AddMinutes(7));
+            db.TestResults.Add(result);
+            await db.SaveChangesAsync();
+        }
+
+        var teacher = factory.CreateClient();
+        teacher.AuthenticateAs(EducationRoles.Teacher);
+        var rows = await teacher.GetFromJsonAsync<TestProtocolSummaryResponse[]>(
+            '/' + ApiRoutes.TestResults.ForTeacherPracticalProtocols(factory.Seed.SubmitPracticalId));
+
+        var row = Assert.Single(rows!, item => item.TryNumber == tryNumber);
+        Assert.False(String.IsNullOrWhiteSpace(row.StudentName));
+        Assert.NotEqual("—", row.StudentName);
+        Assert.NotNull(row.StartedAt);
+        Assert.NotNull(row.SubmittedAt);
+        Assert.True(row.SubmittedAt > row.StartedAt);
+        Assert.InRange(row.DurationSeconds!.Value, 6 * 60, 8 * 60);
+
+        var student = factory.CreateClient();
+        student.AuthenticateAs(EducationRoles.Student);
+        var own = await student.GetFromJsonAsync<TestProtocolSummaryResponse[]>(
+            '/' + ApiRoutes.TestResults.ForPracticalProtocols(factory.Seed.SubmitPracticalId));
+        var ownRow = Assert.Single(own!, item => item.TryNumber == tryNumber);
+        Assert.Null(ownRow.StudentName);
+        Assert.NotNull(ownRow.DurationSeconds);
     }
 
     [Fact]

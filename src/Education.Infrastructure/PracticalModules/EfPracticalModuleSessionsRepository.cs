@@ -1,4 +1,5 @@
 using Education.Application.PracticalModules;
+using Education.Infrastructure.Users;
 using Education.Domain.PracticalModules;
 using Education.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,7 @@ internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext con
                 session.Grade,
                 session.StartedAt,
                 session.EndedAt,
+                session.CompletionData,
             };
 
         var rows = await query.ToListAsync(cancellationToken);
@@ -84,21 +86,43 @@ internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext con
             .Select(row => new ModuleSessionSummary(
                 row.Id,
                 row.UserId,
-                BuildName(row.UserLastName, row.UserFirstName, row.UserMiddleName),
+                PersonNameFormatter.Format(row.UserLastName, row.UserFirstName, row.UserMiddleName),
                 row.TryNumber,
                 row.Status,
                 row.EndReason,
                 row.Grade,
                 row.StartedAt,
-                row.EndedAt))
+                row.EndedAt,
+                ReadAttemptsCount(row.CompletionData)))
             .ToList();
     }
 
-    private static string BuildName(string? lastName, string? firstName, string? middleName)
+    /// <summary>
+    /// Число попыток внутри сессии из <c>CompletionData.totalAttempts</c> (присылает модуль при завершении).
+    /// Нет данных (сессия не завершена, другой формат) — <c>null</c>.
+    /// </summary>
+    private static int? ReadAttemptsCount(string? completionData)
     {
-        var name = String.Join(' ', new[] { lastName, firstName, middleName }
-            .Where(part => !String.IsNullOrWhiteSpace(part)));
-        return String.IsNullOrWhiteSpace(name) ? "—" : name;
+        if (String.IsNullOrWhiteSpace(completionData))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(completionData);
+            return document.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
+                && document.RootElement.TryGetProperty("totalAttempts", out var value)
+                && value.ValueKind == System.Text.Json.JsonValueKind.Number
+                && value.TryGetInt32(out var count)
+                && count >= 0
+                    ? count
+                    : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
     }
 
     public async Task AddAsync(PracticalModuleSession session, CancellationToken cancellationToken = default)

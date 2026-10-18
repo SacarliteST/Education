@@ -9,6 +9,10 @@ public sealed record TestProtocolSummaryResponse(
     double? Score,
     double? MaxScore,
     int TryNumber,
-    int Grade);
+    int Grade,
+    string? StudentName = null,
+    DateTimeOffset? StartedAt = null,
+    DateTimeOffset? SubmittedAt = null,
+    int? DurationSeconds = null);
 
 
