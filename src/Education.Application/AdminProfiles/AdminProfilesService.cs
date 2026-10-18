@@ -1,5 +1,4 @@
-﻿using Education.Application.Audit;
-using Education.Application.Courses;
+﻿using Education.Application.Courses;
 using Education.Application.Practicals;
 using Education.Application.Users;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,6 @@ public sealed class AdminProfilesService(
     IEducationUserResolver userResolver,
     ICoursesRepository coursesRepository,
     IPracticalsRepository practicalsRepository,
-    IAdminEventRecorder eventRecorder,
     ILogger<AdminProfilesService> logger) : IAdminProfilesService
 {
     public Task<IReadOnlyList<AdminProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
@@ -24,10 +22,9 @@ public sealed class AdminProfilesService(
         CancellationToken cancellationToken = default)
     {
         var profile = await repository.CreateLinkedProfileAsync(command, cancellationToken);
-        await eventRecorder.RecordAsync(
-            AdminEventTypes.ProfileLinked,
-            $"Связан профиль «{command.Login}» (роль {command.RoleId}) с identity-пользователем {command.IdentityUserId}.",
-            cancellationToken);
+        logger.LogInformation(
+            "Связан профиль «{Login}» (роль {RoleId}) с identity-пользователем {IdentityUserId}.",
+            command.Login, command.RoleId, command.IdentityUserId);
         return profile;
     }
 
@@ -44,10 +41,7 @@ public sealed class AdminProfilesService(
         var deactivated = await repository.DeactivateProfileLinkAsync(legacyUserId, cancellationToken);
         if (deactivated)
         {
-            await eventRecorder.RecordAsync(
-                AdminEventTypes.ProfileUnlinked,
-                $"Отвязан профиль {legacyUserId}.",
-                cancellationToken);
+            logger.LogInformation("Отвязан профиль {LegacyUserId}.", legacyUserId);
         }
 
         return deactivated;

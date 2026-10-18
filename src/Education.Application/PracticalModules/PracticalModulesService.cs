@@ -1,4 +1,3 @@
-using Education.Application.Audit;
 using Education.Domain.PracticalModules;
 using Microsoft.Extensions.Logging;
 
@@ -6,7 +5,6 @@ namespace Education.Application.PracticalModules;
 
 public sealed class PracticalModulesService(
     IPracticalModulesRepository repository,
-    IAdminEventRecorder eventRecorder,
     ILogger<PracticalModulesService> logger) : IPracticalModulesService
 {
     public Task<IReadOnlyList<PracticalModule>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -34,10 +32,8 @@ public sealed class PracticalModulesService(
             command.Configuration);
 
         await repository.CreateAsync(module, cancellationToken);
-        await eventRecorder.RecordAsync(
-            AdminEventTypes.ModuleRegistered,
-            $"Зарегистрирован модуль «{module.Name}» (slug {module.Slug}, id {module.Id}).",
-            cancellationToken);
+        logger.LogInformation(
+            "Зарегистрирован модуль «{Name}» (slug {Slug}, id {ModuleId}).", module.Name, module.Slug, module.Id);
         return module;
     }
 
@@ -62,10 +58,9 @@ public sealed class PracticalModulesService(
             command.IsEnabled);
 
         await repository.UpdateAsync(module, cancellationToken);
-        await eventRecorder.RecordAsync(
-            AdminEventTypes.ModuleUpdated,
-            $"Изменён модуль «{module.Name}» (slug {module.Slug}, id {module.Id}, включён: {module.IsEnabled}).",
-            cancellationToken);
+        logger.LogInformation(
+            "Изменён модуль «{Name}» (slug {Slug}, id {ModuleId}, включён: {IsEnabled}).",
+            module.Name, module.Slug, module.Id, module.IsEnabled);
         return module;
     }
 
@@ -78,10 +73,8 @@ public sealed class PracticalModulesService(
         }
 
         await repository.DeleteAsync(module, cancellationToken);
-        await eventRecorder.RecordAsync(
-            AdminEventTypes.ModuleDeleted,
-            $"Удалён модуль «{module.Name}» (slug {module.Slug}, id {module.Id}).",
-            cancellationToken);
+        logger.LogInformation(
+            "Удалён модуль «{Name}» (slug {Slug}, id {ModuleId}).", module.Name, module.Slug, module.Id);
         return true;
     }
 }
