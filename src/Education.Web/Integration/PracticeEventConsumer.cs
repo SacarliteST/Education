@@ -29,7 +29,8 @@ internal sealed class PracticeEventConsumer(
                 message.EventId,
                 message.Kind,
                 message.OccurredAt,
-                message.Payload.GetRawText()),
+                message.Payload.GetRawText(),
+                message.Markdown),
             ct);
     }
 }

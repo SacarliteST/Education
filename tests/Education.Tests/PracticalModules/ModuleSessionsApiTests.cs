@@ -294,6 +294,29 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     }
 
     [Fact]
+    public async Task SessionEvents_ReturnMarkdown_ToOwnerAndTeacher_NullWhenAbsent()
+    {
+        var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: null);
+        var student = StudentClient(new FakePushClient());
+        var started = await StartAsync(student, context);
+
+        await FeedEventAsync(started.SessionId, "sql_submit", "{\"sql\":\"SELECT 1\"}", "**Попытка 1 — неверно**");
+        await FeedEventAsync(started.SessionId, "sql_submit", "{\"sql\":\"SELECT 2\"}");
+
+        var url = '/' + ApiRoutes.Practicals.ForModuleSessionEvents(context.PracticalId, started.SessionId);
+        var teacher = factory.CreateClient();
+        teacher.AuthenticateAs(EducationRoles.Teacher);
+
+        foreach (var client in new[] { student, teacher })
+        {
+            var events = await client.GetFromJsonAsync<ModuleSessionEventResponse[]>(url);
+            Assert.Equal(2, events!.Length);
+            Assert.Single(events, item => item.Markdown == "**Попытка 1 — неверно**");
+            Assert.Single(events, item => item.Markdown is null);
+        }
+    }
+
+    [Fact]
     public async Task ListSessions_Teacher_SeesAllAttempts_Student_Forbidden()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
@@ -319,7 +342,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
         Assert.All(rows, row => Assert.False(String.IsNullOrWhiteSpace(row.StudentName)));
     }
 
-    private async Task FeedEventAsync(Guid sessionId, string kind, string payloadJson)
+    private async Task FeedEventAsync(Guid sessionId, string kind, string payloadJson, string? markdown = null)
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
@@ -327,7 +350,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
             .Select(s => s.SessionKey).SingleAsync();
         var handler = scope.ServiceProvider.GetRequiredService<IPracticeEventHandler>();
         await handler.HandleAsync(new PracticeEventInput(
-            sessionId, sessionKey, Guid.NewGuid(), kind, DateTimeOffset.UtcNow, payloadJson));
+            sessionId, sessionKey, Guid.NewGuid(), kind, DateTimeOffset.UtcNow, payloadJson, markdown));
     }
 
     // ---- helpers ----

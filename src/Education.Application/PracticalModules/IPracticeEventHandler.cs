@@ -7,7 +7,8 @@ public sealed record PracticeEventInput(
     Guid EventId,
     string Kind,
     DateTimeOffset OccurredAt,
-    string PayloadJson);
+    string PayloadJson,
+    string? Markdown = null);
 
 /// <summary>
 /// Обработка события «цифрового следа»: проверка секрета сессии, отбрасывание событий

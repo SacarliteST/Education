@@ -15,6 +15,7 @@ internal sealed class PracticalTaskEventConfiguration : IEntityTypeConfiguration
         builder.Property(taskEvent => taskEvent.Kind).HasColumnName("kind").IsRequired().HasMaxLength(100);
         builder.Property(taskEvent => taskEvent.OccurredAt).HasColumnName("occurred_at");
         builder.Property(taskEvent => taskEvent.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
+        builder.Property(taskEvent => taskEvent.Markdown).HasColumnName("markdown").HasColumnType("text");
         builder.HasIndex(taskEvent => taskEvent.SessionId);
         builder.HasOne<PracticalModuleSession>()
             .WithMany()

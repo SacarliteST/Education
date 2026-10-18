@@ -27,7 +27,7 @@ public sealed class PracticeEventHandler(
 
         await eventsRepository.InsertIfNewAsync(
             new PracticalTaskEvent(
-                input.EventId, input.SessionId, input.Kind, input.OccurredAt, input.PayloadJson),
+                input.EventId, input.SessionId, input.Kind, input.OccurredAt, input.PayloadJson, input.Markdown),
             cancellationToken);
         logger.LogDebug(
             "Событие {EventId} ({Kind}) добавлено в цифровой след сессии {SessionId}.",
