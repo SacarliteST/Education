@@ -479,6 +479,32 @@ public static class ApiRoutes
             PracticalGrade,
             "practicalId:guid",
             practicalId.ToString());
+
+        /// <summary>
+        /// Шаблон маршрута оценок всех студентов по практике (для преподавателя).
+        /// </summary>
+        public const string PracticalStudentGrades = Practicals.Practical + "/student-grades";
+
+        /// <summary>
+        /// Создаёт маршрут оценок студентов по практике.
+        /// </summary>
+        public static string ForPracticalStudentGrades(Guid practicalId) => ReplaceUrlSegment(
+            PracticalStudentGrades,
+            "practicalId:guid",
+            practicalId.ToString());
+
+        /// <summary>
+        /// Шаблон маршрута ведомости курса (студенты × практики, для преподавателя).
+        /// </summary>
+        public const string CourseGradebook = Courses.Course + "/gradebook";
+
+        /// <summary>
+        /// Создаёт маршрут ведомости курса.
+        /// </summary>
+        public static string ForCourseGradebook(Guid courseId) => ReplaceUrlSegment(
+            CourseGradebook,
+            "courseId:guid",
+            courseId.ToString());
     }
 
     /// <summary>
