@@ -342,6 +342,49 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
         Assert.All(rows, row => Assert.False(String.IsNullOrWhiteSpace(row.StudentName)));
     }
 
+    [Fact]
+    public async Task ListSessions_AttemptsCount_FromCompletionData_NullWhenAbsent()
+    {
+        var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
+        var student = StudentClient(new FakePushClient());
+
+        var completedSession = await StartAsync(student, context);
+        var completedKey = await ReadSessionKeyAsync(completedSession.SessionId);
+        var completed = await SendCompleteAsync(
+            completedSession.SessionId, DevServiceKey, completedKey, 80,
+            new { totalAttempts = 3, correctAttemptId = (Guid?)null });
+        Assert.Equal(HttpStatusCode.OK, completed.StatusCode);
+
+        var activeSession = await StartAsync(student, context);
+
+        var teacher = factory.CreateClient();
+        teacher.AuthenticateAs(EducationRoles.Teacher);
+        var rows = await teacher.GetFromJsonAsync<ModuleSessionSummaryResponse[]>(
+            '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId));
+
+        Assert.Equal(3, rows!.Single(row => row.SessionId == completedSession.SessionId).AttemptsCount);
+        Assert.Null(rows!.Single(row => row.SessionId == activeSession.SessionId).AttemptsCount);
+    }
+
+    [Fact]
+    public async Task ListSessions_MalformedCompletionData_AttemptsCountNull_NoError()
+    {
+        var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
+        var student = StudentClient(new FakePushClient());
+        var started = await StartAsync(student, context);
+        var key = await ReadSessionKeyAsync(started.SessionId);
+        var completed = await SendCompleteAsync(
+            started.SessionId, DevServiceKey, key, 60, new { totalAttempts = "много" });
+        Assert.Equal(HttpStatusCode.OK, completed.StatusCode);
+
+        var teacher = factory.CreateClient();
+        teacher.AuthenticateAs(EducationRoles.Teacher);
+        var rows = await teacher.GetFromJsonAsync<ModuleSessionSummaryResponse[]>(
+            '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId));
+
+        Assert.Null(rows!.Single(row => row.SessionId == started.SessionId).AttemptsCount);
+    }
+
     private async Task FeedEventAsync(Guid sessionId, string kind, string payloadJson, string? markdown = null)
     {
         using var scope = factory.Services.CreateScope();
@@ -448,7 +491,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     }
 
     private async Task<HttpResponseMessage> SendCompleteAsync(
-        Guid sessionId, string serviceKey, string sessionKey, int grade)
+        Guid sessionId, string serviceKey, string sessionKey, int grade, object? completionData = null)
     {
         var client = factory.CreateClient();
         using var request = new HttpRequestMessage(
@@ -458,7 +501,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
             {
                 sessionKey,
                 grade,
-                completionData = (object?)null,
+                completionData,
                 completedAt = DateTimeOffset.UtcNow,
             }),
         };

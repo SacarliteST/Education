@@ -42,7 +42,11 @@ internal static class TestResultEndpointMappings
             protocol.Score,
             protocol.MaxScore,
             protocol.TryNumber,
-            protocol.Grade);
+            protocol.Grade,
+            protocol.StudentName,
+            protocol.StartedAt,
+            protocol.SubmittedAt,
+            protocol.DurationSeconds);
     }
 
     public static TestProtocolResponse ToResponse(this TestProtocol protocol)

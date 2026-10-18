@@ -57,4 +57,5 @@ public sealed record ModuleSessionSummaryResponse(
     string? EndReason,
     int? Grade,
     DateTimeOffset StartedAt,
-    DateTimeOffset? EndedAt);
+    DateTimeOffset? EndedAt,
+    int? AttemptsCount = null);

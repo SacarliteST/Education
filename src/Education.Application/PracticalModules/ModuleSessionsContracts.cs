@@ -47,7 +47,8 @@ public sealed record ModuleSessionSummary(
     ModuleSessionEndReason? EndReason,
     int? Grade,
     DateTimeOffset StartedAt,
-    DateTimeOffset? EndedAt);
+    DateTimeOffset? EndedAt,
+    int? AttemptsCount = null);
 
 /// <summary>Итог попытки прервать сессию.</summary>
 public enum AbandonOutcome

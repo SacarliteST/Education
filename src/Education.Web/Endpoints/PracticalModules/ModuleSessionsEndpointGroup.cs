@@ -69,7 +69,8 @@ internal static class ModuleSessionsEndpointGroup
                     item.EndReason?.ToWire(),
                     item.Grade,
                     item.StartedAt,
-                    item.EndedAt)));
+                    item.EndedAt,
+                    item.AttemptsCount)));
             })
             .WithTags("ModuleSessions")
             .WithName("ListPracticalModuleSessions")

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Education.Infrastructure.Users;
 using Education.Application.TestResults;
 using Education.Domain.Practicals;
 using Education.Domain.Tests;
@@ -159,7 +160,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             .Where(result => result.PracticalMaterialId == practicalId && result.UserId == userId && result.IsCompleted)
             .ToListAsync(cancellationToken);
 
-        return results.Select(ToSummary).ToList();
+        return results.Select(result => ToSummary(result)).ToList();
     }
 
     public async Task<IReadOnlyList<TestProtocolSummary>> GetTeacherProtocolsAsync(
@@ -172,7 +173,18 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             .Where(result => result.PracticalMaterialId == practicalId && result.IsCompleted)
             .ToListAsync(cancellationToken);
 
-        return results.Select(ToSummary).ToList();
+        var userIds = results.Select(result => result.UserId).Distinct().ToList();
+        var names = (await context.Users.AsNoTracking()
+                .Where(user => userIds.Contains(user.Id))
+                .Select(user => new { user.Id, user.LastName, user.FirstName, user.MiddleName })
+                .ToListAsync(cancellationToken))
+            .ToDictionary(
+                user => user.Id,
+                user => PersonNameFormatter.Format(user.LastName, user.FirstName, user.MiddleName));
+
+        return results
+            .Select(result => ToSummary(result, names.GetValueOrDefault(result.UserId, "—")))
+            .ToList();
     }
 
     public async Task<TestProtocol?> GetProtocolAsync(Guid testResultId, CancellationToken cancellationToken = default)
@@ -231,15 +243,27 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             testResult.PracticalMaterial.CalculateTestGrade(testResult.Score, testResult.MaxScore));
     }
 
-    private static TestProtocolSummary ToSummary(TestResult testResult)
+    private static TestProtocolSummary ToSummary(TestResult testResult, string? studentName = null)
     {
+        var startedAt = new DateTimeOffset(DateTime.SpecifyKind(testResult.StatedDate, DateTimeKind.Utc));
+        DateTimeOffset? submittedAt = testResult.TurnedDate is { } turned
+            ? new DateTimeOffset(DateTime.SpecifyKind(turned, DateTimeKind.Utc))
+            : null;
+        int? durationSeconds = submittedAt is { } end
+            ? Math.Max(0, (int)(end - startedAt).TotalSeconds)
+            : null;
+
         return new TestProtocolSummary(
             testResult.Id,
             testResult.UserId,
             testResult.Score,
             testResult.MaxScore,
             testResult.TryNumber,
-            testResult.PracticalMaterial.CalculateTestGrade(testResult.Score, testResult.MaxScore));
+            testResult.PracticalMaterial.CalculateTestGrade(testResult.Score, testResult.MaxScore),
+            studentName,
+            startedAt,
+            submittedAt,
+            durationSeconds);
     }
 }
 
