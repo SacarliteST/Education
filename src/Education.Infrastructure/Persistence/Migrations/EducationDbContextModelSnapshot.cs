@@ -782,6 +782,12 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("group_name");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text")
@@ -816,40 +822,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users", (string)null);
-                });
-
-            modelBuilder.Entity("Education.Infrastructure.Persistence.IdentityUserLink", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("IdentityUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("identity_user_id");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<Guid>("LegacyUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("legacy_user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdentityUserId")
-                        .IsUnique();
-
-                    b.HasIndex("LegacyUserId")
-                        .IsUnique();
-
-                    b.ToTable("IdentityUserLinks", (string)null);
                 });
 
             modelBuilder.Entity("Education.Domain.Courses.Course", b =>
@@ -1105,15 +1077,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("Education.Infrastructure.Persistence.IdentityUserLink", b =>
-                {
-                    b.HasOne("Education.Domain.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("LegacyUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Education.Domain.Courses.Course", b =>

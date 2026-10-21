@@ -14,29 +14,29 @@ public class UserResolverTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task KnownIdentityUserId_ResolvesToLegacyUserId_FromRealDatabase()
+    public async Task ExistingActiveProfile_ResolvesToItself_FromRealDatabase()
     {
         using var scope = factory.Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserProfileRepository>();
+        var resolver = scope.ServiceProvider.GetRequiredService<IEducationUserResolver>();
 
-        var legacyUserId = await repository.FindLegacyUserIdByIdentityUserIdAsync(TestAuthHandler.TestUserId);
+        var userId = await resolver.ResolveLegacyUserIdAsync(TestAuthHandler.TestUserId);
 
-        Assert.Equal(factory.Seed.TestUserId, legacyUserId);
+        Assert.Equal(factory.Seed.TestUserId, userId);
+        Assert.Equal(TestAuthHandler.TestUserId, userId);
     }
 
     [Fact]
-    public async Task UnknownIdentityUserId_ReturnsNoLegacyUser_FromRealDatabase()
+    public async Task UnknownUserId_StillThrows_ForForeignIdentifiers()
     {
         using var scope = factory.Services.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IUserProfileRepository>();
+        var resolver = scope.ServiceProvider.GetRequiredService<IEducationUserResolver>();
 
-        var legacyUserId = await repository.FindLegacyUserIdByIdentityUserIdAsync(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
-
-        Assert.Null(legacyUserId);
+        await Assert.ThrowsAsync<EducationUserLinkNotFoundException>(() =>
+            resolver.ResolveLegacyUserIdAsync(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc")));
     }
 
     [Fact]
-    public async Task ExistingRelations_ContinueThroughLegacyUserId_FromRealDatabase()
+    public async Task ExistingRelations_ContinueThroughUserId_FromRealDatabase()
     {
         using var scope = factory.Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IUserProfileRepository>();

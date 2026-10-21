@@ -23,18 +23,27 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         CreateAdminProfileCommand command,
         CancellationToken cancellationToken = default)
     {
-        var identityAlreadyLinked = await context.IdentityUserLinks.AnyAsync(
-            link => link.IdentityUserId == command.IdentityUserId && link.IsActive,
-            cancellationToken);
-        var loginAlreadyExists = await context.Users.AnyAsync(
-            user => user.Login == command.Login,
-            cancellationToken);
-        if (identityAlreadyLinked || loginAlreadyExists)
+        var existing = await context.Users.FirstOrDefaultAsync(item => item.Id == command.UserId, cancellationToken);
+        if (existing is not null)
+        {
+            if (existing.IsActive)
+            {
+                throw new AdminProfileAlreadyLinkedException();
+            }
+
+            // Явное действие администратора: отключённый ранее профиль восстанавливается.
+            existing.Activate();
+            await context.SaveChangesAsync(cancellationToken);
+            return await ProfilesQuery(existing.Id).FirstAsync(cancellationToken);
+        }
+
+        if (await context.Users.AnyAsync(user => user.Login == command.Login, cancellationToken))
         {
             throw new AdminProfileAlreadyLinkedException();
         }
 
         var user = new User(
+            command.UserId,
             command.Login,
             command.FirstName,
             command.LastName,
@@ -42,17 +51,6 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             command.RoleId,
             command.GroupName);
         await context.Users.AddAsync(user, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
-
-        await context.IdentityUserLinks.AddAsync(
-            new IdentityUserLink
-            {
-                LegacyUserId = user.Id,
-                IdentityUserId = command.IdentityUserId,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-            },
-            cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         return await ProfilesQuery(user.Id).FirstAsync(cancellationToken);
@@ -69,7 +67,6 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             return null;
         }
 
-        user.UpdateDisplayName(command.Login, command.FirstName, command.LastName, command.MiddleName);
         user.ChangeGroup(command.GroupName);
         await context.SaveChangesAsync(cancellationToken);
 
@@ -78,15 +75,15 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
 
     public async Task<bool> DeactivateProfileLinkAsync(Guid legacyUserId, CancellationToken cancellationToken = default)
     {
-        var link = await context.IdentityUserLinks.FirstOrDefaultAsync(
-            item => item.LegacyUserId == legacyUserId && item.IsActive,
+        var user = await context.Users.FirstOrDefaultAsync(
+            item => item.Id == legacyUserId && item.IsActive,
             cancellationToken);
-        if (link is null)
+        if (user is null)
         {
             return false;
         }
 
-        link.IsActive = false;
+        user.Deactivate();
         await context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -98,7 +95,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return await context.Users
             .AsNoTracking()
             .Where(user => user.RoleId == RoleIds.Student
-                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+                && user.IsActive)
             .OrderBy(user => user.LastName)
             .ThenBy(user => user.FirstName)
             .Select(user => new AssignableStudent(
@@ -115,7 +112,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return await context.Users
             .AsNoTracking()
             .Where(user => user.RoleId == RoleIds.Student
-                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+                && user.IsActive)
             .OrderBy(user => user.LastName)
             .ThenBy(user => user.FirstName)
             .Select(user => new AssignableStudent(
@@ -247,7 +244,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         var students = context.Users
             .AsNoTracking()
             .Where(user => user.RoleId == RoleIds.Student
-                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive));
+                && user.IsActive);
 
         var assignedCount = await students.CountAsync(user => assignedIds.Contains(user.Id), cancellationToken);
 
@@ -299,7 +296,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             .AsNoTracking()
             .Where(user => user.RoleId == RoleIds.Student
                 && user.GroupName != null
-                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+                && user.IsActive)
             .GroupBy(user => user.GroupName!)
             .Select(group => new { Name = group.Key, Count = group.Count() })
             .ToListAsync(cancellationToken);
@@ -329,7 +326,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         var linkedIds = await context.Users
             .AsNoTracking()
             .Where(user => desiredIds.Contains(user.Id)
-                && context.IdentityUserLinks.Any(link => link.LegacyUserId == user.Id && link.IsActive))
+                && user.IsActive)
             .Select(user => user.Id)
             .ToHashSetAsync(cancellationToken);
 
@@ -358,17 +355,13 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
     {
         return from user in context.Users.AsNoTracking()
                where legacyUserId == null || user.Id == legacyUserId
-               from link in context.IdentityUserLinks
-                   .Where(item => item.IsActive && item.LegacyUserId == user.Id)
-                   .DefaultIfEmpty()
                select new AdminProfile(
                    user.Id,
-                   link != null ? (Guid?)link.IdentityUserId : null,
                    user.Login,
                    user.FirstName,
                    user.LastName,
                    user.MiddleName,
-                   link != null && link.IsActive,
+                   user.IsActive,
                    user.GroupName);
     }
 

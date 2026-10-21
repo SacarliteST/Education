@@ -21,7 +21,7 @@ internal static class AdminProfilesEndpointMappings
     public static CreateAdminProfileCommand ToCommand(this CreateAdminProfileRequest request)
     {
         return new CreateAdminProfileCommand(
-            request.IdentityUserId,
+            request.UserId,
             request.Login,
             request.FirstName,
             request.LastName,
@@ -42,19 +42,13 @@ internal static class AdminProfilesEndpointMappings
 
     public static UpdateAdminProfileCommand ToCommand(this UpdateAdminProfileRequest request)
     {
-        return new UpdateAdminProfileCommand(
-            request.Login,
-            request.FirstName,
-            request.LastName,
-            request.MiddleName,
-            request.Group);
+        return new UpdateAdminProfileCommand(request.Group);
     }
 
     public static AdminProfileResponse ToResponse(this AdminProfile profile)
     {
         return new AdminProfileResponse(
             profile.LegacyUserId,
-            profile.IdentityUserId,
             profile.Login,
             profile.FirstName,
             profile.LastName,

@@ -22,7 +22,6 @@ public sealed class EducationDbContext(DbContextOptions<EducationDbContext> opti
     /// <summary>
     /// Связи пользователей identity-сервиса с пользователями учебной системы.
     /// </summary>
-    public DbSet<IdentityUserLink> IdentityUserLinks => Set<IdentityUserLink>();
 
     /// <summary>
     /// Пользователи учебной системы.

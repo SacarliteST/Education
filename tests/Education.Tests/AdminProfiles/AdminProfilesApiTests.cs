@@ -20,7 +20,7 @@ public sealed class AdminProfilesApiTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
-    public async Task Admin_CreatesAndLinksLegacyProfile()
+    public async Task Admin_CreatesProfile_WithIdentityUserIdAsId()
     {
         var client = factory.CreateClient();
         client.AuthenticateAs(EducationRoles.Admin);
@@ -37,17 +37,16 @@ public sealed class AdminProfilesApiTests : IClassFixture<TestWebApplicationFact
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var profile = await response.Content.ReadFromJsonAsync<AdminProfileResponse>();
-        Assert.Equal(identityUserId, profile!.IdentityUserId);
+        Assert.Equal(identityUserId, profile!.Id);
 
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var user = await dbContext.Users.FindAsync(profile.LegacyUserId);
-        var link = dbContext.IdentityUserLinks.Single(item => item.LegacyUserId == profile.LegacyUserId);
+        var user = await dbContext.Users.FindAsync(profile.Id);
 
         Assert.NotNull(user);
         Assert.Equal(String.Empty, user!.Password);
-        Assert.Equal(identityUserId, link.IdentityUserId);
-        Assert.True(link.IsActive);
+        Assert.Equal(identityUserId, user.Id);
+        Assert.True(user.IsActive);
     }
 
     [Theory]
@@ -74,7 +73,7 @@ public sealed class AdminProfilesApiTests : IClassFixture<TestWebApplicationFact
 
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var user = await dbContext.Users.FindAsync(profile!.LegacyUserId);
+        var user = await dbContext.Users.FindAsync(profile!.Id);
 
         var expected = role switch
         {
@@ -100,7 +99,7 @@ public sealed class AdminProfilesApiTests : IClassFixture<TestWebApplicationFact
 
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
-        var user = await dbContext.Users.FindAsync(profile!.LegacyUserId);
+        var user = await dbContext.Users.FindAsync(profile!.Id);
         Assert.Equal(RoleIds.Student, user!.RoleId);
     }
 

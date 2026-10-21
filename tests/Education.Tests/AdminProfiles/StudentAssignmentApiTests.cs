@@ -252,7 +252,7 @@ public sealed class StudentAssignmentApiTests : IClassFixture<TestWebApplication
                 new CreateAdminProfileRequest(
                     Guid.NewGuid(), $"{marker}.{index}", "Имя", $"Ф{marker}{(char)('а' + index)}", "Отч"));
             response.EnsureSuccessStatusCode();
-            ids.Add((await response.Content.ReadFromJsonAsync<AdminProfileResponse>())!.LegacyUserId);
+            ids.Add((await response.Content.ReadFromJsonAsync<AdminProfileResponse>())!.Id);
         }
 
         return (marker, ids);

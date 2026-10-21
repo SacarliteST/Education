@@ -55,6 +55,12 @@ public sealed class User : Entity
     public Role Role { get; private set; } = null!;
 
     /// <summary>
+    /// Признак активного профиля. Неактивный пользователь (отвязанный администратором) не получает доступ и
+    /// не восстанавливается автоматически.
+    /// </summary>
+    public bool IsActive { get; private set; } = true;
+
+    /// <summary>
     /// Курсы, созданные пользователем.
     /// </summary>
     public List<Course> Courses { get; private set; } = [];
@@ -132,6 +138,67 @@ public sealed class User : Entity
     public void ChangeGroup(string? groupName)
     {
         GroupName = NormalizeGroupName(groupName);
+    }
+
+    /// <summary>
+    /// Создает профиль с заданным идентификатором — им служит идентификатор пользователя в Identity.
+    /// </summary>
+    /// <param name="id">Идентификатор пользователя в Identity (claim <c>sub</c>).</param>
+    /// <param name="login">Логин пользователя.</param>
+    /// <param name="firstName">Имя пользователя.</param>
+    /// <param name="lastName">Фамилия пользователя.</param>
+    /// <param name="middleName">Отчество пользователя.</param>
+    /// <param name="roleId">Идентификатор роли пользователя.</param>
+    /// <param name="groupName">Учебная группа или <see langword="null"/>.</param>
+    public User(Guid id, string login, string firstName, string lastName, string middleName, Guid roleId, string? groupName = null)
+        : this(login, firstName, lastName, middleName, roleId, groupName)
+    {
+        Id = id;
+    }
+
+    /// <summary>
+    /// Отключает профиль.
+    /// </summary>
+    public void Deactivate()
+    {
+        IsActive = false;
+    }
+
+    /// <summary>
+    /// Включает профиль обратно (явное действие администратора).
+    /// </summary>
+    public void Activate()
+    {
+        IsActive = true;
+    }
+
+    /// <summary>
+    /// Обновляет копию данных Identity: ФИО и роль. Логин и группа не меняются.
+    /// </summary>
+    /// <param name="firstName">Имя из Identity; <see langword="null"/> — не менять ФИО.</param>
+    /// <param name="lastName">Фамилия из Identity.</param>
+    /// <param name="middleName">Отчество из Identity.</param>
+    /// <param name="roleId">Роль по токену; <see langword="null"/> — не менять.</param>
+    /// <returns><see langword="true"/>, если что-то изменилось.</returns>
+    public bool SyncFromIdentity(string? firstName, string? lastName, string? middleName, Guid? roleId)
+    {
+        var changed = false;
+        if (firstName is not null && lastName is not null && middleName is not null &&
+            (FirstName != firstName || LastName != lastName || MiddleName != middleName))
+        {
+            FirstName = firstName;
+            LastName = lastName;
+            MiddleName = middleName;
+            changed = true;
+        }
+
+        if (roleId.HasValue && RoleId != roleId.Value)
+        {
+            RoleId = roleId.Value;
+            changed = true;
+        }
+
+        return changed;
     }
 
     /// <summary>

@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IFileAccessRepository, EfFileAccessRepository>();
         services.AddScoped<IFileStorage, LocalFileStorage>();
         services.AddScoped<IUserProfileRepository, EfUserProfileRepository>();
+        services.AddScoped<IUserProvisioner, EfUserProvisioner>();
 
         return services;
     }

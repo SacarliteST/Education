@@ -45,15 +45,13 @@ public sealed class StudentGroupApiTests : IClassFixture<TestWebApplicationFacto
         var group = UniqueGroup();
         var profile = await CreateProfileAsync("d", group);
         var admin = AdminClient();
-        var route = '/' + ApiRoutes.AdminProfiles.ForProfile(profile.LegacyUserId);
+        var route = '/' + ApiRoutes.AdminProfiles.ForProfile(profile.Id);
 
-        var moved = await admin.PutAsJsonAsync(route, new UpdateAdminProfileRequest(
-            profile.Login, profile.FirstName, profile.LastName, profile.MiddleName, group + "-2"));
+        var moved = await admin.PutAsJsonAsync(route, new UpdateAdminProfileRequest(group + "-2"));
         moved.EnsureSuccessStatusCode();
         var afterMove = (await moved.Content.ReadFromJsonAsync<AdminProfileResponse>())!;
 
-        var cleared = await admin.PutAsJsonAsync(route, new UpdateAdminProfileRequest(
-            profile.Login, profile.FirstName, profile.LastName, profile.MiddleName));
+        var cleared = await admin.PutAsJsonAsync(route, new UpdateAdminProfileRequest());
         cleared.EnsureSuccessStatusCode();
         var afterClear = (await cleared.Content.ReadFromJsonAsync<AdminProfileResponse>())!;
 
@@ -70,7 +68,7 @@ public sealed class StudentGroupApiTests : IClassFixture<TestWebApplicationFacto
         var list = await AdminClient().GetFromJsonAsync<List<AdminProfileResponse>>(
             '/' + ApiRoutes.AdminProfiles.ProfilesList);
 
-        Assert.Equal(group, list!.Single(item => item.LegacyUserId == profile.LegacyUserId).Group);
+        Assert.Equal(group, list!.Single(item => item.Id == profile.Id).Group);
     }
 
     [Fact]
@@ -100,11 +98,11 @@ public sealed class StudentGroupApiTests : IClassFixture<TestWebApplicationFacto
         var percent = await GetPageAsync(client, route, "group=%25");
 
         Assert.Equal(
-            new[] { inGroup.LegacyUserId, inGroupToo.LegacyUserId }.Order().ToArray(),
+            new[] { inGroup.Id, inGroupToo.Id }.Order().ToArray(),
             byGroup.Items.Select(item => item.LegacyUserId).Order().ToArray());
         Assert.All(byGroup.Items, item => Assert.Equal(group, item.Group));
         Assert.Equal(byGroup.TotalCount, bySearch.TotalCount);
-        Assert.DoesNotContain(byGroup.Items, item => item.LegacyUserId == elsewhere.LegacyUserId);
+        Assert.DoesNotContain(byGroup.Items, item => item.LegacyUserId == elsewhere.Id);
         Assert.Equal(0, percent.TotalCount);
     }
 
@@ -120,12 +118,12 @@ public sealed class StudentGroupApiTests : IClassFixture<TestWebApplicationFacto
 
         (await client.PostAsJsonAsync(
             '/' + ApiRoutes.Courses.ForCourseStudentChanges(courseId),
-            new ChangeStudentsRequest([first.LegacyUserId], []))).EnsureSuccessStatusCode();
+            new ChangeStudentsRequest([first.Id], []))).EnsureSuccessStatusCode();
 
         var assigned = await GetPageAsync(client, route, $"group={group}&assigned=true");
         var notAssigned = await GetPageAsync(client, route, $"group={group}&assigned=false");
 
-        Assert.Equal(first.LegacyUserId, assigned.Items.Single().LegacyUserId);
+        Assert.Equal(first.Id, assigned.Items.Single().LegacyUserId);
         Assert.Equal(1, notAssigned.TotalCount);
     }
 
