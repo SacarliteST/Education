@@ -25,6 +25,7 @@ internal static class ExceptionHandlerExtensions
                 {
                     BadHttpRequestException badRequest => badRequest.StatusCode,
                     ArgumentException => StatusCodes.Status400BadRequest,
+                    Education.Application.Users.EducationUserLinkNotFoundException => StatusCodes.Status403Forbidden,
                     _ => StatusCodes.Status500InternalServerError
                 };
 
@@ -52,12 +53,14 @@ internal static class ExceptionHandlerExtensions
     private static string GetTitle(int statusCode) => statusCode switch
     {
         StatusCodes.Status400BadRequest => "Некорректный запрос",
+        StatusCodes.Status403Forbidden => "Доступ запрещён",
         _ => "Внутренняя ошибка сервера"
     };
 
     private static string GetDetail(int statusCode) => statusCode switch
     {
         StatusCodes.Status400BadRequest => "Проверьте формат и значения параметров запроса.",
+        StatusCodes.Status403Forbidden => "Учебный профиль не создан или отключён администратором.",
         _ => "При обработке запроса произошла непредвиденная ошибка."
     };
 }

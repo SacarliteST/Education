@@ -23,8 +23,8 @@ public sealed class AdminProfilesService(
     {
         var profile = await repository.CreateLinkedProfileAsync(command, cancellationToken);
         logger.LogInformation(
-            "Связан профиль «{Login}» (роль {RoleId}) с identity-пользователем {IdentityUserId}.",
-            command.Login, command.RoleId, command.IdentityUserId);
+            "Создан/восстановлен профиль «{Login}» (роль {RoleId}), идентификатор {UserId}.",
+            command.Login, command.RoleId, command.UserId);
         return profile;
     }
 

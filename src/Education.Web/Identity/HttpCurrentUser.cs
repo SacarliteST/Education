@@ -35,6 +35,15 @@ public sealed class HttpCurrentUser(IHttpContextAccessor httpContextAccessor, IC
         ?? user?.FindFirstValue("name");
 
     /// <inheritdoc />
+    public string? GivenName => user?.FindFirstValue("given_name") ?? user?.FindFirstValue(ClaimTypes.GivenName);
+
+    /// <inheritdoc />
+    public string? FamilyName => user?.FindFirstValue("family_name") ?? user?.FindFirstValue(ClaimTypes.Surname);
+
+    /// <inheritdoc />
+    public string? MiddleName => user?.FindFirstValue("middle_name");
+
+    /// <inheritdoc />
     public IReadOnlySet<string> Roles
     {
         get

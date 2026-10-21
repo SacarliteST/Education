@@ -30,13 +30,18 @@ internal sealed class TestAuthHandler(
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
+        // Необязательные заголовки подменяют личность: так тесты автосоздания входят «новым пользователем».
+        var subject = Header("X-Test-Sub") is { } sub && Guid.TryParse(sub, out var parsed) ? parsed : TestUserId;
         var claims = new List<Claim>
         {
-            new("sub", TestUserId.ToString()),
-            new(ClaimTypes.NameIdentifier, TestUserId.ToString()),
-            new(ClaimTypes.Name, "Test User"),
-            new(ClaimTypes.Email, "test.user@example.test"),
+            new("sub", subject.ToString()),
+            new(ClaimTypes.NameIdentifier, subject.ToString()),
+            new(ClaimTypes.Name, Header("X-Test-Name") ?? "Test User"),
+            new(ClaimTypes.Email, Header("X-Test-Email") ?? "test.user@example.test"),
         };
+        AddIfPresent(claims, "given_name", Header("X-Test-Given-Name"));
+        AddIfPresent(claims, "family_name", Header("X-Test-Family-Name"));
+        AddIfPresent(claims, "middle_name", Header("X-Test-Middle-Name"));
 
         // ClaimTypes.Role (не короткое "role"), т.к. HttpCurrentUser.Roles ищет claim
         // строго по Jwt:RoleClaimType из appsettings.Development.json — это длинный
@@ -52,6 +57,19 @@ internal sealed class TestAuthHandler(
         var ticket = new AuthenticationTicket(principal, AuthenticationScheme);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+
+    private string? Header(string name) =>
+        Request.Headers.TryGetValue(name, out var value) && !String.IsNullOrEmpty(value)
+            ? Uri.UnescapeDataString(value.ToString())
+            : null;
+
+    private static void AddIfPresent(List<Claim> claims, string type, string? value)
+    {
+        if (!String.IsNullOrEmpty(value))
+        {
+            claims.Add(new Claim(type, value));
+        }
     }
 
     private static string? GetRolesValue(string authorization)

@@ -15,28 +15,12 @@ internal sealed class TestSeedDataBuilder(string fileStorageRoot)
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.MigrateAsync();
 
-        var testUser = new User("test.user", "Test", "User", String.Empty, RoleIds.Teacher);
+        var testUser = new User(TestAuthHandler.TestUserId, "test.user", "Test", "User", String.Empty, RoleIds.Teacher);
         var otherTeacher = new User("other.teacher", "Other", "Teacher", String.Empty, RoleIds.Teacher);
-        var otherStudent = new User("other.student", "Other", "Student", String.Empty, RoleIds.Student);
+        var otherStudent = new User(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), "other.student", "Other", "Student", String.Empty, RoleIds.Student);
 
         await dbContext.Users.AddRangeAsync(testUser, otherTeacher, otherStudent);
         await dbContext.SaveChangesAsync();
-
-        await dbContext.IdentityUserLinks.AddRangeAsync(
-            new IdentityUserLink
-            {
-                LegacyUserId = testUser.Id,
-                IdentityUserId = TestAuthHandler.TestUserId,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-            },
-            new IdentityUserLink
-            {
-                LegacyUserId = otherStudent.Id,
-                IdentityUserId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-            });
 
         var ownCourse = new Course(
             "Teacher course",

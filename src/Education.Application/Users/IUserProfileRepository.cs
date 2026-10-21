@@ -1,29 +1,22 @@
 ﻿namespace Education.Application.Users;
 
 /// <summary>
-/// Читает профиль пользователя и связи между пользователями учебной системы и identity-сервиса.
+/// Читает учебный профиль пользователя. Идентификатор профиля равен идентификатору пользователя в Identity.
 /// </summary>
 public interface IUserProfileRepository
 {
     /// <summary>
-    /// Ищет идентификатор пользователя учебной системы по идентификатору пользователя identity-сервиса.
+    /// Проверяет, что активный профиль с таким идентификатором существует.
     /// </summary>
-    Task<Guid?> FindLegacyUserIdByIdentityUserIdAsync(
-        Guid identityUserId,
-        CancellationToken cancellationToken = default);
+    Task<bool> IsActiveAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Ищет профиль пользователя учебной системы по его идентификатору.
     /// </summary>
-    Task<UserProfile?> FindProfileByLegacyUserIdAsync(
-        Guid legacyUserId,
-        CancellationToken cancellationToken = default);
+    Task<UserProfile?> FindProfileAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Возвращает снимок связей пользователя с курсами, практическими материалами и результатами.
     /// </summary>
-    Task<UserRelationsSnapshot> GetRelationsSnapshotAsync(
-        Guid legacyUserId,
-        CancellationToken cancellationToken = default);
+    Task<UserRelationsSnapshot> GetRelationsSnapshotAsync(Guid userId, CancellationToken cancellationToken = default);
 }
-

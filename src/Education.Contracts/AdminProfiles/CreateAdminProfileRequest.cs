@@ -1,22 +1,21 @@
 ﻿namespace Education.Contracts.AdminProfiles;
 
 /// <summary>
-/// Запрос на создание локального учебного профиля и связи с identity-пользователем.
+/// Запрос на ручное создание (или восстановление отключённого) профиля. Обычно профиль создаётся сам при первом
+/// обращении пользователя; ручное создание нужно, когда автосоздание выключено.
 /// </summary>
-/// <param name="IdentityUserId">Идентификатор пользователя во внешнем identity-сервисе.</param>
-/// <param name="Login">Отображаемый логин или имя пользователя.</param>
-/// <param name="FirstName">Имя пользователя.</param>
-/// <param name="LastName">Фамилия пользователя.</param>
-/// <param name="MiddleName">Отчество пользователя.</param>
-/// <param name="Role">Роль профиля (по умолчанию — студент).</param>
-/// <param name="Group">Учебная группа (до 50 символов); пусто — без группы.</param>
+/// <param name="UserId">Идентификатор пользователя в Identity; он же станет идентификатором профиля.</param>
+/// <param name="Login">Отображаемый логин (email).</param>
+/// <param name="FirstName">Имя.</param>
+/// <param name="LastName">Фамилия.</param>
+/// <param name="MiddleName">Отчество.</param>
+/// <param name="Role">Роль профиля.</param>
+/// <param name="Group">Учебная группа (до 50 символов) или <c>null</c>.</param>
 public sealed record CreateAdminProfileRequest(
-    Guid IdentityUserId,
+    Guid UserId,
     string Login,
     string FirstName,
     string LastName,
     string MiddleName,
     ProfileRole Role = ProfileRole.Student,
     string? Group = null);
-
-

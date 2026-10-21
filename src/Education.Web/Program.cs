@@ -201,6 +201,7 @@ if (applyMigrationsOnStartup)
 app.UseCors(frontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ProfileProvisioningMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
