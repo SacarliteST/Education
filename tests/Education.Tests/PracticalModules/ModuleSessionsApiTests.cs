@@ -49,9 +49,9 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
         Assert.Equal(context.ExternalTaskRef, push.Pushes[0].TaskRef);
         Assert.False(String.IsNullOrEmpty(push.Pushes[0].SessionKey));
         Assert.DoesNotContain(push.Pushes[0].SessionKey, body.LaunchUrl);
-        // Пуш адресует владельца по identity-id (== sub токена), не по legacy-id Education.
+        // Пуш адресует владельца по identity-id (== sub токена); учебный id пользователя теперь тот же.
         Assert.Equal(Auth.TestAuthHandler.TestUserId, push.Pushes[0].UserId);
-        Assert.NotEqual(factory.Seed.TestUserId, push.Pushes[0].UserId);
+        Assert.Equal(factory.Seed.TestUserId, push.Pushes[0].UserId);
     }
 
     [Fact]
