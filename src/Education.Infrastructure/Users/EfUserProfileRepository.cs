@@ -24,7 +24,9 @@ internal sealed class EfUserProfileRepository(EducationDbContext context) : IUse
                 user.FirstName,
                 user.LastName,
                 user.MiddleName,
-                user.IsActive))
+                user.IsActive,
+                user.RoleId,
+                user.GroupName))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
