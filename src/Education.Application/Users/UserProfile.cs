@@ -7,4 +7,6 @@ public sealed record UserProfile(
     string FirstName,
     string LastName,
     string MiddleName,
-    bool IsActive);
+    bool IsActive,
+    Guid RoleId,
+    string? GroupName);
