@@ -54,6 +54,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
                 item.IsPublic,
                 item.TriesCount,
                 item.TimeLimitMinutes,
+                item.AttemptsPerSession,
             })
             .FirstOrDefaultAsync(cancellationToken);
         if (practical is null)
@@ -83,7 +84,8 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             practical.IsPublic,
             practical.TriesCount,
             practical.TimeLimitMinutes,
-            binding);
+            binding,
+            practical.AttemptsPerSession);
     }
 
     public Task<bool> IsTaskInPracticalAsync(
@@ -226,7 +228,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             return;
         }
 
-        practical.BindExternalModule(command.TriesCount, command.TimeLimitMinutes);
+        practical.BindExternalModule(command.TriesCount, command.TimeLimitMinutes, command.AttemptsPerSession);
 
         await DatabaseContext.Cases
             .Where(task => task.PracticalMaterialId == command.PracticalId)
@@ -256,7 +258,8 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
                 task.PracticalMaterial.TriesCount,
                 task.PracticalMaterial.TimeLimitMinutes,
                 task.PracticalMaterial.ModuleId,
-                task.PracticalMaterial.Module.CourseId))
+                task.PracticalMaterial.Module.CourseId,
+                task.PracticalMaterial.AttemptsPerSession))
             .FirstOrDefaultAsync(cancellationToken);
     }
 

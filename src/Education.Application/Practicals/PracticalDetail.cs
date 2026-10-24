@@ -10,7 +10,8 @@ public sealed record PracticalDetail(
     bool IsPublic,
     int TriesCount,
     int? TimeLimitMinutes,
-    ExternalModuleBinding? ModuleBinding);
+    ExternalModuleBinding? ModuleBinding,
+    int? AttemptsPerSession = null);
 
 /// <summary>Привязка внешней практики к заданию модуля.</summary>
 public sealed record ExternalModuleBinding(

@@ -1,3 +1,4 @@
+using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Practicals;
 using Education.Application.Users;
@@ -9,6 +10,7 @@ public sealed class TestResultsService(
     IEducationUserResolver userResolver,
     IPracticalsRepository practicalsRepository,
     ITestResultsRepository testResultsRepository,
+    IClassAccessService classAccess,
     ILogger<TestResultsService> logger)
     : ITestResultsService
 {
@@ -21,6 +23,7 @@ public sealed class TestResultsService(
     public async Task<int> StartTestAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(practicalId, cancellationToken);
+        await classAccess.EnsureOpenForPracticalAsync(practicalId, userId, cancellationToken: cancellationToken);
         var tryNumber = await testResultsRepository.StartTestAsync(practicalId, userId, cancellationToken);
         logger.LogInformation(
             "Студент {UserId} начал попытку {TryNumber} по практике {PracticalId}.",
@@ -31,12 +34,14 @@ public sealed class TestResultsService(
     public async Task<TestQuestions?> GetQuestionsAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(practicalId, cancellationToken);
+        await classAccess.EnsureOpenForPracticalAsync(practicalId, userId, cancellationToken: cancellationToken);
         return await testResultsRepository.GetQuestionsAsync(practicalId, userId, cancellationToken);
     }
 
     public async Task<TestProtocolSummary> SubmitTestAsync(SubmitTestCommand command, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(command.PracticalId, cancellationToken);
+        await classAccess.EnsureOpenForPracticalAsync(command.PracticalId, userId, withGrace: true, cancellationToken: cancellationToken);
         var result = await testResultsRepository.SubmitTestAsync(command, userId, cancellationToken);
         logger.LogInformation(
             "Студент {UserId} сдал тест по практике {PracticalId}: попытка {TryNumber}, " +

@@ -1,4 +1,5 @@
 ﻿using Education.Application.AdminProfiles;
+using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.PracticalModules;
@@ -95,6 +96,10 @@ internal static class EndpointResults
         {
             return Results.Forbid();
         }
+        catch (ClassWindowClosedException exception)
+        {
+            return ClassWindowClosed(exception);
+        }
         catch (TestAttemptLimitExceededException)
         {
             return BadRequestProblem("Лимит попыток прохождения теста исчерпан.");
@@ -123,6 +128,14 @@ internal static class EndpointResults
         {
             return Results.Forbid();
         }
+    }
+
+    /// <summary>403 с кодом <c>ClassWindow.Closed</c>: практика доступна только во время пары.</summary>
+    public static IResult ClassWindowClosed(ClassWindowClosedException exception)
+    {
+        return Results.Json(
+            new { code = "ClassWindow.Closed", detail = exception.Message },
+            statusCode: StatusCodes.Status403Forbidden);
     }
 
     private static IResult BadRequestProblem(string detail)

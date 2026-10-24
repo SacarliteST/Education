@@ -1,4 +1,5 @@
 ﻿using Education.Application.AdminProfiles;
+using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.Grades;
@@ -11,6 +12,7 @@ using Education.Application.TestResults;
 using Education.Application.Theories;
 using Education.Application.Users;
 using Education.Infrastructure.AdminProfiles;
+using Education.Infrastructure.ClassWindows;
 using Education.Infrastructure.Courses;
 using Education.Infrastructure.Files;
 using Education.Infrastructure.Grades;
@@ -49,6 +51,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAdminProfilesRepository, EfAdminProfilesRepository>();
         services.AddScoped<ICoursesRepository, EfCoursesRepository>();
+        services.AddScoped<IClassWindowsRepository, EfClassWindowsRepository>();
         services.AddScoped<IModulesRepository, EfModulesRepository>();
         services.AddScoped<IPracticalsRepository, EfPracticalsRepository>();
         services.AddScoped<IPracticalModulesRepository, EfPracticalModulesRepository>();

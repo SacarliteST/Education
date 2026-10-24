@@ -5,4 +5,5 @@ public sealed record BindPracticalModuleRequest(
     Guid PracticalModuleId,
     string ExternalTaskRef,
     int TriesCount,
-    int? TimeLimitMinutes);
+    int? TimeLimitMinutes,
+    int? AttemptsPerSession = null);

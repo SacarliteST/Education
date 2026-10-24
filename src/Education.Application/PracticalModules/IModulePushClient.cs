@@ -11,7 +11,8 @@ public sealed record ModuleSessionPush(
     Guid UserId,
     string TaskRef,
     string ReturnUrl,
-    DateTimeOffset? ExpiresAt);
+    DateTimeOffset? ExpiresAt,
+    int? MaxAttempts = null);
 
 /// <summary>Сервер-серверный клиент пуша сессии в модуль. Реализация — в слое Web.</summary>
 public interface IModulePushClient

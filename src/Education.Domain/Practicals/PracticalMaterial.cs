@@ -40,6 +40,11 @@ public sealed class PracticalMaterial : Entity
     public int TriesCount { get; private set; } = 1;
 
     /// <summary>
+    /// Сколько отправок решения можно сделать внутри одного захода во внешнем модуле. <see langword="null"/> — без лимита.
+    /// </summary>
+    public int? AttemptsPerSession { get; private set; }
+
+    /// <summary>
     /// Минимальный процент результата для оценки 5.
     /// </summary>
     public double PercentForFive { get; private set; } = 90;
@@ -107,8 +112,13 @@ public sealed class PracticalMaterial : Entity
     /// </summary>
     /// <param name="triesCount">Количество запусков (та же семантика, что у внутреннего теста).</param>
     /// <param name="timeLimitMinutes">Лимит времени на попытку в минутах или <see langword="null"/>.</param>
-    public void BindExternalModule(int triesCount, int? timeLimitMinutes)
+    public void BindExternalModule(int triesCount, int? timeLimitMinutes, int? attemptsPerSession = null)
     {
+        if (attemptsPerSession is < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(attemptsPerSession));
+        }
+
         if (triesCount < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(triesCount));
@@ -122,6 +132,7 @@ public sealed class PracticalMaterial : Entity
         Kind = PracticalKind.External;
         TriesCount = triesCount;
         TimeLimitMinutes = timeLimitMinutes;
+        AttemptsPerSession = attemptsPerSession;
     }
 
     /// <summary>

@@ -21,6 +21,7 @@ internal sealed class PracticalMaterialConfiguration : IEntityTypeConfiguration<
             .HasMaxLength(20);
         builder.Property(practical => practical.TimeLimitMinutes).HasColumnName("time_limit_minutes");
         builder.Property(practical => practical.TriesCount).HasColumnName("tries_count");
+        builder.Property(practical => practical.AttemptsPerSession).HasColumnName("attempts_per_session");
         builder.Property(practical => practical.PercentForFive).HasColumnName("percent_for_five");
         builder.Property(practical => practical.PercentForFour).HasColumnName("percent_for_four");
         builder.Property(practical => practical.PercentForThree).HasColumnName("percent_for_three");

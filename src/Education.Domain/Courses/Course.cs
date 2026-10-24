@@ -29,6 +29,11 @@ public sealed class Course : Entity
     public Guid UserId { get; private set; }
 
     /// <summary>
+    /// Тесты, практика и сдача заданий доступны только во время пары группы (<see cref="ClassWindow"/>); теория — всегда.
+    /// </summary>
+    public bool PracticeOnlyDuringClass { get; private set; }
+
+    /// <summary>
     /// Автор курса.
     /// </summary>
     public User User { get; private set; } = null!;
@@ -54,6 +59,12 @@ public sealed class Course : Entity
     /// <param name="description">Описание курса.</param>
     /// <param name="date">Дата создания или публикации курса.</param>
     /// <param name="userId">Идентификатор автора курса.</param>
+    /// <summary>Включает или выключает режим «практика только на парах».</summary>
+    public void SetPracticeOnlyDuringClass(bool value)
+    {
+        PracticeOnlyDuringClass = value;
+    }
+
     public Course(string name, string description, DateTimeOffset date, Guid userId)
     {
         Name = name;

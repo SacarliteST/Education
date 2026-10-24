@@ -84,6 +84,15 @@ public sealed class PracticalModuleSession : Entity
         && ((ExpiresAt is { } expiry && now >= expiry) || now >= StartedAt + HardCeiling);
 
     /// <summary>Терминальный переход в <see cref="ModuleSessionState.Expired"/>. Идемпотентен для уже терминальной сессии.</summary>
+    /// <summary>Меняет срок идущей сессии (продление или досрочное завершение пары).</summary>
+    public void ChangeExpiry(DateTimeOffset? expiresAt)
+    {
+        if (Status == ModuleSessionState.Active)
+        {
+            ExpiresAt = expiresAt;
+        }
+    }
+
     public void Expire(DateTimeOffset now, ModuleSessionEndReason reason)
     {
         if (Status != ModuleSessionState.Active)

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Education.Application.AdminProfiles;
+using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Kafka;
@@ -65,6 +66,8 @@ builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IEducationUserResolver, EducationUserResolver>();
 builder.Services.AddScoped<IAdminProfilesService, AdminProfilesService>();
 builder.Services.AddScoped<ICoursesService, CoursesService>();
+builder.Services.AddScoped<IClassAccessService, ClassAccessService>();
+builder.Services.AddScoped<IClassWindowsService, ClassWindowsService>();
 builder.Services.AddScoped<IModulesService, ModulesService>();
 builder.Services.AddScoped<IPracticalsService, PracticalsService>();
 builder.Services.AddSingleton(TimeProvider.System);

@@ -36,7 +36,8 @@ internal static class PracticalEndpointMappings
             request.PracticalModuleId,
             request.ExternalTaskRef.Trim(),
             request.TriesCount,
-            request.TimeLimitMinutes);
+            request.TimeLimitMinutes,
+            request.AttemptsPerSession);
     }
 
     public static UpdateTaskTextCommand ToCommand(this UpdateTaskTextRequest request)
@@ -65,7 +66,8 @@ internal static class PracticalEndpointMappings
                     binding.PracticalModuleName,
                     binding.TaskId,
                     binding.ExternalTaskRef)
-                : null);
+                : null,
+            detail.AttemptsPerSession);
     }
 
     public static TaskResponse ToResponse(this Case task)

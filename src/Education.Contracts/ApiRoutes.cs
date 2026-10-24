@@ -35,6 +35,21 @@ public static class ApiRoutes
         /// </summary>
         public const string Course = CoursesList + "/{courseId:guid}";
 
+        /// <summary>Пары курса: список и запуск.</summary>
+        public const string ClassWindows = Course + "/class-windows";
+
+        /// <summary>Режим «практика только на парах».</summary>
+        public const string PracticeAccess = Course + "/practice-access";
+
+        /// <summary>Состояние доступа студента к практике курса.</summary>
+        public const string ClassAccess = Course + "/class-access";
+
+        /// <summary>Продление пары.</summary>
+        public const string ClassWindowExtend = PrefixV1 + "/class-windows/{windowId:guid}/extend";
+
+        /// <summary>Досрочное завершение пары.</summary>
+        public const string ClassWindowFinish = PrefixV1 + "/class-windows/{windowId:guid}/finish";
+
         /// <summary>
         /// Шаблон маршрута модулей курса.
         /// </summary>
@@ -54,6 +69,21 @@ public static class ApiRoutes
         /// Создаёт маршрут для конкретного курса.
         /// </summary>
         public static string ForCourse(Guid courseId) => ReplaceUrlSegment(Course, "courseId:guid", courseId.ToString());
+
+        /// <summary>Маршрут пар курса.</summary>
+        public static string ForClassWindows(Guid courseId) => ReplaceUrlSegment(ClassWindows, "courseId:guid", courseId.ToString());
+
+        /// <summary>Маршрут режима «практика только на парах».</summary>
+        public static string ForPracticeAccess(Guid courseId) => ReplaceUrlSegment(PracticeAccess, "courseId:guid", courseId.ToString());
+
+        /// <summary>Маршрут состояния доступа студента.</summary>
+        public static string ForClassAccess(Guid courseId) => ReplaceUrlSegment(ClassAccess, "courseId:guid", courseId.ToString());
+
+        /// <summary>Маршрут продления пары.</summary>
+        public static string ForClassWindowExtend(Guid windowId) => ReplaceUrlSegment(ClassWindowExtend, "windowId:guid", windowId.ToString());
+
+        /// <summary>Маршрут завершения пары.</summary>
+        public static string ForClassWindowFinish(Guid windowId) => ReplaceUrlSegment(ClassWindowFinish, "windowId:guid", windowId.ToString());
 
         /// <summary>
         /// Создаёт маршрут для модулей конкретного курса.

@@ -36,6 +36,8 @@ public sealed class EducationDbContext(DbContextOptions<EducationDbContext> opti
     /// <summary>
     /// Курсы.
     /// </summary>
+    public DbSet<ClassWindow> ClassWindows => Set<ClassWindow>();
+
     public DbSet<Course> Courses => Set<Course>();
 
     /// <summary>

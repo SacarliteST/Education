@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Education.Application.ClassWindows;
 using Education.Application.Identity;
 using Education.Application.Practicals;
 using Education.Application.Users;
@@ -18,6 +19,7 @@ public sealed class ModuleSessionsService(
     IModulePushClient pushClient,
     ITokenExchangeClient tokenExchangeClient,
     IModuleIntegrationConfig integrationConfig,
+    IClassAccessService classAccess,
     TimeProvider timeProvider,
     ILogger<ModuleSessionsService> logger) : IModuleSessionsService
 {
@@ -36,12 +38,13 @@ public sealed class ModuleSessionsService(
             ?? throw new ExternalTaskNotFoundException();
 
         var now = timeProvider.GetUtcNow();
+        var windowEnd = await classAccess.RequireWindowEndAsync(binding.CourseId, userId, cancellationToken);
         var latest = await sessionsRepository.GetLatestForUserTaskAsync(userId, taskId, cancellationToken);
 
         if (latest is { IsActive: true } && !latest.IsExpiredBy(now))
         {
             var launchUrl = await PushAndBuildLaunchUrlAsync(
-                module, latest, binding.ExternalTaskRef, identityUserId, cancellationToken);
+                module, latest, binding.ExternalTaskRef, binding.AttemptsPerSession, identityUserId, cancellationToken);
             logger.LogInformation(
                 "Возобновлена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} (задание {TaskId}).",
                 latest.Id, module.Slug, userId, taskId);
@@ -67,6 +70,11 @@ public sealed class ModuleSessionsService(
 
         var sessionId = Guid.NewGuid();
         var expiresAt = binding.TimeLimitMinutes is { } minutes ? now.AddMinutes(minutes) : (DateTimeOffset?)null;
+        if (windowEnd is { } end && (expiresAt is null || end < expiresAt))
+        {
+            expiresAt = end;
+        }
+
         var session = new PracticalModuleSession(
             sessionId,
             taskId,
@@ -79,7 +87,7 @@ public sealed class ModuleSessionsService(
 
         // Пуш до персиста — неудачный запуск не тратит попытку (спека E4.5).
         var newLaunchUrl = await PushAndBuildLaunchUrlAsync(
-            module, session, binding.ExternalTaskRef, identityUserId, cancellationToken);
+            module, session, binding.ExternalTaskRef, binding.AttemptsPerSession, identityUserId, cancellationToken);
         await sessionsRepository.AddAsync(session, cancellationToken);
 
         logger.LogInformation(
@@ -263,13 +271,14 @@ public sealed class ModuleSessionsService(
         PracticalModule module,
         PracticalModuleSession session,
         string taskRef,
+        int? maxAttempts,
         Guid identityUserId,
         CancellationToken cancellationToken)
     {
         await pushClient.PushAsync(
             ReadSessionsEndpoint(module),
             module.Slug,
-            ToPush(session, taskRef, identityUserId),
+            ToPush(session, taskRef, identityUserId, maxAttempts),
             cancellationToken);
         return await BuildLaunchUrlAsync(module, session, cancellationToken);
     }
@@ -285,15 +294,16 @@ public sealed class ModuleSessionsService(
     }
 
     private static ModuleSessionPush ToPush(
-        PracticalModuleSession session, string taskRef, Guid identityUserId) => new(
+        PracticalModuleSession session, string taskRef, Guid identityUserId, int? maxAttempts) => new(
         session.Id,
         session.SessionKey,
         identityUserId,
         taskRef,
         session.ReturnUrl,
-        session.ExpiresAt);
+        session.ExpiresAt,
+        maxAttempts);
 
-    private static string ReadSessionsEndpoint(PracticalModule module)
+    internal static string ReadSessionsEndpoint(PracticalModule module)
     {
         try
         {

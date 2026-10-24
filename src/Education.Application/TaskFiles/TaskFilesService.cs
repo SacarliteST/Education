@@ -1,3 +1,4 @@
+using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.TestResults;
@@ -10,6 +11,7 @@ namespace Education.Application.TaskFiles;
 public sealed class TaskFilesService(
     IEducationUserResolver userResolver,
     ITaskFilesRepository taskFilesRepository,
+    IClassAccessService classAccess,
     IFileStorage fileStorage,
     ILogger<TaskFilesService> logger)
     : ITaskFilesService
@@ -63,6 +65,8 @@ public sealed class TaskFilesService(
                 command.TaskId, legacyUserId);
             throw new StudentPracticalAccessDeniedException(command.TaskId);
         }
+
+        await classAccess.EnsureOpenForTaskAsync(command.TaskId, legacyUserId, cancellationToken);
 
         var storedFile = await fileStorage.SaveAsync(command.File, cancellationToken);
         var result = await taskFilesRepository.SaveStudentTaskFileAsync(

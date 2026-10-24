@@ -7,4 +7,5 @@ public sealed record ExternalTaskBinding(
     int TriesCount,
     int? TimeLimitMinutes,
     Guid ModuleId,
-    Guid CourseId);
+    Guid CourseId,
+    int? AttemptsPerSession = null);

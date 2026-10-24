@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Education.Application.ClassWindows;
 using Education.Application.PracticalModules;
 using Education.Contracts;
 using Education.Contracts.PracticalModules;
@@ -26,6 +27,10 @@ internal static class ModuleSessionsEndpointGroup
                 catch (ExternalTaskNotFoundException)
                 {
                     return Results.NotFound();
+                }
+                catch (ClassWindowClosedException exception)
+                {
+                    return EndpointResults.ClassWindowClosed(exception);
                 }
                 catch (TriesExhaustedException)
                 {
