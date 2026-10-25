@@ -15,6 +15,11 @@ public interface IModuleSessionsService
     /// <exception cref="ExternalTaskNotFoundException">Практика не внешняя / задание не привязано.</exception>
     Task<CurrentModuleSessionInfo> GetCurrentAsync(Guid practicalId, Guid taskId, CancellationToken cancellationToken = default);
 
+    /// <summary>Прерывает идущую сессию текущего студента.</summary>
+    /// <param name="practicalId">Идентификатор практики.</param>
+    /// <param name="sessionId">Идентификатор сессии.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Итог прерывания.</returns>
     Task<AbandonOutcome> AbandonAsync(Guid practicalId, Guid sessionId, CancellationToken cancellationToken = default);
 
     /// <summary>

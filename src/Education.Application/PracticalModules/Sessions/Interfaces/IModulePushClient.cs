@@ -5,6 +5,8 @@ public interface IModulePushClient
 {
     /// <param name="sessionsEndpoint">URL из <c>configuration.sessionsEndpoint</c> модуля.</param>
     /// <param name="moduleSlug">Slug модуля — для выбора <c>X-Service-Key</c> из конфига.</param>
+    /// <param name="push">Данные сессии.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     /// <exception cref="ModulePushFailedException">Модуль недоступен или ответил не 2xx.</exception>
     Task PushAsync(
         string sessionsEndpoint,

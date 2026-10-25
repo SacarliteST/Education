@@ -3,15 +3,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
-public sealed class PracticalModulesService(
-    IPracticalModulesRepository repository,
-    ILogger<PracticalModulesService> logger) : IPracticalModulesService
+/// <summary>Реестр внешних практических модулей: просмотр, регистрация, изменение и удаление.</summary>
+public sealed class PracticalModulesService : IPracticalModulesService
 {
+    private readonly IPracticalModulesRepository repository;
+    private readonly ILogger<PracticalModulesService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="PracticalModulesService"/>.</summary>
+    /// <param name="repository">Реестр внешних практических модулей.</param>
+    /// <param name="logger">Журнал.</param>
+    public PracticalModulesService(IPracticalModulesRepository repository, ILogger<PracticalModulesService> logger)
+    {
+        this.repository = repository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<PracticalModule>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return repository.GetAllModulesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<PracticalModule> CreateAsync(
         CreatePracticalModuleCommand command,
         CancellationToken cancellationToken = default)
@@ -37,6 +50,7 @@ public sealed class PracticalModulesService(
         return module;
     }
 
+    /// <inheritdoc />
     public async Task<PracticalModule?> UpdateAsync(
         Guid id,
         UpdatePracticalModuleCommand command,
@@ -64,6 +78,7 @@ public sealed class PracticalModulesService(
         return module;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var module = await repository.GetByIdAsync(id, cancellationToken);

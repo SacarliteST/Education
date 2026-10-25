@@ -8,5 +8,6 @@ public sealed record StudentPracticalGrade(
     string? Group,
     PracticalGrade Grade)
 {
+    /// <summary>Статус оценки: не выполнена, зачтена или не зачтена.</summary>
     public GradeStatus Status => PracticalGradeCalculator.StatusOf(Grade.Grade);
 }

@@ -56,6 +56,9 @@ public static class PracticalGradeCalculator
     /// <summary>Зачтено — оценка не ниже 3.</summary>
     public const int PassingGrade = 3;
 
+    /// <summary>Определяет статус по оценке: <see langword="null"/> — не выполнена, не ниже <see cref="PassingGrade"/> — зачтена.</summary>
+    /// <param name="grade">Оценка или <see langword="null"/>, если практика не выполнена.</param>
+    /// <returns>Статус оценки.</returns>
     public static GradeStatus StatusOf(int? grade) => grade switch
     {
         null => GradeStatus.Incomplete,

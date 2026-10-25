@@ -7,18 +7,50 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.ClassWindows;
 
-public sealed class ClassWindowsService(
-    IEducationUserResolver userResolver,
-    ICoursesRepository coursesRepository,
-    IClassWindowsRepository repository,
-    IPracticalModulesRepository modulesRepository,
-    IPracticalModuleSessionsRepository sessionsRepository,
-    IModulePushClient pushClient,
-    TimeProvider timeProvider,
-    ILogger<ClassWindowsService> logger) : IClassWindowsService
+/// <summary>Управление парами курса: запуск, продление, завершение и режим «практика только на парах».</summary>
+public sealed class ClassWindowsService : IClassWindowsService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly ICoursesRepository coursesRepository;
+    private readonly IClassWindowsRepository repository;
+    private readonly IPracticalModulesRepository modulesRepository;
+    private readonly IPracticalModuleSessionsRepository sessionsRepository;
+    private readonly IModulePushClient pushClient;
+    private readonly TimeProvider timeProvider;
+    private readonly ILogger<ClassWindowsService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="ClassWindowsService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="coursesRepository">Хранилище курсов.</param>
+    /// <param name="repository">Хранилище пар.</param>
+    /// <param name="modulesRepository">Реестр внешних практических модулей.</param>
+    /// <param name="sessionsRepository">Хранилище сессий внешних модулей.</param>
+    /// <param name="pushClient">Клиент передачи сессии бэкенду модуля.</param>
+    /// <param name="timeProvider">Источник текущего времени.</param>
+    /// <param name="logger">Журнал.</param>
+    public ClassWindowsService(
+        IEducationUserResolver userResolver,
+        ICoursesRepository coursesRepository,
+        IClassWindowsRepository repository,
+        IPracticalModulesRepository modulesRepository,
+        IPracticalModuleSessionsRepository sessionsRepository,
+        IModulePushClient pushClient,
+        TimeProvider timeProvider,
+        ILogger<ClassWindowsService> logger)
+    {
+        this.userResolver = userResolver;
+        this.coursesRepository = coursesRepository;
+        this.repository = repository;
+        this.modulesRepository = modulesRepository;
+        this.sessionsRepository = sessionsRepository;
+        this.pushClient = pushClient;
+        this.timeProvider = timeProvider;
+        this.logger = logger;
+    }
+
     private const int HistorySize = 30;
 
+    /// <inheritdoc />
     public async Task<CourseClassWindows> GetAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         await EnsureCourseOwnerAsync(courseId, cancellationToken);
@@ -33,6 +65,7 @@ public sealed class ClassWindowsService(
             windows.Select(window => ToInfo(window, now)).ToList());
     }
 
+    /// <inheritdoc />
     public async Task SetModeAsync(Guid courseId, bool practiceOnlyDuringClass, CancellationToken cancellationToken = default)
     {
         await EnsureCourseOwnerAsync(courseId, cancellationToken);
@@ -44,6 +77,7 @@ public sealed class ClassWindowsService(
             "Режим «практика только на парах» курса {CourseId}: {Value}.", courseId, practiceOnlyDuringClass);
     }
 
+    /// <inheritdoc />
     public async Task<ClassWindowInfo> StartAsync(
         Guid courseId, string groupName, int durationMinutes, CancellationToken cancellationToken = default)
     {
@@ -76,6 +110,7 @@ public sealed class ClassWindowsService(
         return ToInfo(window, now);
     }
 
+    /// <inheritdoc />
     public async Task<ClassWindowInfo> ExtendAsync(Guid windowId, int minutes, CancellationToken cancellationToken = default)
     {
         var window = await repository.GetByIdAsync(windowId, cancellationToken)
@@ -94,6 +129,7 @@ public sealed class ClassWindowsService(
         return ToInfo(window, now);
     }
 
+    /// <inheritdoc />
     public async Task<ClassWindowInfo> FinishAsync(Guid windowId, CancellationToken cancellationToken = default)
     {
         var window = await repository.GetByIdAsync(windowId, cancellationToken)

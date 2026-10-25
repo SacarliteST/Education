@@ -3,11 +3,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
-public sealed class PracticeEventHandler(
-    IPracticalModuleSessionsRepository sessionsRepository,
-    IPracticalTaskEventsRepository eventsRepository,
-    ILogger<PracticeEventHandler> logger) : IPracticeEventHandler
+/// <summary>Обработка событий «цифрового следа» практики, присланных внешним модулем.</summary>
+public sealed class PracticeEventHandler : IPracticeEventHandler
 {
+    private readonly IPracticalModuleSessionsRepository sessionsRepository;
+    private readonly IPracticalTaskEventsRepository eventsRepository;
+    private readonly ILogger<PracticeEventHandler> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="PracticeEventHandler"/>.</summary>
+    /// <param name="sessionsRepository">Хранилище сессий внешних модулей.</param>
+    /// <param name="eventsRepository">Хранилище событий заданий практики.</param>
+    /// <param name="logger">Журнал.</param>
+    public PracticeEventHandler(
+        IPracticalModuleSessionsRepository sessionsRepository,
+        IPracticalTaskEventsRepository eventsRepository,
+        ILogger<PracticeEventHandler> logger)
+    {
+        this.sessionsRepository = sessionsRepository;
+        this.eventsRepository = eventsRepository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public async Task HandleAsync(PracticeEventInput input, CancellationToken cancellationToken = default)
     {
         var session = await sessionsRepository.GetByIdAsync(input.SessionId, cancellationToken);

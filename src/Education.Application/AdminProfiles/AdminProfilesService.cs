@@ -5,18 +5,42 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.AdminProfiles;
 
-public sealed class AdminProfilesService(
-    IAdminProfilesRepository repository,
-    IEducationUserResolver userResolver,
-    ICoursesRepository coursesRepository,
-    IPracticalsRepository practicalsRepository,
-    ILogger<AdminProfilesService> logger) : IAdminProfilesService
+/// <summary>Администрирование учебных профилей и назначение студентов на курсы и практики.</summary>
+public sealed class AdminProfilesService : IAdminProfilesService
 {
+    private readonly IAdminProfilesRepository repository;
+    private readonly IEducationUserResolver userResolver;
+    private readonly ICoursesRepository coursesRepository;
+    private readonly IPracticalsRepository practicalsRepository;
+    private readonly ILogger<AdminProfilesService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="AdminProfilesService"/>.</summary>
+    /// <param name="repository">Хранилище учебных профилей.</param>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="coursesRepository">Хранилище курсов.</param>
+    /// <param name="practicalsRepository">Хранилище практик.</param>
+    /// <param name="logger">Журнал.</param>
+    public AdminProfilesService(
+        IAdminProfilesRepository repository,
+        IEducationUserResolver userResolver,
+        ICoursesRepository coursesRepository,
+        IPracticalsRepository practicalsRepository,
+        ILogger<AdminProfilesService> logger)
+    {
+        this.repository = repository;
+        this.userResolver = userResolver;
+        this.coursesRepository = coursesRepository;
+        this.practicalsRepository = practicalsRepository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<AdminProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
     {
         return repository.GetProfilesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AdminProfile> CreateLinkedProfileAsync(
         CreateAdminProfileCommand command,
         CancellationToken cancellationToken = default)
@@ -28,6 +52,7 @@ public sealed class AdminProfilesService(
         return profile;
     }
 
+    /// <inheritdoc />
     public Task<AdminProfile?> UpdateProfileAsync(
         Guid legacyUserId,
         UpdateAdminProfileCommand command,
@@ -36,6 +61,7 @@ public sealed class AdminProfilesService(
         return repository.UpdateProfileAsync(legacyUserId, command, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeactivateProfileLinkAsync(Guid legacyUserId, CancellationToken cancellationToken = default)
     {
         var deactivated = await repository.DeactivateProfileLinkAsync(legacyUserId, cancellationToken);
@@ -47,6 +73,7 @@ public sealed class AdminProfilesService(
         return deactivated;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForCourseAsync(
         Guid courseId,
         CancellationToken cancellationToken = default)
@@ -55,6 +82,7 @@ public sealed class AdminProfilesService(
         return await repository.GetAssignableStudentsForCourseAsync(courseId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -63,6 +91,7 @@ public sealed class AdminProfilesService(
         return await repository.GetAssignableStudentsForPracticalAsync(practicalId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task SetCourseStudentsAsync(
         SetCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -71,6 +100,7 @@ public sealed class AdminProfilesService(
         await repository.SetCourseStudentsAsync(command, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task SetPracticalStudentsAsync(
         SetPracticalStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -79,6 +109,7 @@ public sealed class AdminProfilesService(
         await repository.SetPracticalStudentsAsync(command, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AssignableStudentsPage> GetAssignableStudentsPageForCourseAsync(
         Guid courseId,
         AssignableStudentsQuery query,
@@ -88,6 +119,7 @@ public sealed class AdminProfilesService(
         return await repository.GetAssignableStudentsPageForCourseAsync(courseId, query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
         Guid practicalId,
         AssignableStudentsQuery query,
@@ -97,6 +129,7 @@ public sealed class AdminProfilesService(
         return await repository.GetAssignableStudentsPageForPracticalAsync(practicalId, query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task ChangeCourseStudentsAsync(
         ChangeCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -105,6 +138,7 @@ public sealed class AdminProfilesService(
         await repository.ChangeCourseStudentsAsync(command, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task ChangePracticalStudentsAsync(
         ChangePracticalStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -113,6 +147,7 @@ public sealed class AdminProfilesService(
         await repository.ChangePracticalStudentsAsync(command, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyList<StudentGroup>> GetStudentGroupsAsync(CancellationToken cancellationToken = default)
     {
         return repository.GetStudentGroupsAsync(cancellationToken);

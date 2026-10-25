@@ -6,18 +6,38 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Questions;
 
-public sealed class QuestionsService(
-    IEducationUserResolver userResolver,
-    IModulesRepository modulesRepository,
-    IQuestionsRepository questionsRepository,
-    ILogger<QuestionsService> logger)
-    : IQuestionsService
+/// <summary>Банк вопросов модуля: просмотр, создание, изменение и удаление.</summary>
+public sealed class QuestionsService : IQuestionsService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly IModulesRepository modulesRepository;
+    private readonly IQuestionsRepository questionsRepository;
+    private readonly ILogger<QuestionsService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="QuestionsService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="modulesRepository">Хранилище модулей курса.</param>
+    /// <param name="questionsRepository">Хранилище вопросов.</param>
+    /// <param name="logger">Журнал.</param>
+    public QuestionsService(
+        IEducationUserResolver userResolver,
+        IModulesRepository modulesRepository,
+        IQuestionsRepository questionsRepository,
+        ILogger<QuestionsService> logger)
+    {
+        this.userResolver = userResolver;
+        this.modulesRepository = modulesRepository;
+        this.questionsRepository = questionsRepository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<Question>> GetQuestionsAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         return questionsRepository.GetQuestionsAsync(moduleId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Question> CreateQuestionAsync(CreateQuestionCommand command, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -36,6 +56,7 @@ public sealed class QuestionsService(
         return question;
     }
 
+    /// <inheritdoc />
     public async Task UpdateQuestionAsync(Guid questionId, UpdateQuestionCommand command, CancellationToken cancellationToken = default)
     {
         await EnsureQuestionOwnerAsync(questionId, cancellationToken);
@@ -43,6 +64,7 @@ public sealed class QuestionsService(
         logger.LogInformation("Вопрос {QuestionId} изменён (вес {Weight}).", questionId, command.Weight);
     }
 
+    /// <inheritdoc />
     public async Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default)
     {
         await EnsureQuestionOwnerAsync(questionId, cancellationToken);

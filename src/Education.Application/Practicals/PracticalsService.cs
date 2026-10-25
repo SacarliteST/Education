@@ -8,25 +8,52 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Practicals;
 
-public sealed class PracticalsService(
-    IEducationUserResolver userResolver,
-    IModulesRepository modulesRepository,
-    IPracticalsRepository practicalsRepository,
-    IPracticalModulesRepository practicalModulesRepository,
-    IQuestionsRepository questionsRepository,
-    ILogger<PracticalsService> logger)
-    : IPracticalsService
+/// <summary>Сценарии работы с практиками: тесты, задания и привязка внешнего модуля.</summary>
+public sealed class PracticalsService : IPracticalsService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly IModulesRepository modulesRepository;
+    private readonly IPracticalsRepository practicalsRepository;
+    private readonly IPracticalModulesRepository practicalModulesRepository;
+    private readonly IQuestionsRepository questionsRepository;
+    private readonly ILogger<PracticalsService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="PracticalsService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="modulesRepository">Хранилище модулей курса.</param>
+    /// <param name="practicalsRepository">Хранилище практик.</param>
+    /// <param name="practicalModulesRepository">Реестр внешних практических модулей.</param>
+    /// <param name="questionsRepository">Хранилище вопросов.</param>
+    /// <param name="logger">Журнал.</param>
+    public PracticalsService(
+        IEducationUserResolver userResolver,
+        IModulesRepository modulesRepository,
+        IPracticalsRepository practicalsRepository,
+        IPracticalModulesRepository practicalModulesRepository,
+        IQuestionsRepository questionsRepository,
+        ILogger<PracticalsService> logger)
+    {
+        this.userResolver = userResolver;
+        this.modulesRepository = modulesRepository;
+        this.practicalsRepository = practicalsRepository;
+        this.practicalModulesRepository = practicalModulesRepository;
+        this.questionsRepository = questionsRepository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         return practicalsRepository.GetPracticalsAsync(moduleId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<PracticalDetail?> GetDetailAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         return practicalsRepository.GetDetailAsync(practicalId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<PracticalMaterial> CreatePracticalAsync(CreatePracticalCommand command, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -45,6 +72,7 @@ public sealed class PracticalsService(
         return practical;
     }
 
+    /// <inheritdoc />
     public async Task PublishPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
@@ -52,6 +80,7 @@ public sealed class PracticalsService(
         logger.LogInformation("Практика {PracticalId} опубликована.", practicalId);
     }
 
+    /// <inheritdoc />
     public async Task DeletePracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
@@ -59,16 +88,19 @@ public sealed class PracticalsService(
         logger.LogInformation("Практика {PracticalId} удалена.", practicalId);
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyList<Case>> GetTasksAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         return practicalsRepository.GetTasksAsync(practicalId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<Case?> GetTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         return practicalsRepository.GetTaskAsync(taskId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Case> CreateTaskAsync(CreateTaskCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
@@ -77,12 +109,14 @@ public sealed class PracticalsService(
         return task;
     }
 
+    /// <inheritdoc />
     public async Task UpdateTaskTextAsync(Guid taskId, UpdateTaskTextCommand command, CancellationToken cancellationToken = default)
     {
         await EnsureTaskOwnerAsync(taskId, cancellationToken);
         await practicalsRepository.UpdateTaskTextAsync(taskId, command.Text, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         await EnsureTaskOwnerAsync(taskId, cancellationToken);
@@ -90,6 +124,7 @@ public sealed class PracticalsService(
         logger.LogInformation("Задание {TaskId} удалено.", taskId);
     }
 
+    /// <inheritdoc />
     public async Task<PracticalQuestionsSetup?> GetQuestionsSetupAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
@@ -98,6 +133,7 @@ public sealed class PracticalsService(
 
     private const double MaxQuestionsWeightSum = 100;
 
+    /// <inheritdoc />
     public async Task ConfigureQuestionsAsync(ConfigurePracticalQuestionsCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
@@ -118,6 +154,7 @@ public sealed class PracticalsService(
             command.PracticalId, command.QuestionIds.Count, totalWeight);
     }
 
+    /// <inheritdoc />
     public async Task BindModuleAsync(BindPracticalModuleCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);

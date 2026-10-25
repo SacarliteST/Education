@@ -9,20 +9,64 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;
 
-public sealed class ModuleSessionsService(
-    IEducationUserResolver userResolver,
-    ICurrentUser currentUser,
-    IPracticalsRepository practicalsRepository,
-    IPracticalModulesRepository practicalModulesRepository,
-    IPracticalModuleSessionsRepository sessionsRepository,
-    IPracticalTaskEventsRepository eventsRepository,
-    IModulePushClient pushClient,
-    ITokenExchangeClient tokenExchangeClient,
-    IModuleIntegrationConfig integrationConfig,
-    IClassAccessService classAccess,
-    TimeProvider timeProvider,
-    ILogger<ModuleSessionsService> logger) : IModuleSessionsService
+/// <summary>Жизненный цикл сессий внешнего практического модуля: запуск, возобновление, завершение и сроки.</summary>
+public sealed class ModuleSessionsService : IModuleSessionsService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly ICurrentUser currentUser;
+    private readonly IPracticalsRepository practicalsRepository;
+    private readonly IPracticalModulesRepository practicalModulesRepository;
+    private readonly IPracticalModuleSessionsRepository sessionsRepository;
+    private readonly IPracticalTaskEventsRepository eventsRepository;
+    private readonly IModulePushClient pushClient;
+    private readonly ITokenExchangeClient tokenExchangeClient;
+    private readonly IModuleIntegrationConfig integrationConfig;
+    private readonly IClassAccessService classAccess;
+    private readonly TimeProvider timeProvider;
+    private readonly ILogger<ModuleSessionsService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="ModuleSessionsService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="currentUser">Текущий пользователь запроса.</param>
+    /// <param name="practicalsRepository">Хранилище практик.</param>
+    /// <param name="practicalModulesRepository">Реестр внешних практических модулей.</param>
+    /// <param name="sessionsRepository">Хранилище сессий внешних модулей.</param>
+    /// <param name="eventsRepository">Хранилище событий заданий практики.</param>
+    /// <param name="pushClient">Клиент передачи сессии бэкенду модуля.</param>
+    /// <param name="tokenExchangeClient">Клиент обмена токена для запуска модуля.</param>
+    /// <param name="integrationConfig">Настройки интеграции с внешними модулями.</param>
+    /// <param name="classAccess">Проверка доступа по парам.</param>
+    /// <param name="timeProvider">Источник текущего времени.</param>
+    /// <param name="logger">Журнал.</param>
+    public ModuleSessionsService(
+        IEducationUserResolver userResolver,
+        ICurrentUser currentUser,
+        IPracticalsRepository practicalsRepository,
+        IPracticalModulesRepository practicalModulesRepository,
+        IPracticalModuleSessionsRepository sessionsRepository,
+        IPracticalTaskEventsRepository eventsRepository,
+        IModulePushClient pushClient,
+        ITokenExchangeClient tokenExchangeClient,
+        IModuleIntegrationConfig integrationConfig,
+        IClassAccessService classAccess,
+        TimeProvider timeProvider,
+        ILogger<ModuleSessionsService> logger)
+    {
+        this.userResolver = userResolver;
+        this.currentUser = currentUser;
+        this.practicalsRepository = practicalsRepository;
+        this.practicalModulesRepository = practicalModulesRepository;
+        this.sessionsRepository = sessionsRepository;
+        this.eventsRepository = eventsRepository;
+        this.pushClient = pushClient;
+        this.tokenExchangeClient = tokenExchangeClient;
+        this.integrationConfig = integrationConfig;
+        this.classAccess = classAccess;
+        this.timeProvider = timeProvider;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public async Task<StartModuleSessionResult> StartAsync(
         Guid practicalId,
         Guid taskId,
@@ -98,6 +142,7 @@ public sealed class ModuleSessionsService(
             session.Id, newLaunchUrl, session.ExpiresAt, session.TryNumber, Resumed: false);
     }
 
+    /// <inheritdoc />
     public async Task<ModuleSessionStatus?> GetStatusAsync(
         Guid practicalId,
         Guid sessionId,
@@ -114,6 +159,7 @@ public sealed class ModuleSessionsService(
         return ToStatus(session);
     }
 
+    /// <inheritdoc />
     public async Task<CurrentModuleSessionInfo> GetCurrentAsync(
         Guid practicalId,
         Guid taskId,
@@ -140,6 +186,7 @@ public sealed class ModuleSessionsService(
             bestGrade);
     }
 
+    /// <inheritdoc />
     public async Task<AbandonOutcome> AbandonAsync(
         Guid practicalId,
         Guid sessionId,
@@ -163,6 +210,7 @@ public sealed class ModuleSessionsService(
         return AbandonOutcome.Abandoned;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ModuleSessionSummary>?> ListForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -176,6 +224,7 @@ public sealed class ModuleSessionsService(
         return await sessionsRepository.ListForPracticalAsync(practicalId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ModuleSessionEvent>?> GetEventsAsync(
         Guid practicalId,
         Guid sessionId,
@@ -207,6 +256,7 @@ public sealed class ModuleSessionsService(
             .ToList();
     }
 
+    /// <inheritdoc />
     public async Task<CompleteOutcome> CompleteAsync(
         Guid sessionId,
         string sessionKey,

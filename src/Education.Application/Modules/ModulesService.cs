@@ -6,23 +6,44 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Modules;
 
-public sealed class ModulesService(
-    IEducationUserResolver userResolver,
-    ICoursesRepository coursesRepository,
-    IModulesRepository modulesRepository,
-    ILogger<ModulesService> logger)
-    : IModulesService
+/// <summary>Сценарии работы с модулями курса.</summary>
+public sealed class ModulesService : IModulesService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly ICoursesRepository coursesRepository;
+    private readonly IModulesRepository modulesRepository;
+    private readonly ILogger<ModulesService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="ModulesService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="coursesRepository">Хранилище курсов.</param>
+    /// <param name="modulesRepository">Хранилище модулей курса.</param>
+    /// <param name="logger">Журнал.</param>
+    public ModulesService(
+        IEducationUserResolver userResolver,
+        ICoursesRepository coursesRepository,
+        IModulesRepository modulesRepository,
+        ILogger<ModulesService> logger)
+    {
+        this.userResolver = userResolver;
+        this.coursesRepository = coursesRepository;
+        this.modulesRepository = modulesRepository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<Module>> GetModulesAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         return modulesRepository.GetModulesAsync(courseId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<Module?> GetModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         return modulesRepository.GetByIdAsync(moduleId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Module> CreateModuleAsync(CreateModuleCommand command, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -41,6 +62,7 @@ public sealed class ModulesService(
         return module;
     }
 
+    /// <inheritdoc />
     public async Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -56,6 +78,7 @@ public sealed class ModulesService(
         logger.LogInformation("Модуль {ModuleId} удалён преподавателем {LegacyUserId}.", moduleId, legacyUserId);
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         return modulesRepository.GetTheoriesAsync(moduleId, cancellationToken);

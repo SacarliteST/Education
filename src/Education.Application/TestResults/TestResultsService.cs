@@ -6,20 +6,43 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.TestResults;
 
-public sealed class TestResultsService(
-    IEducationUserResolver userResolver,
-    IPracticalsRepository practicalsRepository,
-    ITestResultsRepository testResultsRepository,
-    IClassAccessService classAccess,
-    ILogger<TestResultsService> logger)
-    : ITestResultsService
+/// <summary>Прохождение тестов студентами и просмотр протоколов.</summary>
+public sealed class TestResultsService : ITestResultsService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly IPracticalsRepository practicalsRepository;
+    private readonly ITestResultsRepository testResultsRepository;
+    private readonly IClassAccessService classAccess;
+    private readonly ILogger<TestResultsService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="TestResultsService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="practicalsRepository">Хранилище практик.</param>
+    /// <param name="testResultsRepository">Хранилище результатов тестов.</param>
+    /// <param name="classAccess">Проверка доступа по парам.</param>
+    /// <param name="logger">Журнал.</param>
+    public TestResultsService(
+        IEducationUserResolver userResolver,
+        IPracticalsRepository practicalsRepository,
+        ITestResultsRepository testResultsRepository,
+        IClassAccessService classAccess,
+        ILogger<TestResultsService> logger)
+    {
+        this.userResolver = userResolver;
+        this.practicalsRepository = practicalsRepository;
+        this.testResultsRepository = testResultsRepository;
+        this.classAccess = classAccess;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public async Task<TestStatus> GetStatusAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(practicalId, cancellationToken);
         return await testResultsRepository.GetStatusAsync(practicalId, userId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<int> StartTestAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(practicalId, cancellationToken);
@@ -31,6 +54,7 @@ public sealed class TestResultsService(
         return tryNumber;
     }
 
+    /// <inheritdoc />
     public async Task<TestQuestions?> GetQuestionsAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(practicalId, cancellationToken);
@@ -38,6 +62,7 @@ public sealed class TestResultsService(
         return await testResultsRepository.GetQuestionsAsync(practicalId, userId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TestProtocolSummary> SubmitTestAsync(SubmitTestCommand command, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(command.PracticalId, cancellationToken);
@@ -50,18 +75,21 @@ public sealed class TestResultsService(
         return result;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TestProtocolSummary>> GetStudentProtocolsAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var userId = await ResolveAssignedStudentAsync(practicalId, cancellationToken);
         return await testResultsRepository.GetStudentProtocolsAsync(practicalId, userId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TestProtocolSummary>> GetTeacherProtocolsAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
         return await testResultsRepository.GetTeacherProtocolsAsync(practicalId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<TestProtocol?> GetProtocolAsync(Guid testResultId, CancellationToken cancellationToken = default)
     {
         return testResultsRepository.GetProtocolAsync(testResultId, cancellationToken);

@@ -3,12 +3,30 @@ using Microsoft.Extensions.Logging;
 namespace Education.Application.PracticalModules;
 
 /// <inheritdoc />
-public sealed class ModuleAuthoringService(
-    IPracticalModulesRepository repository,
-    ITokenExchangeClient tokenExchangeClient,
-    IModuleIntegrationConfig integrationConfig,
-    ILogger<ModuleAuthoringService> logger) : IModuleAuthoringService
+public sealed class ModuleAuthoringService : IModuleAuthoringService
 {
+    private readonly IPracticalModulesRepository repository;
+    private readonly ITokenExchangeClient tokenExchangeClient;
+    private readonly IModuleIntegrationConfig integrationConfig;
+    private readonly ILogger<ModuleAuthoringService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="ModuleAuthoringService"/>.</summary>
+    /// <param name="repository">Реестр внешних практических модулей.</param>
+    /// <param name="tokenExchangeClient">Клиент обмена токена для запуска модуля.</param>
+    /// <param name="integrationConfig">Настройки интеграции с внешними модулями.</param>
+    /// <param name="logger">Журнал.</param>
+    public ModuleAuthoringService(
+        IPracticalModulesRepository repository,
+        ITokenExchangeClient tokenExchangeClient,
+        IModuleIntegrationConfig integrationConfig,
+        ILogger<ModuleAuthoringService> logger)
+    {
+        this.repository = repository;
+        this.tokenExchangeClient = tokenExchangeClient;
+        this.integrationConfig = integrationConfig;
+        this.logger = logger;
+    }
+
     /// <inheritdoc />
     public async Task<ModuleAuthoringLink?> CreateAuthoringLinkAsync(
         Guid practicalModuleId,

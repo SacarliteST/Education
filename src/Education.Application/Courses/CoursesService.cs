@@ -4,18 +4,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Courses;
 
-public sealed class CoursesService(
-    IEducationUserResolver userResolver,
-    ICoursesRepository coursesRepository,
-    ILogger<CoursesService> logger)
-    : ICoursesService
+/// <summary>Сценарии работы с курсами преподавателя и студента.</summary>
+public sealed class CoursesService : ICoursesService
 {
+    private readonly IEducationUserResolver userResolver;
+    private readonly ICoursesRepository coursesRepository;
+    private readonly ILogger<CoursesService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="CoursesService"/>.</summary>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="coursesRepository">Хранилище курсов.</param>
+    /// <param name="logger">Журнал.</param>
+    public CoursesService(
+        IEducationUserResolver userResolver,
+        ICoursesRepository coursesRepository,
+        ILogger<CoursesService> logger)
+    {
+        this.userResolver = userResolver;
+        this.coursesRepository = coursesRepository;
+        this.logger = logger;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Course>> GetTeacherCoursesAsync(CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         return await coursesRepository.GetTeacherCoursesAsync(legacyUserId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Course> CreateCourseAsync(CreateCourseCommand command, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -26,6 +43,7 @@ public sealed class CoursesService(
         return course;
     }
 
+    /// <inheritdoc />
     public async Task DeleteCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
@@ -41,6 +59,7 @@ public sealed class CoursesService(
         logger.LogInformation("Курс {CourseId} удалён преподавателем {LegacyUserId}.", courseId, legacyUserId);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Course>> GetStudentCoursesAsync(CancellationToken cancellationToken = default)
     {
         var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);

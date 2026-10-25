@@ -3,15 +3,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.ClassWindows;
 
-public sealed class ClassAccessService(
-    IClassWindowsRepository repository,
-    IUserProfileRepository profiles,
-    TimeProvider timeProvider,
-    ILogger<ClassAccessService> logger) : IClassAccessService
+/// <summary>Проверка доступа студента к тестам и практике курса с учётом идущих пар.</summary>
+public sealed class ClassAccessService : IClassAccessService
 {
+    private readonly IClassWindowsRepository repository;
+    private readonly IUserProfileRepository profiles;
+    private readonly TimeProvider timeProvider;
+    private readonly ILogger<ClassAccessService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="ClassAccessService"/>.</summary>
+    /// <param name="repository">Хранилище пар.</param>
+    /// <param name="profiles">Хранилище профилей пользователей.</param>
+    /// <param name="timeProvider">Источник текущего времени.</param>
+    /// <param name="logger">Журнал.</param>
+    public ClassAccessService(
+        IClassWindowsRepository repository,
+        IUserProfileRepository profiles,
+        TimeProvider timeProvider,
+        ILogger<ClassAccessService> logger)
+    {
+        this.repository = repository;
+        this.profiles = profiles;
+        this.timeProvider = timeProvider;
+        this.logger = logger;
+    }
+
     /// <summary>Сколько после конца пары ещё принимается сдача уже начатого теста.</summary>
     public static readonly TimeSpan SubmitGrace = TimeSpan.FromSeconds(60);
 
+    /// <inheritdoc />
     public async Task<DateTimeOffset?> RequireWindowEndAsync(
         Guid courseId, Guid userId, CancellationToken cancellationToken = default)
     {
@@ -29,6 +49,7 @@ public sealed class ClassAccessService(
         return state.EndsAt;
     }
 
+    /// <inheritdoc />
     public async Task EnsureOpenForPracticalAsync(
         Guid practicalId, Guid userId, bool withGrace = false, CancellationToken cancellationToken = default)
     {
@@ -36,12 +57,14 @@ public sealed class ClassAccessService(
         await EnsureAsync(gate, userId, withGrace ? SubmitGrace : TimeSpan.Zero, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task EnsureOpenForTaskAsync(Guid taskId, Guid userId, CancellationToken cancellationToken = default)
     {
         var gate = await repository.GetGateForTaskAsync(taskId, cancellationToken);
         await EnsureAsync(gate, userId, TimeSpan.Zero, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ClassAccessState> GetStateAsync(
         Guid courseId, Guid userId, CancellationToken cancellationToken = default)
     {

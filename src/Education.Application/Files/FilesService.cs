@@ -4,17 +4,39 @@ using Microsoft.Extensions.Logging;
 
 namespace Education.Application.Files;
 
-public sealed class FilesService(
-    ICurrentUser currentUser,
-    IEducationUserResolver userResolver,
-    IFileAccessRepository fileAccessRepository,
-    IFileStorage fileStorage,
-    ILogger<FilesService> logger)
-    : IFilesService
+/// <summary>Выдача файлов с проверкой прав доступа текущего пользователя.</summary>
+public sealed class FilesService : IFilesService
 {
+    private readonly ICurrentUser currentUser;
+    private readonly IEducationUserResolver userResolver;
+    private readonly IFileAccessRepository fileAccessRepository;
+    private readonly IFileStorage fileStorage;
+    private readonly ILogger<FilesService> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="FilesService"/>.</summary>
+    /// <param name="currentUser">Текущий пользователь запроса.</param>
+    /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
+    /// <param name="fileAccessRepository">Хранилище данных для проверки доступа к файлам.</param>
+    /// <param name="fileStorage">Файловое хранилище.</param>
+    /// <param name="logger">Журнал.</param>
+    public FilesService(
+        ICurrentUser currentUser,
+        IEducationUserResolver userResolver,
+        IFileAccessRepository fileAccessRepository,
+        IFileStorage fileStorage,
+        ILogger<FilesService> logger)
+    {
+        this.currentUser = currentUser;
+        this.userResolver = userResolver;
+        this.fileAccessRepository = fileAccessRepository;
+        this.fileStorage = fileStorage;
+        this.logger = logger;
+    }
+
     private const string TeacherRole = "Teacher";
     private const string StudentRole = "Student";
 
+    /// <inheritdoc />
     public async Task<StoredFileContent?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         if (String.IsNullOrWhiteSpace(storageKey) || storageKey != Path.GetFileName(storageKey))

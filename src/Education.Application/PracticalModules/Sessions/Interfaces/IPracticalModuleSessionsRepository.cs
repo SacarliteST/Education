@@ -25,7 +25,12 @@ public interface IPracticalModuleSessionsRepository
         Guid practicalId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Добавляет новую сессию и сохраняет изменения.</summary>
+    /// <param name="session">Новая сессия.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     Task AddAsync(PracticalModuleSession session, CancellationToken cancellationToken = default);
 
+    /// <summary>Сохраняет изменения отслеживаемых сессий.</summary>
+    /// <param name="cancellationToken">Токен отмены.</param>
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
