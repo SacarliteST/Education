@@ -5,14 +5,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Courses;
 
-internal sealed class EfCoursesRepository(EducationDbContext context)
-    : RepositoryBase<Course, Guid>(context), ICoursesRepository
+/// <summary>EF Core-реализация хранилища курсов.</summary>
+internal sealed class EfCoursesRepository : RepositoryBase<Course, Guid>, ICoursesRepository
 {
+    /// <summary>Создаёт экземпляр класса <see cref="EfCoursesRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfCoursesRepository(EducationDbContext context)
+        : base(context)
+    {
+    }
+
+    /// <inheritdoc />
     public override Task<Course?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Courses.FirstOrDefaultAsync(course => course.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Course>> GetTeacherCoursesAsync(
         Guid teacherUserId,
         CancellationToken cancellationToken = default)
@@ -23,6 +32,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Course> CreateCourseAsync(
         Guid teacherUserId,
         CreateCourseCommand command,
@@ -35,6 +45,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
         return course;
     }
 
+    /// <inheritdoc />
     public async Task DeleteCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Courses
@@ -42,6 +53,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Course>> GetStudentCoursesAsync(
         Guid studentUserId,
         CancellationToken cancellationToken = default)
@@ -52,6 +64,7 @@ internal sealed class EfCoursesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsCourseOwnerAsync(Guid courseId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Courses.AnyAsync(

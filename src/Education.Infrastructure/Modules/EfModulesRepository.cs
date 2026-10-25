@@ -6,9 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Modules;
 
-internal sealed class EfModulesRepository(EducationDbContext context)
-    : RepositoryBase<Module, Guid>(context), IModulesRepository
+/// <summary>EF Core-реализация хранилища модулей курса.</summary>
+internal sealed class EfModulesRepository : RepositoryBase<Module, Guid>, IModulesRepository
 {
+    /// <summary>Создаёт экземпляр класса <see cref="EfModulesRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfModulesRepository(EducationDbContext context)
+        : base(context)
+    {
+    }
+
+    /// <inheritdoc />
     public override Task<Module?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Modules
@@ -16,6 +24,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
             .FirstOrDefaultAsync(module => module.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsModuleOwnerAsync(Guid moduleId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Modules.AnyAsync(
@@ -23,6 +32,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Module>> GetModulesAsync(
         Guid courseId,
         CancellationToken cancellationToken = default)
@@ -33,6 +43,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Module> CreateModuleAsync(
         CreateModuleCommand command,
         CancellationToken cancellationToken = default)
@@ -44,6 +55,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
         return module;
     }
 
+    /// <inheritdoc />
     public async Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Modules
@@ -51,6 +63,7 @@ internal sealed class EfModulesRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TheoreticalMaterial>> GetTheoriesAsync(
         Guid moduleId,
         CancellationToken cancellationToken = default)

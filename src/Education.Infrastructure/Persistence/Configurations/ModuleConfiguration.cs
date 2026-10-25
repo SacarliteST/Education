@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="Module"/> на таблицу базы данных.</summary>
 internal sealed class ModuleConfiguration : IEntityTypeConfiguration<Module>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<Module> builder)
     {
         builder.ToTable("Modules");

@@ -13,15 +13,34 @@ namespace Education.Infrastructure.Users;
 /// Создаёт и синхронизирует учебный профиль текущего пользователя. Идентификатор профиля равен идентификатору в Identity,
 /// поэтому гонку параллельных первых запросов закрывает первичный ключ: проигравший перечитывает строку победителя.
 /// </summary>
-internal sealed class EfUserProvisioner(
-    EducationDbContext context,
-    ICurrentUser currentUser,
-    IConfiguration configuration,
-    ILogger<EfUserProvisioner> logger) : IUserProvisioner
+internal sealed class EfUserProvisioner : IUserProvisioner
 {
+    private readonly EducationDbContext context;
+    private readonly ICurrentUser currentUser;
+    private readonly IConfiguration configuration;
+    private readonly ILogger<EfUserProvisioner> logger;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfUserProvisioner"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    /// <param name="currentUser">Текущий пользователь запроса.</param>
+    /// <param name="configuration">Конфигурация приложения.</param>
+    /// <param name="logger">Журнал.</param>
+    public EfUserProvisioner(
+        EducationDbContext context,
+        ICurrentUser currentUser,
+        IConfiguration configuration,
+        ILogger<EfUserProvisioner> logger)
+    {
+        this.context = context;
+        this.currentUser = currentUser;
+        this.configuration = configuration;
+        this.logger = logger;
+    }
+
     /// <summary>Ключ настройки; по умолчанию автосоздание включено.</summary>
     public const string AutoProvisionKey = "Education:AutoProvisionProfiles";
 
+    /// <inheritdoc />
     public async Task<Guid> EnsureCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var userId = currentUser.UserId;

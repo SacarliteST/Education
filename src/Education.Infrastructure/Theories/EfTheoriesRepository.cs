@@ -5,14 +5,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Theories;
 
-internal sealed class EfTheoriesRepository(EducationDbContext context)
-    : RepositoryBase<TheoreticalMaterial, Guid>(context), ITheoriesRepository
+/// <summary>EF Core-реализация хранилища теоретических материалов.</summary>
+internal sealed class EfTheoriesRepository : RepositoryBase<TheoreticalMaterial, Guid>, ITheoriesRepository
 {
+    /// <summary>Создаёт экземпляр класса <see cref="EfTheoriesRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfTheoriesRepository(EducationDbContext context)
+        : base(context)
+    {
+    }
+
+    /// <inheritdoc />
     public override Task<TheoreticalMaterial?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.TheoreticalMaterials.FirstOrDefaultAsync(theory => theory.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTheoryOwnerAsync(Guid theoryId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.TheoreticalMaterials.AnyAsync(
@@ -20,6 +29,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTheoryLinkOwnerAsync(Guid linkId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.TheoreticalMaterialLinks.AnyAsync(
@@ -27,6 +37,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTheoryDocumentOwnerAsync(Guid documentId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.TheoreticalMaterialFiles.AnyAsync(
@@ -34,6 +45,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<TheoreticalMaterial?> GetTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.TheoreticalMaterials
@@ -41,6 +53,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             .FirstOrDefaultAsync(theory => theory.Id == theoryId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TheoreticalMaterialFile>> GetTheoryDocsAsync(
         Guid theoryId,
         CancellationToken cancellationToken = default)
@@ -51,6 +64,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TheoreticalMaterialLink>> GetTheoryLinksAsync(
         Guid theoryId,
         CancellationToken cancellationToken = default)
@@ -61,6 +75,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TheoreticalMaterial> CreateTheoryAsync(
         CreateTheoryCommand command,
         CancellationToken cancellationToken = default)
@@ -72,6 +87,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
         return theory;
     }
 
+    /// <inheritdoc />
     public async Task<TheoreticalMaterialFile> CreateTheoryDocumentAsync(
         Guid theoryMaterialId,
         string description,
@@ -86,6 +102,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
         return file;
     }
 
+    /// <inheritdoc />
     public async Task UpdateTheoryTitleAsync(
         Guid theoryId,
         string title,
@@ -104,6 +121,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task UpdateTheoryTextAsync(
         Guid theoryId,
         string text,
@@ -122,6 +140,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.TheoreticalMaterials
@@ -129,6 +148,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<string?> GetTheoryDocumentPathAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.TheoreticalMaterialFiles
@@ -138,6 +158,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteTheoryDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.TheoreticalMaterialFiles
@@ -145,6 +166,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TheoreticalMaterialLink> CreateTheoryLinkAsync(
         CreateTheoryLinkCommand command,
         CancellationToken cancellationToken = default)
@@ -160,6 +182,7 @@ internal sealed class EfTheoriesRepository(EducationDbContext context)
         return link;
     }
 
+    /// <inheritdoc />
     public async Task DeleteTheoryLinkAsync(Guid linkId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.TheoreticalMaterialLinks

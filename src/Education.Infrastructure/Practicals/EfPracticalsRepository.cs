@@ -7,14 +7,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Practicals;
 
-internal sealed class EfPracticalsRepository(EducationDbContext context)
-    : RepositoryBase<PracticalMaterial, Guid>(context), IPracticalsRepository
+/// <summary>EF Core-реализация хранилища практик.</summary>
+internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial, Guid>, IPracticalsRepository
 {
+    /// <summary>Создаёт экземпляр класса <see cref="EfPracticalsRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfPracticalsRepository(EducationDbContext context)
+        : base(context)
+    {
+    }
+
+    /// <inheritdoc />
     public override Task<PracticalMaterial?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.PracticalMaterials.FirstOrDefaultAsync(practical => practical.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsPracticalOwnerAsync(Guid practicalId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.PracticalMaterials.AnyAsync(
@@ -22,6 +31,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTaskOwnerAsync(Guid taskId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Cases.AnyAsync(
@@ -29,6 +39,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(
         Guid moduleId,
         CancellationToken cancellationToken = default)
@@ -39,6 +50,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<PracticalDetail?> GetDetailAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -88,6 +100,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             practical.AttemptsPerSession);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTaskInPracticalAsync(
         Guid taskId,
         Guid practicalId,
@@ -98,6 +111,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<bool> HasStudentActivityAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -113,6 +127,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .AnyAsync(result => result.PracticalMaterialId == practicalId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<PracticalMaterial> CreatePracticalAsync(
         CreatePracticalCommand command,
         CancellationToken cancellationToken = default)
@@ -124,6 +139,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
         return practical;
     }
 
+    /// <inheritdoc />
     public async Task PublishPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         var practical = await DatabaseContext.PracticalMaterials.FirstOrDefaultAsync(
@@ -133,6 +149,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeletePracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.PracticalMaterials
@@ -140,6 +157,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Case>> GetTasksAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -150,6 +168,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<Case?> GetTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Cases
@@ -157,6 +176,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .FirstOrDefaultAsync(task => task.Id == taskId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Case> CreateTaskAsync(CreateTaskCommand command, CancellationToken cancellationToken = default)
     {
         var task = new Case(command.PracticalId, command.Name, "Текст задания");
@@ -166,6 +186,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
         return task;
     }
 
+    /// <inheritdoc />
     public async Task UpdateTaskTextAsync(Guid taskId, string text, CancellationToken cancellationToken = default)
     {
         var task = await DatabaseContext.Cases.FirstOrDefaultAsync(item => item.Id == taskId, cancellationToken);
@@ -178,6 +199,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Cases
@@ -185,6 +207,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<PracticalQuestionsSetup?> GetQuestionsSetupAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -218,6 +241,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             practical.PercentForThree);
     }
 
+    /// <inheritdoc />
     public async Task BindModuleAsync(BindPracticalModuleCommand command, CancellationToken cancellationToken = default)
     {
         var practical = await DatabaseContext.PracticalMaterials.FirstOrDefaultAsync(
@@ -241,6 +265,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ExternalTaskBinding?> GetExternalTaskBindingAsync(
         Guid practicalId,
         Guid taskId,
@@ -263,6 +288,7 @@ internal sealed class EfPracticalsRepository(EducationDbContext context)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task ConfigureQuestionsAsync(
         ConfigurePracticalQuestionsCommand command,
         CancellationToken cancellationToken = default)

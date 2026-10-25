@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="TheoreticalMaterialFile"/> на таблицу базы данных.</summary>
 internal sealed class TheoreticalMaterialFileConfiguration : IEntityTypeConfiguration<TheoreticalMaterialFile>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<TheoreticalMaterialFile> builder)
     {
         builder.ToTable("TheoreticalMaterialFiles");

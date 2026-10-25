@@ -5,8 +5,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.TaskFiles;
 
-internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskFilesRepository
+/// <summary>EF Core-реализация хранилища файлов сдачи заданий.</summary>
+internal sealed class EfTaskFilesRepository : ITaskFilesRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfTaskFilesRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfTaskFilesRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public Task<bool> IsTaskAssignedToStudentAsync(
         Guid taskId,
         Guid studentUserId,
@@ -18,6 +29,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTaskOwnedByTeacherAsync(
         Guid taskId,
         Guid teacherUserId,
@@ -28,6 +40,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsPracticalOwnedByTeacherAsync(
         Guid practicalId,
         Guid teacherUserId,
@@ -38,6 +51,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsTaskFileOwnedByTeacherAsync(
         Guid taskFileId,
         Guid teacherUserId,
@@ -48,6 +62,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<CaseFile?> GetStudentTaskFileAsync(
         Guid taskId,
         Guid studentUserId,
@@ -57,6 +72,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             .FirstOrDefaultAsync(file => file.CaseId == taskId && file.UserId == studentUserId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<CaseFile>> GetTeacherTaskFilesAsync(
         Guid taskId,
         CancellationToken cancellationToken = default)
@@ -66,6 +82,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<CaseFile>> GetTeacherPracticalTaskFilesAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -75,6 +92,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TaskFileSaveResult> SaveStudentTaskFileAsync(
         Guid taskId,
         Guid studentUserId,
@@ -114,6 +132,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
         return new TaskFileSaveResult(savedTaskFile, replacedStorageKey);
     }
 
+    /// <inheritdoc />
     public async Task<CaseFileComment> AddTeacherCommentAsync(
         Guid taskFileId,
         string comment,
@@ -126,6 +145,7 @@ internal sealed class EfTaskFilesRepository(EducationDbContext context) : ITaskF
         return taskFileComment;
     }
 
+    /// <inheritdoc />
     public async Task AcceptTaskFileAsync(Guid taskFileId, int grade, CancellationToken cancellationToken = default)
     {
         var taskFile = await context.CaseFiles.FirstOrDefaultAsync(file => file.Id == taskFileId, cancellationToken);

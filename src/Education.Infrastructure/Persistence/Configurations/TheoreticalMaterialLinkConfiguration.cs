@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="TheoreticalMaterialLink"/> на таблицу базы данных.</summary>
 internal sealed class TheoreticalMaterialLinkConfiguration : IEntityTypeConfiguration<TheoreticalMaterialLink>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<TheoreticalMaterialLink> builder)
     {
         builder.ToTable("TheoreticalMaterialLinks");

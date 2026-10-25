@@ -5,14 +5,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Questions;
 
-internal sealed class EfQuestionsRepository(EducationDbContext context)
-    : RepositoryBase<Question, Guid>(context), IQuestionsRepository
+/// <summary>EF Core-реализация хранилища вопросов.</summary>
+internal sealed class EfQuestionsRepository : RepositoryBase<Question, Guid>, IQuestionsRepository
 {
+    /// <summary>Создаёт экземпляр класса <see cref="EfQuestionsRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfQuestionsRepository(EducationDbContext context)
+        : base(context)
+    {
+    }
+
+    /// <inheritdoc />
     public override Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Questions.FirstOrDefaultAsync(question => question.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<bool> IsQuestionOwnerAsync(Guid questionId, Guid teacherUserId, CancellationToken cancellationToken = default)
     {
         return DatabaseContext.Questions.AnyAsync(
@@ -20,6 +29,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Question>> GetQuestionsAsync(
         Guid moduleId,
         CancellationToken cancellationToken = default)
@@ -31,6 +41,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Question> CreateQuestionAsync(
         CreateQuestionCommand command,
         CancellationToken cancellationToken = default)
@@ -48,6 +59,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
         return question;
     }
 
+    /// <inheritdoc />
     public async Task UpdateQuestionAsync(
         Guid questionId,
         UpdateQuestionCommand command,
@@ -60,6 +72,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default)
     {
         await DatabaseContext.Questions
@@ -67,6 +80,7 @@ internal sealed class EfQuestionsRepository(EducationDbContext context)
             .ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<double> SumWeightsAsync(
         IReadOnlyCollection<Guid> questionIds,
         CancellationToken cancellationToken = default)

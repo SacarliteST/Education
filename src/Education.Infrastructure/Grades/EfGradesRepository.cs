@@ -7,8 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Grades;
 
-internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRepository
+/// <summary>EF Core-реализация хранилища данных для расчёта оценок.</summary>
+internal sealed class EfGradesRepository : IGradesRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfGradesRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfGradesRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public async Task<PracticalGrade> GetPracticalGradeAsync(
         Guid practicalId,
         Guid studentUserId,
@@ -27,6 +38,7 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
         return grades[studentUserId];
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<StudentPracticalGrade>> GetPracticalStudentGradesAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -53,6 +65,7 @@ internal sealed class EfGradesRepository(EducationDbContext context) : IGradesRe
             .ToList();
     }
 
+    /// <inheritdoc />
     public async Task<Gradebook> GetCourseGradebookAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         var practicals = await (

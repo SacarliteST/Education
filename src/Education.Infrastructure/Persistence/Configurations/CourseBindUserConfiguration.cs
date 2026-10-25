@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="CourseBindUser"/> на таблицу базы данных.</summary>
 internal sealed class CourseBindUserConfiguration : IEntityTypeConfiguration<CourseBindUser>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<CourseBindUser> builder)
     {
         builder.ToTable("CourseBindUsers");

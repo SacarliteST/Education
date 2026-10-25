@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="QuestionType"/> на таблицу базы данных.</summary>
 internal sealed class QuestionTypeConfiguration : IEntityTypeConfiguration<QuestionType>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<QuestionType> builder)
     {
         builder.ToTable("QuestionTypes");

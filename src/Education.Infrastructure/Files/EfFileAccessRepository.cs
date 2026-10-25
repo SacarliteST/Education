@@ -4,8 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Files;
 
-internal sealed class EfFileAccessRepository(EducationDbContext context) : IFileAccessRepository
+/// <summary>EF Core-реализация хранилища данных для проверки доступа к файлам.</summary>
+internal sealed class EfFileAccessRepository : IFileAccessRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfFileAccessRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfFileAccessRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public Task<StoredFileInfo?> GetStudentTaskFileAsync(
         string storageKey,
         Guid studentUserId,
@@ -18,6 +29,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<StoredFileInfo?> GetTeacherTaskFileAsync(
         string storageKey,
         Guid teacherUserId,
@@ -30,6 +42,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<StoredFileInfo?> GetStudentTheoryDocumentAsync(
         string storageKey,
         Guid studentUserId,
@@ -43,6 +56,7 @@ internal sealed class EfFileAccessRepository(EducationDbContext context) : IFile
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<StoredFileInfo?> GetTeacherTheoryDocumentAsync(
         string storageKey,
         Guid teacherUserId,

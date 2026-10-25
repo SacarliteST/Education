@@ -8,8 +8,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.TestResults;
 
-internal sealed class EfTestResultsRepository(EducationDbContext context) : ITestResultsRepository
+/// <summary>EF Core-реализация хранилища результатов тестов.</summary>
+internal sealed class EfTestResultsRepository : ITestResultsRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfTestResultsRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfTestResultsRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public Task<bool> IsPracticalAssignedToStudentAsync(
         Guid practicalId,
         Guid studentUserId,
@@ -20,6 +31,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TestStatus> GetStatusAsync(
         Guid practicalId,
         Guid userId,
@@ -36,6 +48,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             : new TestStatus(true, testResult.TryNumber);
     }
 
+    /// <inheritdoc />
     public async Task<int> StartTestAsync(
         Guid practicalId,
         Guid userId,
@@ -67,6 +80,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
         return testResult.TryNumber;
     }
 
+    /// <inheritdoc />
     public async Task<TestQuestions?> GetQuestionsAsync(
         Guid practicalId,
         Guid userId,
@@ -96,6 +110,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
         return new TestQuestions(questions, activeAttempt.IsCompleted);
     }
 
+    /// <inheritdoc />
     public async Task<TestProtocolSummary> SubmitTestAsync(
         SubmitTestCommand command,
         Guid userId,
@@ -149,6 +164,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
         return ToSummary(testResult);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TestProtocolSummary>> GetStudentProtocolsAsync(
         Guid practicalId,
         Guid userId,
@@ -163,6 +179,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
         return results.Select(result => ToSummary(result)).ToList();
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<TestProtocolSummary>> GetTeacherProtocolsAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -187,6 +204,7 @@ internal sealed class EfTestResultsRepository(EducationDbContext context) : ITes
             .ToList();
     }
 
+    /// <inheritdoc />
     public async Task<TestProtocol?> GetProtocolAsync(Guid testResultId, CancellationToken cancellationToken = default)
     {
         var testResult = await context.TestResults

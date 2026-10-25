@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="CaseFile"/> на таблицу базы данных.</summary>
 internal sealed class CaseFileConfiguration : IEntityTypeConfiguration<CaseFile>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<CaseFile> builder)
     {
         builder.ToTable("CaseFiles");

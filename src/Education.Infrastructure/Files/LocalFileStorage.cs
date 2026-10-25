@@ -3,8 +3,19 @@ using Microsoft.Extensions.Options;
 
 namespace Education.Infrastructure.Files;
 
-internal sealed class LocalFileStorage(IOptions<FileStorageOptions> options) : IFileStorage
+/// <summary>Файловое хранилище на локальном диске с проверкой имени, размера и расширения.</summary>
+internal sealed class LocalFileStorage : IFileStorage
 {
+    private readonly IOptions<FileStorageOptions> options;
+
+    /// <summary>Создаёт экземпляр класса <see cref="LocalFileStorage"/>.</summary>
+    /// <param name="options">Настройки файлового хранилища.</param>
+    public LocalFileStorage(IOptions<FileStorageOptions> options)
+    {
+        this.options = options;
+    }
+
+    /// <inheritdoc />
     public async Task<StoredFileInfo> SaveAsync(UploadFile file, CancellationToken cancellationToken = default)
     {
         var safeOriginalName = Path.GetFileName(file.OriginalFileName);
@@ -44,6 +55,7 @@ internal sealed class LocalFileStorage(IOptions<FileStorageOptions> options) : I
         return new StoredFileInfo(storageKey, safeOriginalName);
     }
 
+    /// <inheritdoc />
     public Task<Stream?> OpenReadAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var path = GetSafePath(storageKey);
@@ -51,6 +63,7 @@ internal sealed class LocalFileStorage(IOptions<FileStorageOptions> options) : I
         return Task.FromResult(stream);
     }
 
+    /// <inheritdoc />
     public Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
     {
         var path = GetSafePath(storageKey);

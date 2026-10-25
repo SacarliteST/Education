@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="PracticalModuleSession"/> на таблицу базы данных.</summary>
 internal sealed class PracticalModuleSessionConfiguration : IEntityTypeConfiguration<PracticalModuleSession>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<PracticalModuleSession> builder)
     {
         builder.ToTable("PracticalModuleSessions");

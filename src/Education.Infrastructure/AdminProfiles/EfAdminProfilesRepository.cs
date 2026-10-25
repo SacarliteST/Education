@@ -7,8 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.AdminProfiles;
 
-internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IAdminProfilesRepository
+/// <summary>EF Core-реализация хранилища учебных профилей.</summary>
+internal sealed class EfAdminProfilesRepository : IAdminProfilesRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfAdminProfilesRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfAdminProfilesRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AdminProfile>> GetProfilesAsync(CancellationToken cancellationToken = default)
     {
         var profiles = await ProfilesQuery().ToListAsync(cancellationToken);
@@ -19,6 +30,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             .ToList();
     }
 
+    /// <inheritdoc />
     public async Task<AdminProfile> CreateLinkedProfileAsync(
         CreateAdminProfileCommand command,
         CancellationToken cancellationToken = default)
@@ -56,6 +68,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return await ProfilesQuery(user.Id).FirstAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AdminProfile?> UpdateProfileAsync(
         Guid legacyUserId,
         UpdateAdminProfileCommand command,
@@ -73,6 +86,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return await ProfilesQuery(legacyUserId).FirstAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeactivateProfileLinkAsync(Guid legacyUserId, CancellationToken cancellationToken = default)
     {
         var user = await context.Users.FirstOrDefaultAsync(
@@ -88,6 +102,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return true;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForCourseAsync(
         Guid courseId,
         CancellationToken cancellationToken = default)
@@ -105,6 +120,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -122,6 +138,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task SetCourseStudentsAsync(
         SetCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -144,6 +161,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         await SaveOrTranslateAsync(desiredIds, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task SetPracticalStudentsAsync(
         SetPracticalStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -166,6 +184,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         await SaveOrTranslateAsync(desiredIds, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<AssignableStudentsPage> GetAssignableStudentsPageForCourseAsync(
         Guid courseId,
         AssignableStudentsQuery query,
@@ -177,6 +196,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return GetAssignableStudentsPageAsync(assignedIds, query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
         Guid practicalId,
         AssignableStudentsQuery query,
@@ -188,6 +208,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return GetAssignableStudentsPageAsync(assignedIds, query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task ChangeCourseStudentsAsync(
         ChangeCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -212,6 +233,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         await SaveOrTranslateAsync(addIds, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task ChangePracticalStudentsAsync(
         ChangePracticalStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -290,6 +312,7 @@ internal sealed class EfAdminProfilesRepository(EducationDbContext context) : IA
         return new AssignableStudentsPage(items, totalCount, assignedCount);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<StudentGroup>> GetStudentGroupsAsync(CancellationToken cancellationToken = default)
     {
         var groups = await context.Users

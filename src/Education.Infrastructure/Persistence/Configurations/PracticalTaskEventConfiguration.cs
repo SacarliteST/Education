@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Education.Infrastructure.Persistence.Configurations;
 
+/// <summary>Отображение сущности <see cref="PracticalTaskEvent"/> на таблицу базы данных.</summary>
 internal sealed class PracticalTaskEventConfiguration : IEntityTypeConfiguration<PracticalTaskEvent>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<PracticalTaskEvent> builder)
     {
         builder.ToTable("PracticalTaskEvents");

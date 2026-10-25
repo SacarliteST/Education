@@ -6,14 +6,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.PracticalModules;
 
-internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext context)
-    : IPracticalModuleSessionsRepository
+/// <summary>EF Core-реализация хранилища сессий внешних практических модулей.</summary>
+internal sealed class EfPracticalModuleSessionsRepository : IPracticalModuleSessionsRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfPracticalModuleSessionsRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfPracticalModuleSessionsRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public Task<PracticalModuleSession?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return context.PracticalModuleSessions.FirstOrDefaultAsync(session => session.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<PracticalModuleSession?> GetLatestForUserTaskAsync(
         Guid userId,
         Guid practicalTaskId,
@@ -26,6 +37,7 @@ internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext con
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<int> CountForUserTaskAsync(
         Guid userId,
         Guid practicalTaskId,
@@ -37,6 +49,7 @@ internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext con
                 cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<int?> BestGradeForUserTaskAsync(
         Guid userId,
         Guid practicalTaskId,
@@ -50,6 +63,7 @@ internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext con
             .MaxAsync(session => (int?)session.Grade, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ModuleSessionSummary>> ListForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -125,12 +139,14 @@ internal sealed class EfPracticalModuleSessionsRepository(EducationDbContext con
         }
     }
 
+    /// <inheritdoc />
     public async Task AddAsync(PracticalModuleSession session, CancellationToken cancellationToken = default)
     {
         await context.PracticalModuleSessions.AddAsync(session, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return context.SaveChangesAsync(cancellationToken);

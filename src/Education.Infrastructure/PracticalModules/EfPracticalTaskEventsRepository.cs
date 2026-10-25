@@ -5,8 +5,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.PracticalModules;
 
-internal sealed class EfPracticalTaskEventsRepository(EducationDbContext context) : IPracticalTaskEventsRepository
+/// <summary>EF Core-реализация хранилища событий заданий практики.</summary>
+internal sealed class EfPracticalTaskEventsRepository : IPracticalTaskEventsRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfPracticalTaskEventsRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfPracticalTaskEventsRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public async Task InsertIfNewAsync(PracticalTaskEvent taskEvent, CancellationToken cancellationToken = default)
     {
         var exists = await context.PracticalTaskEvents
@@ -28,6 +39,7 @@ internal sealed class EfPracticalTaskEventsRepository(EducationDbContext context
         }
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PracticalTaskEvent>> GetForSessionAsync(
         Guid sessionId,
         CancellationToken cancellationToken = default)

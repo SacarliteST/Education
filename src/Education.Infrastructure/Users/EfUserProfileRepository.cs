@@ -4,8 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.Users;
 
-internal sealed class EfUserProfileRepository(EducationDbContext context) : IUserProfileRepository
+/// <summary>EF Core-реализация хранилища профилей пользователей.</summary>
+internal sealed class EfUserProfileRepository : IUserProfileRepository
 {
+    private readonly EducationDbContext context;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfUserProfileRepository"/>.</summary>
+    /// <param name="context">Контекст базы данных Education.</param>
+    public EfUserProfileRepository(EducationDbContext context)
+    {
+        this.context = context;
+    }
+
+    /// <inheritdoc />
     public Task<bool> IsActiveAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return context.Users
@@ -13,6 +24,7 @@ internal sealed class EfUserProfileRepository(EducationDbContext context) : IUse
             .AnyAsync(user => user.Id == userId && user.IsActive, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<UserProfile?> FindProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await context.Users
@@ -30,6 +42,7 @@ internal sealed class EfUserProfileRepository(EducationDbContext context) : IUse
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<UserRelationsSnapshot> GetRelationsSnapshotAsync(
         Guid userId,
         CancellationToken cancellationToken = default)

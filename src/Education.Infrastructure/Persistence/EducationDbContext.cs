@@ -11,17 +11,14 @@ namespace Education.Infrastructure.Persistence;
 /// <summary>
 /// Контекст базы данных Education API.
 /// </summary>
-/// <param name="options">Параметры подключения и настройки Entity Framework Core.</param>
-public sealed class EducationDbContext(DbContextOptions<EducationDbContext> options) : DbContext(options)
+public sealed class EducationDbContext : DbContext
 {
-    /// <summary>
-    /// Журнал административных действий Education (не путать с аудитом
-    /// IdentityService — тот про логины/роли/блокировки).
-    /// </summary>
-
-    /// <summary>
-    /// Связи пользователей identity-сервиса с пользователями учебной системы.
-    /// </summary>
+    /// <summary>Создаёт экземпляр класса <see cref="EducationDbContext"/>.</summary>
+    /// <param name="options">Параметры подключения и настройки Entity Framework Core.</param>
+    public EducationDbContext(DbContextOptions<EducationDbContext> options)
+        : base(options)
+    {
+    }
 
     /// <summary>
     /// Пользователи учебной системы.
@@ -34,10 +31,13 @@ public sealed class EducationDbContext(DbContextOptions<EducationDbContext> opti
     public DbSet<Role> Roles => Set<Role>();
 
     /// <summary>
-    /// Курсы.
+    /// Пары (окна доступа к практике) курсов.
     /// </summary>
     public DbSet<ClassWindow> ClassWindows => Set<ClassWindow>();
 
+    /// <summary>
+    /// Курсы.
+    /// </summary>
     public DbSet<Course> Courses => Set<Course>();
 
     /// <summary>

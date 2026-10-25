@@ -6,8 +6,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.ClassWindows;
 
-internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWindowsRepository
+/// <summary>EF Core-реализация хранилища пар.</summary>
+internal sealed class EfClassWindowsRepository : IClassWindowsRepository
 {
+    private readonly EducationDbContext db;
+
+    /// <summary>Создаёт экземпляр класса <see cref="EfClassWindowsRepository"/>.</summary>
+    /// <param name="db">Контекст базы данных Education.</param>
+    public EfClassWindowsRepository(EducationDbContext db)
+    {
+        this.db = db;
+    }
+
+    /// <inheritdoc />
     public Task<PracticeGate?> GetGateForPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         return db.PracticalMaterials
@@ -18,6 +29,7 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<PracticeGate?> GetGateForTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         return db.Cases
@@ -28,11 +40,13 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<Course?> GetCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         return db.Courses.FirstOrDefaultAsync(course => course.Id == courseId, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<ClassWindow?> FindOpenAsync(
         Guid courseId, string groupName, DateTimeOffset at, TimeSpan grace, CancellationToken cancellationToken = default)
     {
@@ -49,6 +63,7 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<ClassWindow?> GetUnclosedAsync(Guid courseId, string groupName, CancellationToken cancellationToken = default)
     {
         var groupKey = groupName.Trim();
@@ -57,11 +72,13 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<ClassWindow?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return db.ClassWindows.FirstOrDefaultAsync(window => window.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ClassWindow>> ListForCourseAsync(
         Guid courseId, int take, CancellationToken cancellationToken = default)
     {
@@ -73,6 +90,7 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<string>> ListGroupsAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         return await db.CourseBindUsers
@@ -84,6 +102,7 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ActiveSessionTarget>> ListActiveSessionsAsync(
         Guid courseId, string groupName, CancellationToken cancellationToken = default)
     {
@@ -111,11 +130,13 @@ internal sealed class EfClassWindowsRepository(EducationDbContext db) : IClassWi
             .ToList();
     }
 
+    /// <inheritdoc />
     public async Task AddAsync(ClassWindow window, CancellationToken cancellationToken = default)
     {
         await db.ClassWindows.AddAsync(window, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) => db.SaveChangesAsync(cancellationToken);
 }
