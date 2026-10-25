@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
-namespace Education.Tests;
+namespace Education.Tests.Infrastructure;
 
 // TD-011: вне Development миграции при старте применяются только по флагу
 // Database:ApplyMigrationsOnStartup. Оба сценария — на реальной пустой PostgreSQL.

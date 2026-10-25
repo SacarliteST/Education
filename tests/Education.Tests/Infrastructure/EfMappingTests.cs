@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Education.Tests;
+namespace Education.Tests.Infrastructure;
 
 public class EfMappingTests : IClassFixture<TestWebApplicationFactory>
 {
@@ -36,6 +36,19 @@ public class EfMappingTests : IClassFixture<TestWebApplicationFactory>
         AssertColumn<TestResult>(model, nameof(TestResult.UserId), "TestResults", "user_id");
         AssertColumn<Question>(model, nameof(Question.Options), "Questions", "question_body");
         AssertColumn<Answer>(model, nameof(Answer.Answers), "Answers", "answer");
+    }
+
+    [Fact]
+    public async Task DeprecatedLegacyDatabaseFields_ArePhysicallyPreserved()
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        var userEntity = context.Model.FindEntityType(typeof(User))!;
+
+        Assert.NotNull(userEntity.FindProperty(nameof(User.Password)));
+        Assert.NotNull(userEntity.FindProperty(nameof(User.RoleId)));
+        Assert.True(await context.Roles.AnyAsync());
+        Assert.True(await context.Users.AnyAsync());
     }
 
     [Fact]

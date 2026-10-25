@@ -8,6 +8,7 @@ using Education.Contracts.PracticalModules;
 using Education.Contracts.Practicals;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
+using Education.Tests.Support;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Student_StartsSession_GetsLaunchUrl()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: 60);
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
 
         var client = StudentClient(push);
         var response = await client.PostAsJsonAsync(
@@ -58,7 +59,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Start_Again_WhileActive_Resumes()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: null);
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
         var client = StudentClient(push);
 
         var first = await StartAsync(client, context);
@@ -75,7 +76,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Start_WhenTriesExhausted_Returns409()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
         var client = StudentClient(push);
 
         var started = await StartAsync(client, context);
@@ -93,14 +94,14 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Start_ModuleUnavailable_Returns502_AndDoesNotBurnTry()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);
-        var failing = new FakePushClient { ThrowUnavailable = true };
+        var failing = new FakeModulePushClient { ThrowUnavailable = true };
 
         var down = await StudentClient(failing).PostAsJsonAsync(
             '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId),
             new StartModuleSessionRequest(context.TaskId));
         Assert.Equal(HttpStatusCode.BadGateway, down.StatusCode);
 
-        var recovered = await StartAsync(StudentClient(new FakePushClient()), context);
+        var recovered = await StartAsync(StudentClient(new FakeModulePushClient()), context);
         Assert.Equal(1, recovered.TryNumber);
     }
 
@@ -108,7 +109,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Current_ReflectsGate()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: 45);
-        var client = StudentClient(new FakePushClient());
+        var client = StudentClient(new FakeModulePushClient());
 
         var before = await client.GetFromJsonAsync<CurrentModuleSessionResponse>(
             '/' + ApiRoutes.Practicals.ForModuleSessionCurrent(context.PracticalId) + $"?taskId={context.TaskId}");
@@ -129,7 +130,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Abandon_Twice_SecondIs409()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
-        var client = StudentClient(new FakePushClient());
+        var client = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(client, context);
 
         var first = await client.PostAsync(
@@ -145,7 +146,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Complete_WithServiceKey_SetsGrade_Idempotent()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: null);
-        var client = StudentClient(new FakePushClient());
+        var client = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(client, context);
         var sessionKey = await ReadSessionKeyAsync(started.SessionId);
 
@@ -169,7 +170,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
         // формального ExpiresAt — CompleteAsync не должен сам себе истекать
         // сессию прямо в этом вызове и тем самым отбрасывать легитимный результат.
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: 1);
-        var client = StudentClient(new FakePushClient());
+        var client = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(client, context);
         var sessionKey = await ReadSessionKeyAsync(started.SessionId);
 
@@ -196,7 +197,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     {
         // назначенная студенту практика — GradesService требует назначения
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null, assignStudent: true);
-        var client = StudentClient(new FakePushClient());
+        var client = StudentClient(new FakeModulePushClient());
 
         foreach (var grade in new[] { 60, 90, 40 })
         {
@@ -219,7 +220,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Complete_BadServiceKey_401()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);
-        var started = await StartAsync(StudentClient(new FakePushClient()), context);
+        var started = await StartAsync(StudentClient(new FakeModulePushClient()), context);
         var sessionKey = await ReadSessionKeyAsync(started.SessionId);
 
         var response = await SendCompleteAsync(started.SessionId, "wrong-key", sessionKey, 100);
@@ -231,7 +232,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Complete_UnknownSessionKey_401()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);
-        var started = await StartAsync(StudentClient(new FakePushClient()), context);
+        var started = await StartAsync(StudentClient(new FakeModulePushClient()), context);
 
         var response = await SendCompleteAsync(started.SessionId, DevServiceKey, "not-the-session-key", 100);
 
@@ -242,7 +243,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task Complete_AfterAbandon_409()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);
-        var client = StudentClient(new FakePushClient());
+        var client = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(client, context);
         var sessionKey = await ReadSessionKeyAsync(started.SessionId);
         await client.PostAsync(
@@ -258,7 +259,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);
 
-        var client = ClientWith(new FakePushClient(), EducationRoles.Teacher);
+        var client = ClientWith(new FakeModulePushClient(), EducationRoles.Teacher);
         var response = await client.PostAsJsonAsync(
             '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId),
             new StartModuleSessionRequest(context.TaskId));
@@ -271,7 +272,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     {
         // назначенная студенту практика под модулем OwnModuleId — курс принадлежит seeded-преподавателю
         var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: null);
-        var student = StudentClient(new FakePushClient());
+        var student = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(student, context);
 
         await FeedEventAsync(started.SessionId, "sql_submit", "{\"sql\":\"SELECT 1\"}");
@@ -297,7 +298,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task SessionEvents_ReturnMarkdown_ToOwnerAndTeacher_NullWhenAbsent()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: null);
-        var student = StudentClient(new FakePushClient());
+        var student = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(student, context);
 
         await FeedEventAsync(started.SessionId, "sql_submit", "{\"sql\":\"SELECT 1\"}", "**Попытка 1 — неверно**");
@@ -320,7 +321,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task ListSessions_Teacher_SeesAllAttempts_Student_Forbidden()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
-        var student = StudentClient(new FakePushClient());
+        var student = StudentClient(new FakeModulePushClient());
 
         var first = await StartAsync(student, context);
         await student.PostAsync(
@@ -346,7 +347,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task ListSessions_AttemptsCount_FromCompletionData_NullWhenAbsent()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
-        var student = StudentClient(new FakePushClient());
+        var student = StudentClient(new FakeModulePushClient());
 
         var completedSession = await StartAsync(student, context);
         var completedKey = await ReadSessionKeyAsync(completedSession.SessionId);
@@ -370,7 +371,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     public async Task ListSessions_MalformedCompletionData_AttemptsCountNull_NoError()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
-        var student = StudentClient(new FakePushClient());
+        var student = StudentClient(new FakeModulePushClient());
         var started = await StartAsync(student, context);
         var key = await ReadSessionKeyAsync(started.SessionId);
         var completed = await SendCompleteAsync(
@@ -427,16 +428,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     private async Task<BoundContext> BindExistingPracticalAsync(
         Guid practicalId, int triesCount, int? timeLimitMinutes = null)
     {
-        var admin = factory.CreateClient();
-        admin.AuthenticateAs(EducationRoles.Admin);
-        var slug = "sql-" + Guid.NewGuid().ToString("N")[..8];
-        var moduleResponse = await admin.PostAsJsonAsync(
-            '/' + ApiRoutes.PracticalModules.ModulesList,
-            new CreatePracticalModuleRequest(
-                slug, "SQL", "d", "SQL_SIMULATOR", "/modules/sql", "sql-module-api",
-                "{\"sessionsEndpoint\":\"http://sql-module/module-integration/sessions\"}"));
-        moduleResponse.EnsureSuccessStatusCode();
-        var moduleId = (await moduleResponse.Content.ReadFromJsonAsync<PracticalModuleResponse>())!.Id;
+        var moduleId = await factory.RegisterModuleAsync();
 
         var teacher = factory.CreateClient();
         teacher.AuthenticateAs(EducationRoles.Teacher);
@@ -460,15 +452,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
 
     private HttpClient ClientWith(IModulePushClient push, string role)
     {
-        var client = factory
-            .WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
-            {
-                services.RemoveAll<IModulePushClient>();
-                services.RemoveAll<ITokenExchangeClient>();
-                services.AddSingleton(push);
-                services.AddSingleton<ITokenExchangeClient>(new FakeExchangeClient());
-            }))
-            .CreateClient();
+        var client = factory.WithModuleFakes(push).CreateClient();
         client.AuthenticateAs(role);
         return client;
     }
@@ -507,34 +491,5 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
         };
         request.Headers.Add("X-Service-Key", serviceKey);
         return await client.SendAsync(request);
-    }
-
-    private sealed class FakePushClient : IModulePushClient
-    {
-        public List<ModuleSessionPush> Pushes { get; } = [];
-
-        public bool ThrowUnavailable { get; init; }
-
-        public Task PushAsync(
-            string sessionsEndpoint, string moduleSlug, ModuleSessionPush push,
-            CancellationToken cancellationToken = default)
-        {
-            if (ThrowUnavailable)
-            {
-                throw new ModulePushFailedException("test: module unavailable");
-            }
-
-            Pushes.Add(push);
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class FakeExchangeClient : ITokenExchangeClient
-    {
-        public Task<ExchangedToken> ExchangeAsync(
-            string audience, Guid? sessionId = null, DateTimeOffset? sessionExpiresAt = null,
-            CancellationToken cancellationToken = default)
-            => Task.FromResult(new ExchangedToken(
-                "fake-token-" + (sessionId?.ToString("N") ?? "no-session"), 1800));
     }
 }

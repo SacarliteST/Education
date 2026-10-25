@@ -1,7 +1,7 @@
 ﻿using Education.Domain.Practicals;
 using Education.Domain.Tests;
 
-namespace Education.Tests;
+namespace Education.Tests.Domain;
 
 public class DomainRulesTests
 {

@@ -6,6 +6,7 @@ using Education.Contracts.Practicals;
 using Education.Domain.Practicals;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
+using Education.Tests.Support;
 using Education.Web.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -166,19 +167,5 @@ public sealed class PracticalModuleBindingApiTests : IClassFixture<TestWebApplic
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    private async Task<Guid> RegisterModuleAsync()
-    {
-        var client = factory.CreateClient();
-        client.AuthenticateAs(EducationRoles.Admin);
-        var slug = "sql-" + Guid.NewGuid().ToString("N")[..8];
-
-        var response = await client.PostAsJsonAsync(
-            '/' + ApiRoutes.PracticalModules.ModulesList,
-            new CreatePracticalModuleRequest(
-                slug, "SQL", "desc", "SQL_SIMULATOR", "/modules/sql", "sql-module-api", null));
-
-        response.EnsureSuccessStatusCode();
-        var created = await response.Content.ReadFromJsonAsync<PracticalModuleResponse>();
-        return created!.Id;
-    }
+    private Task<Guid> RegisterModuleAsync() => factory.RegisterModuleAsync(configuration: null);
 }

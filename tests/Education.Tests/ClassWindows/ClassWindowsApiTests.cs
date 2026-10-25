@@ -11,6 +11,7 @@ using Education.Domain.Practicals;
 using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
+using Education.Tests.Support;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -33,7 +34,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
     public async Task ModeOff_StudentAlwaysHasAccess_AndSessionStarts()
     {
         var context = await CreateCourseAsync(practiceOnly: false, group: "G-OFF");
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
 
         var access = await GetAccessAsync(context.CourseId);
         Assert.False(access.PracticeOnlyDuringClass);
@@ -54,7 +55,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
         Assert.True(access.PracticeOnlyDuringClass);
         Assert.False(access.IsOpen);
 
-        var session = await StartSessionAsync(new FakePushClient(), context);
+        var session = await StartSessionAsync(new FakeModulePushClient(), context);
         Assert.Equal(HttpStatusCode.Forbidden, session.StatusCode);
         Assert.Equal("ClassWindow.Closed", await ReadCodeAsync(session));
 
@@ -86,7 +87,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
         Assert.True(access.IsOpen);
         Assert.NotNull(access.EndsAt);
 
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
         var response = await StartSessionAsync(push, context);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var expires = push.Pushes.Single().ExpiresAt;
@@ -126,7 +127,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
     {
         var context = await CreateCourseAsync(practiceOnly: true, group: "G-EXT");
         var window = await StartWindowAsync(context.CourseId, "G-EXT", 20);
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
         Assert.Equal(HttpStatusCode.OK, (await StartSessionAsync(push, context)).StatusCode);
 
         var teacher = TeacherClientWith(push);
@@ -146,7 +147,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
     {
         var context = await CreateCourseAsync(practiceOnly: true, group: "G-FIN");
         var window = await StartWindowAsync(context.CourseId, "G-FIN", 60);
-        var push = new FakePushClient();
+        var push = new FakeModulePushClient();
         Assert.Equal(HttpStatusCode.OK, (await StartSessionAsync(push, context)).StatusCode);
 
         var teacher = TeacherClientWith(push);
@@ -220,23 +221,14 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
 
     private HttpClient TeacherClientWith(IModulePushClient push)
     {
-        var client = WithFakes(push).CreateClient();
+        var client = factory.WithModuleFakes(push).CreateClient();
         client.AuthenticateAs(EducationRoles.Teacher);
         return client;
     }
 
-    private WebApplicationFactory<Program> WithFakes(IModulePushClient push) =>
-        factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
-        {
-            services.RemoveAll<IModulePushClient>();
-            services.RemoveAll<ITokenExchangeClient>();
-            services.AddSingleton(push);
-            services.AddSingleton<ITokenExchangeClient>(new FakeExchangeClient());
-        }));
-
-    private async Task<HttpResponseMessage> StartSessionAsync(FakePushClient push, CourseContext context)
+    private async Task<HttpResponseMessage> StartSessionAsync(FakeModulePushClient push, CourseContext context)
     {
-        var client = WithFakes(push).CreateClient();
+        var client = factory.WithModuleFakes(push).CreateClient();
         client.AuthenticateAs(EducationRoles.Student);
         return await client.PostAsJsonAsync(
             '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId),
@@ -288,16 +280,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
             taskId = Guid.Empty;
         }
 
-        var admin = factory.CreateClient();
-        admin.AuthenticateAs(EducationRoles.Admin);
-        var slug = "sql-" + Guid.NewGuid().ToString("N")[..8];
-        var moduleResponse = await admin.PostAsJsonAsync(
-            '/' + ApiRoutes.PracticalModules.ModulesList,
-            new CreatePracticalModuleRequest(
-                slug, "SQL", "d", "SQL_SIMULATOR", "/modules/sql", "sql-module-api",
-                "{\"sessionsEndpoint\":\"http://sql-module/module-integration/sessions\"}"));
-        moduleResponse.EnsureSuccessStatusCode();
-        var moduleId = (await moduleResponse.Content.ReadFromJsonAsync<PracticalModuleResponse>())!.Id;
+        var moduleId = await factory.RegisterModuleAsync();
 
         var bind = await TeacherClient().PutAsJsonAsync(
             '/' + ApiRoutes.Practicals.ForModule(practicalId),
@@ -317,26 +300,4 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
     }
 
     private sealed record CourseContext(Guid CourseId, Guid PracticalId, Guid TaskId);
-
-    private sealed class FakePushClient : IModulePushClient
-    {
-        public List<ModuleSessionPush> Pushes { get; } = [];
-
-        public Task PushAsync(
-            string sessionsEndpoint, string moduleSlug, ModuleSessionPush push,
-            CancellationToken cancellationToken = default)
-        {
-            Pushes.Add(push);
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class FakeExchangeClient : ITokenExchangeClient
-    {
-        public Task<ExchangedToken> ExchangeAsync(
-            string audience, Guid? sessionId = null, DateTimeOffset? sessionExpiresAt = null,
-            CancellationToken cancellationToken = default)
-            => Task.FromResult(new ExchangedToken(
-                "fake-token-" + (sessionId?.ToString("N") ?? "no-session"), 1800));
-    }
 }

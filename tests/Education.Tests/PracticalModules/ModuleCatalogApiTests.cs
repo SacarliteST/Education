@@ -5,6 +5,7 @@ using Education.Contracts;
 using Education.Contracts.PracticalModules;
 using Education.Domain.PracticalModules;
 using Education.Tests.Auth;
+using Education.Tests.Support;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -79,22 +80,8 @@ public sealed class ModuleCatalogApiTests : IClassFixture<TestWebApplicationFact
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    private async Task<Guid> RegisterModuleAsync()
-    {
-        var client = factory.CreateClient();
-        client.AuthenticateAs(EducationRoles.Admin);
-        var slug = "sql-" + Guid.NewGuid().ToString("N")[..8];
-
-        var response = await client.PostAsJsonAsync(
-            '/' + ApiRoutes.PracticalModules.ModulesList,
-            new CreatePracticalModuleRequest(
-                slug, "SQL", "desc", "SQL_SIMULATOR", "/modules/sql", "sql-module-api",
-                "{\"catalogEndpoint\":\"http://sql-module/module-integration/tasks-catalog\"}"));
-
-        response.EnsureSuccessStatusCode();
-        var created = await response.Content.ReadFromJsonAsync<PracticalModuleResponse>();
-        return created!.Id;
-    }
+    private Task<Guid> RegisterModuleAsync() => factory.RegisterModuleAsync(
+        "{\"catalogEndpoint\":\"http://sql-module/module-integration/tasks-catalog\"}");
 
     private HttpClient CreateClientWith(IModuleCatalogClient catalog, string role)
     {

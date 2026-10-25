@@ -5,6 +5,7 @@ using Education.Application.PracticalModules;
 using Education.Contracts;
 using Education.Contracts.PracticalModules;
 using Education.Tests.Auth;
+using Education.Tests.Support;
 using Education.Web.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -172,30 +173,7 @@ public sealed class ModuleAuthoringApiTests : IClassFixture<TestWebApplicationFa
 
     // ---- helpers ----
 
-    private async Task<Guid> CreateModuleAsync(bool enabled = true)
-    {
-        var admin = factory.CreateClient();
-        admin.AuthenticateAs(EducationRoles.Admin);
-
-        var slug = "sql-" + Guid.NewGuid().ToString("N")[..8];
-        var created = await admin.PostAsJsonAsync(
-            '/' + ApiRoutes.PracticalModules.ModulesList,
-            new CreatePracticalModuleRequest(
-                slug, "SQL", "d", "SQL_SIMULATOR", "/modules/sql", "sql-module-api", "{}"));
-        created.EnsureSuccessStatusCode();
-        var moduleId = (await created.Content.ReadFromJsonAsync<PracticalModuleResponse>())!.Id;
-
-        if (!enabled)
-        {
-            var disabled = await admin.PutAsJsonAsync(
-                '/' + ApiRoutes.PracticalModules.ForModule(moduleId),
-                new UpdatePracticalModuleRequest(
-                    "SQL", "d", "SQL_SIMULATOR", "/modules/sql", "sql-module-api", "{}", IsEnabled: false));
-            disabled.EnsureSuccessStatusCode();
-        }
-
-        return moduleId;
-    }
+    private Task<Guid> CreateModuleAsync(bool enabled = true) => factory.RegisterModuleAsync("{}", enabled);
 
     private HttpClient TeacherClient(ITokenExchangeClient exchange)
     {

@@ -2,7 +2,7 @@
 using Education.Tests.Auth;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Education.Tests;
+namespace Education.Tests.Users;
 
 public class UserResolverTests : IClassFixture<TestWebApplicationFactory>
 {
