@@ -52,6 +52,13 @@ public sealed class Course : Entity
     {
     }
 
+    /// <summary>Включает или выключает режим «практика только на парах».</summary>
+    /// <param name="value"><see langword="true"/> — тесты и практика доступны только во время пары.</param>
+    public void SetPracticeOnlyDuringClass(bool value)
+    {
+        PracticeOnlyDuringClass = value;
+    }
+
     /// <summary>
     /// Создает учебный курс.
     /// </summary>
@@ -59,12 +66,6 @@ public sealed class Course : Entity
     /// <param name="description">Описание курса.</param>
     /// <param name="date">Дата создания или публикации курса.</param>
     /// <param name="userId">Идентификатор автора курса.</param>
-    /// <summary>Включает или выключает режим «практика только на парах».</summary>
-    public void SetPracticeOnlyDuringClass(bool value)
-    {
-        PracticeOnlyDuringClass = value;
-    }
-
     public Course(string name, string description, DateTimeOffset date, Guid userId)
     {
         Name = name;

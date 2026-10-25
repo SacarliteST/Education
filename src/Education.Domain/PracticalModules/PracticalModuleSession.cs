@@ -53,7 +53,15 @@ public sealed class PracticalModuleSession : Entity
     {
     }
 
+    /// <summary>Создаёт активную сессию прохождения задания во внешнем модуле.</summary>
     /// <param name="id">Заранее сгенерированный id — нужен, чтобы вложить его в <paramref name="returnUrl"/>.</param>
+    /// <param name="practicalTaskId">Идентификатор задания практики.</param>
+    /// <param name="userId">Идентификатор студента.</param>
+    /// <param name="tryNumber">Номер захода (с 1).</param>
+    /// <param name="sessionKey">Секрет сессии, которым модуль подписывает события и завершение.</param>
+    /// <param name="returnUrl">Адрес возврата студента на платформу.</param>
+    /// <param name="startedAt">Момент запуска.</param>
+    /// <param name="expiresAt">Срок действия или <see langword="null"/> — без ограничения по времени.</param>
     public PracticalModuleSession(
         Guid id,
         Guid practicalTaskId,
@@ -83,8 +91,8 @@ public sealed class PracticalModuleSession : Entity
         Status == ModuleSessionState.Active
         && ((ExpiresAt is { } expiry && now >= expiry) || now >= StartedAt + HardCeiling);
 
-    /// <summary>Терминальный переход в <see cref="ModuleSessionState.Expired"/>. Идемпотентен для уже терминальной сессии.</summary>
     /// <summary>Меняет срок идущей сессии (продление или досрочное завершение пары).</summary>
+    /// <param name="expiresAt">Новый срок или <see langword="null"/> — без ограничения по времени.</param>
     public void ChangeExpiry(DateTimeOffset? expiresAt)
     {
         if (Status == ModuleSessionState.Active)
@@ -93,6 +101,9 @@ public sealed class PracticalModuleSession : Entity
         }
     }
 
+    /// <summary>Терминальный переход в <see cref="ModuleSessionState.Expired"/>. Идемпотентен для уже терминальной сессии.</summary>
+    /// <param name="now">Момент перехода.</param>
+    /// <param name="reason">Причина закрытия.</param>
     public void Expire(DateTimeOffset now, ModuleSessionEndReason reason)
     {
         if (Status != ModuleSessionState.Active)

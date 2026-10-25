@@ -112,6 +112,7 @@ public sealed class PracticalMaterial : Entity
     /// </summary>
     /// <param name="triesCount">Количество запусков (та же семантика, что у внутреннего теста).</param>
     /// <param name="timeLimitMinutes">Лимит времени на попытку в минутах или <see langword="null"/>.</param>
+    /// <param name="attemptsPerSession">Число отправок решения в одном заходе или <see langword="null"/> — лимит задаёт модуль.</param>
     public void BindExternalModule(int triesCount, int? timeLimitMinutes, int? attemptsPerSession = null)
     {
         if (attemptsPerSession is < 1)

@@ -34,6 +34,13 @@ public sealed class PracticalTaskEvent : Entity
     {
     }
 
+    /// <summary>Создаёт событие «цифрового следа» сессии.</summary>
+    /// <param name="eventId">Идентификатор события (генерирует модуль, служит ключом идемпотентности).</param>
+    /// <param name="sessionId">Идентификатор сессии.</param>
+    /// <param name="kind">Вид события.</param>
+    /// <param name="occurredAt">Момент события по часам модуля.</param>
+    /// <param name="payload">Полезная нагрузка в формате JSON.</param>
+    /// <param name="markdown">Готовый разбор события в markdown, если модуль его прислал.</param>
     public PracticalTaskEvent(
         Guid eventId,
         Guid sessionId,
@@ -50,6 +57,9 @@ public sealed class PracticalTaskEvent : Entity
         Markdown = NormalizeMarkdown(markdown);
     }
 
+    /// <summary>Приводит markdown к виду для хранения: пустой текст становится <see langword="null"/>, длина ограничивается.</summary>
+    /// <param name="markdown">Исходный текст.</param>
+    /// <returns>Нормализованный текст или <see langword="null"/>.</returns>
     internal static string? NormalizeMarkdown(string? markdown)
     {
         if (String.IsNullOrWhiteSpace(markdown))
