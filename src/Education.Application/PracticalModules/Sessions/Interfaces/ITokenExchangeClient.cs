@@ -1,7 +1,4 @@
-namespace Education.Application.PracticalModules;
-
-/// <summary>Обменянный токен: подписан IdentityService под целевую audience.</summary>
-public sealed record ExchangedToken(string AccessToken, int ExpiresIn);
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>
 /// Клиент Token Exchange IdentityService. Берёт токен текущего пользователя (из входящего

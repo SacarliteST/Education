@@ -1,4 +1,4 @@
-using Education.Domain.Practicals;
+﻿using Education.Domain.Practicals;
 
 namespace Education.Application.Practicals;
 
@@ -12,11 +12,3 @@ public sealed record PracticalDetail(
     int? TimeLimitMinutes,
     ExternalModuleBinding? ModuleBinding,
     int? AttemptsPerSession = null);
-
-/// <summary>Привязка внешней практики к заданию модуля.</summary>
-public sealed record ExternalModuleBinding(
-    Guid PracticalModuleId,
-    string PracticalModuleSlug,
-    string PracticalModuleName,
-    Guid TaskId,
-    string ExternalTaskRef);
