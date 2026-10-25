@@ -14,14 +14,3 @@ internal sealed class AddTaskFileCommentRequestValidator : AbstractValidator<Add
             .WithMessage("Комментарий не должен превышать 1000 символов.");
     }
 }
-
-internal sealed class AcceptTaskFileRequestValidator : AbstractValidator<AcceptTaskFileRequest>
-{
-    public AcceptTaskFileRequestValidator()
-    {
-        RuleFor(request => request.Grade)
-            .InclusiveBetween(2, 5)
-            .WithMessage("Оценка должна быть от 2 до 5.");
-    }
-}
-

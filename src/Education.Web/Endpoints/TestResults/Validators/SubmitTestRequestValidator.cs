@@ -17,18 +17,3 @@ internal sealed class SubmitTestRequestValidator : AbstractValidator<SubmitTestR
             .SetValidator(new SubmitAnswerRequestValidator());
     }
 }
-
-internal sealed class SubmitAnswerRequestValidator : AbstractValidator<SubmitAnswerRequest>
-{
-    public SubmitAnswerRequestValidator()
-    {
-        RuleFor(request => request.Id)
-            .NotEmpty()
-            .WithMessage("Идентификатор вопроса обязателен.");
-
-        RuleFor(request => request.Answer)
-            .NotNull()
-            .WithMessage("Ответ обязателен.");
-    }
-}
-
