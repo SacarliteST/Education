@@ -9,10 +9,17 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Общие обёртки эндпоинтов: валидация запроса и перевод доменных исключений в HTTP-ответы.</summary>
 internal static class EndpointResults
 {
     private const string BadRequestTitle = "Некорректный запрос.";
 
+    /// <summary>Проверяет запрос валидатором.</summary>
+    /// <typeparam name="TRequest">Тип запроса.</typeparam>
+    /// <param name="validator">Валидатор запроса.</param>
+    /// <param name="request">Проверяемый запрос.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Ответ 400 с описанием ошибок или <see langword="null"/>, если запрос корректен.</returns>
     public static async Task<IResult?> ValidateAsync<TRequest>(
         IValidator<TRequest> validator,
         TRequest request,
@@ -33,6 +40,9 @@ internal static class EndpointResults
         return Results.ValidationProblem(errors);
     }
 
+    /// <summary>Выполняет команду преподавателя без результата и переводит исключения в HTTP-ответы (204 при успехе).</summary>
+    /// <param name="command">Выполняемая команда.</param>
+    /// <returns>Ответ HTTP.</returns>
     public static async Task<IResult> ExecuteTeacherCommandAsync(Func<Task> command)
     {
         try
@@ -54,6 +64,9 @@ internal static class EndpointResults
         }
     }
 
+    /// <summary>Выполняет команду преподавателя и переводит исключения в HTTP-ответы.</summary>
+    /// <param name="command">Выполняемая команда, возвращающая ответ.</param>
+    /// <returns>Ответ команды или ответ об ошибке.</returns>
     public static async Task<IResult> ExecuteTeacherCommandAsync(Func<Task<IResult>> command)
     {
         try
@@ -86,6 +99,9 @@ internal static class EndpointResults
         }
     }
 
+    /// <summary>Выполняет команду студента и переводит исключения в HTTP-ответы (в том числе закрытое окно пары).</summary>
+    /// <param name="command">Выполняемая команда, возвращающая ответ.</param>
+    /// <returns>Ответ команды или ответ об ошибке.</returns>
     public static async Task<IResult> ExecuteStudentCommandAsync(Func<Task<IResult>> command)
     {
         try
@@ -114,6 +130,9 @@ internal static class EndpointResults
         }
     }
 
+    /// <summary>Выполняет операцию с файлом и переводит исключения в HTTP-ответы.</summary>
+    /// <param name="command">Выполняемая операция, возвращающая ответ.</param>
+    /// <returns>Ответ операции или ответ об ошибке.</returns>
     public static async Task<IResult> ExecuteFileCommandAsync(Func<Task<IResult>> command)
     {
         try

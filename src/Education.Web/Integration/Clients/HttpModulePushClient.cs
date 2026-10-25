@@ -5,10 +5,23 @@ using Education.Application.PracticalModules;
 namespace Education.Web.Integration;
 
 /// <summary>HTTP-реализация пуша сессии в бэкенд модуля с заголовком <c>X-Service-Key</c>.</summary>
-internal sealed class HttpModulePushClient(HttpClient httpClient, IConfiguration configuration) : IModulePushClient
+internal sealed class HttpModulePushClient : IModulePushClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    private readonly HttpClient httpClient;
+    private readonly IConfiguration configuration;
+
+    /// <summary>Создаёт экземпляр класса <see cref="HttpModulePushClient"/>.</summary>
+    /// <param name="httpClient">HTTP-клиент для обращения к модулю.</param>
+    /// <param name="configuration">Конфигурация приложения (секреты модулей).</param>
+    public HttpModulePushClient(HttpClient httpClient, IConfiguration configuration)
+    {
+        this.httpClient = httpClient;
+        this.configuration = configuration;
+    }
+
+    /// <inheritdoc />
     public async Task PushAsync(
         string sessionsEndpoint,
         string moduleSlug,

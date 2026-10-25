@@ -4,8 +4,11 @@ using Education.Domain.PracticalModules;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Преобразование данных раздела «внешние практические модули» между контрактами API и слоем приложения.</summary>
 internal static class PracticalModulesEndpointMappings
 {
+    /// <summary>Преобразует <see cref="CreatePracticalModuleRequest"/> в команду приложения.</summary>
+    /// <param name="request">Исходные данные.</param>
     public static CreatePracticalModuleCommand ToCommand(this CreatePracticalModuleRequest request)
     {
         return new CreatePracticalModuleCommand(
@@ -18,6 +21,8 @@ internal static class PracticalModulesEndpointMappings
             request.Configuration?.Trim() is { Length: > 0 } configuration ? configuration : "{}");
     }
 
+    /// <summary>Преобразует <see cref="UpdatePracticalModuleRequest"/> в команду приложения.</summary>
+    /// <param name="request">Исходные данные.</param>
     public static UpdatePracticalModuleCommand ToCommand(this UpdatePracticalModuleRequest request)
     {
         return new UpdatePracticalModuleCommand(
@@ -30,6 +35,8 @@ internal static class PracticalModulesEndpointMappings
             request.IsEnabled);
     }
 
+    /// <summary>Преобразует <see cref="PracticalModule"/> в ответ API.</summary>
+    /// <param name="module">Исходные данные.</param>
     public static PracticalModuleResponse ToResponse(this PracticalModule module)
     {
         return new PracticalModuleResponse(

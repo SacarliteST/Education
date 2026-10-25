@@ -1,7 +1,11 @@
 ﻿namespace Education.Web.Endpoints;
 
+/// <summary>Регистрация всех групп маршрутов Education API.</summary>
 internal static class EducationEndpointGroups
 {
+    /// <summary>Регистрирует маршруты всех разделов API.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapEducationEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapAdminProfilesEndpointGroup();

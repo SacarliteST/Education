@@ -10,11 +10,23 @@ namespace Education.Web.Integration;
 /// <c>configuration.catalogEndpoint</c>, добавляет заголовок <c>X-Service-Key</c>
 /// (секрет из конфига <c>PracticalModules:&lt;slug&gt;:ServiceKey</c>), нормализует ответ.
 /// </summary>
-internal sealed class HttpModuleCatalogClient(HttpClient httpClient, IConfiguration configuration)
-    : IModuleCatalogClient
+internal sealed class HttpModuleCatalogClient : IModuleCatalogClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    private readonly HttpClient httpClient;
+    private readonly IConfiguration configuration;
+
+    /// <summary>Создаёт экземпляр класса <see cref="HttpModuleCatalogClient"/>.</summary>
+    /// <param name="httpClient">HTTP-клиент для обращения к модулю.</param>
+    /// <param name="configuration">Конфигурация приложения (секреты модулей).</param>
+    public HttpModuleCatalogClient(HttpClient httpClient, IConfiguration configuration)
+    {
+        this.httpClient = httpClient;
+        this.configuration = configuration;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ModuleCatalogTask>> GetTasksAsync(
         PracticalModule module,
         CancellationToken cancellationToken = default)

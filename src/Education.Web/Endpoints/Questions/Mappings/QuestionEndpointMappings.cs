@@ -4,8 +4,11 @@ using Education.Domain.Tests;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Преобразование данных раздела «вопросы» между контрактами API и слоем приложения.</summary>
 internal static class QuestionEndpointMappings
 {
+    /// <summary>Преобразует <see cref="CreateQuestionRequest"/> в команду приложения.</summary>
+    /// <param name="request">Исходные данные.</param>
     public static CreateQuestionCommand ToCommand(this CreateQuestionRequest request)
     {
         return new CreateQuestionCommand(
@@ -17,6 +20,8 @@ internal static class QuestionEndpointMappings
             request.Weight);
     }
 
+    /// <summary>Преобразует <see cref="UpdateQuestionRequest"/> в команду приложения.</summary>
+    /// <param name="request">Исходные данные.</param>
     public static UpdateQuestionCommand ToCommand(this UpdateQuestionRequest request)
     {
         return new UpdateQuestionCommand(
@@ -27,6 +32,8 @@ internal static class QuestionEndpointMappings
             request.Type);
     }
 
+    /// <summary>Преобразует <see cref="Question"/> в ответ API.</summary>
+    /// <param name="question">Исходные данные.</param>
     public static QuestionResponse ToResponse(this Question question)
     {
         return new QuestionResponse(

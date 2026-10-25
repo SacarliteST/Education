@@ -4,8 +4,12 @@ using Education.Web.Identity;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «файлы».</summary>
 internal static class FilesEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapFilesEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.Files.Download, async (

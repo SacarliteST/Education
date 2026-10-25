@@ -9,8 +9,12 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «курсы».</summary>
 internal static class ClassWindowsEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapClassWindowsEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.Courses.ClassWindows, (

@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="CreateModuleRequest"/>.</summary>
 internal sealed class CreateModuleRequestValidator : AbstractValidator<CreateModuleRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public CreateModuleRequestValidator()
     {
         RuleFor(request => request.CourseId)

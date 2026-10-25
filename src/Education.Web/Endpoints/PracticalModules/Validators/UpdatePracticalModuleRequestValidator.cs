@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="UpdatePracticalModuleRequest"/>.</summary>
 internal sealed class UpdatePracticalModuleRequestValidator : AbstractValidator<UpdatePracticalModuleRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public UpdatePracticalModuleRequestValidator()
     {
         RuleFor(request => request.Name).NotEmpty().WithMessage("Название обязательно.").MaximumLength(200);

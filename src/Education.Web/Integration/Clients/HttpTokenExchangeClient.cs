@@ -12,15 +12,30 @@ namespace Education.Web.Integration;
 /// audience модуля через IdentityService Token Exchange. <c>session_id</c> кладётся в
 /// токен, только если сессия передана.
 /// </summary>
-internal sealed class HttpTokenExchangeClient(
-    HttpClient httpClient,
-    IHttpContextAccessor httpContextAccessor,
-    IOptions<ModuleIntegrationOptions> options) : ITokenExchangeClient
+internal sealed class HttpTokenExchangeClient : ITokenExchangeClient
 {
     private const string GrantType = "urn:ietf:params:oauth:grant-type:token-exchange";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly ModuleIntegrationOptions options = options.Value;
 
+    private readonly HttpClient httpClient;
+    private readonly IHttpContextAccessor httpContextAccessor;
+    private readonly ModuleIntegrationOptions options;
+
+    /// <summary>Создаёт экземпляр класса <see cref="HttpTokenExchangeClient"/>.</summary>
+    /// <param name="httpClient">HTTP-клиент для обращения к IdentityService.</param>
+    /// <param name="httpContextAccessor">Доступ к входящему запросу (исходный токен пользователя).</param>
+    /// <param name="options">Настройки интеграции с модулями.</param>
+    public HttpTokenExchangeClient(
+        HttpClient httpClient,
+        IHttpContextAccessor httpContextAccessor,
+        IOptions<ModuleIntegrationOptions> options)
+    {
+        this.httpClient = httpClient;
+        this.httpContextAccessor = httpContextAccessor;
+        this.options = options.Value;
+    }
+
+    /// <inheritdoc />
     public async Task<ExchangedToken> ExchangeAsync(
         string audience,
         Guid? sessionId = null,

@@ -3,10 +3,19 @@ using Microsoft.Extensions.Options;
 
 namespace Education.Web.Integration;
 
-internal sealed class ModuleIntegrationConfig(IOptions<ModuleIntegrationOptions> options) : IModuleIntegrationConfig
+/// <summary>Сборка адресов для интеграции с внешними модулями по настройкам <see cref="ModuleIntegrationOptions"/>.</summary>
+internal sealed class ModuleIntegrationConfig : IModuleIntegrationConfig
 {
-    private readonly ModuleIntegrationOptions options = options.Value;
+    private readonly ModuleIntegrationOptions options;
 
+    /// <summary>Создаёт экземпляр класса <see cref="ModuleIntegrationConfig"/>.</summary>
+    /// <param name="options">Настройки интеграции с модулями.</param>
+    public ModuleIntegrationConfig(IOptions<ModuleIntegrationOptions> options)
+    {
+        this.options = options.Value;
+    }
+
+    /// <inheritdoc />
     public string BuildReturnUrl(Guid courseId, Guid moduleId, Guid practicalId, Guid sessionId)
     {
         return options.ReturnUrlTemplate
@@ -17,12 +26,14 @@ internal sealed class ModuleIntegrationConfig(IOptions<ModuleIntegrationOptions>
             .Replace("{sessionId}", sessionId.ToString());
     }
 
+    /// <inheritdoc />
     public string BuildLaunchUrl(string moduleBasePath, Guid sessionId, string accessToken)
     {
         var (origin, basePath) = ResolveModuleBase(moduleBasePath);
         return $"{origin}{basePath}/launch?session={sessionId}#access_token={accessToken}";
     }
 
+    /// <inheritdoc />
     public string BuildAuthoringUrl(
         string moduleBasePath, string accessToken, string? returnPath = null, string? taskRef = null)
     {

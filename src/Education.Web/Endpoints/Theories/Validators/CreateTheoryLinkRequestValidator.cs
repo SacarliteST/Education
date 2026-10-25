@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="CreateTheoryLinkRequest"/>.</summary>
 internal sealed class CreateTheoryLinkRequestValidator : AbstractValidator<CreateTheoryLinkRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public CreateTheoryLinkRequestValidator()
     {
         RuleFor(request => request.TheoryMaterialId)

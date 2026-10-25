@@ -8,8 +8,12 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «администрирование профилей».</summary>
 internal static class AdminProfilesEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapAdminProfilesEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.AdminProfiles.ProfilesList, async (

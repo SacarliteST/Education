@@ -12,6 +12,9 @@ namespace Education.Web.Endpoints;
 /// </summary>
 internal static class ExceptionHandlerExtensions
 {
+    /// <summary>Подключает глобальный обработчик необработанных исключений API.</summary>
+    /// <param name="app">Приложение.</param>
+    /// <returns>То же приложение.</returns>
     public static WebApplication UseApiExceptionHandler(this WebApplication app)
     {
         app.UseExceptionHandler(exceptionApp =>

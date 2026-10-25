@@ -6,8 +6,13 @@ using Education.Domain.Users;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Преобразование данных раздела «файлы сдачи заданий» между контрактами API и слоем приложения.</summary>
 internal static class TaskFilesEndpointMappings
 {
+    /// <summary>Преобразует <see cref="IFormFile"/> в команду приложения.</summary>
+    /// <param name="file">Исходные данные.</param>
+    /// <param name="taskId">Идентификатор задания.</param>
+    /// <param name="content">Поток с содержимым файла.</param>
     public static UploadTaskFileCommand ToCommand(this IFormFile file, Guid taskId, Stream content)
     {
         return new UploadTaskFileCommand(
@@ -15,16 +20,24 @@ internal static class TaskFilesEndpointMappings
             new UploadFile(file.FileName, file.ContentType, file.Length, content));
     }
 
+    /// <summary>Преобразует <see cref="AddTaskFileCommentRequest"/> в команду приложения.</summary>
+    /// <param name="request">Исходные данные.</param>
+    /// <param name="taskFileId">Идентификатор файла сдачи.</param>
     public static AddTaskFileCommentCommand ToCommand(this AddTaskFileCommentRequest request, Guid taskFileId)
     {
         return new AddTaskFileCommentCommand(taskFileId, request.Comment);
     }
 
+    /// <summary>Преобразует <see cref="AcceptTaskFileRequest"/> в команду приложения.</summary>
+    /// <param name="request">Исходные данные.</param>
+    /// <param name="taskFileId">Идентификатор файла сдачи.</param>
     public static AcceptTaskFileCommand ToCommand(this AcceptTaskFileRequest request, Guid taskFileId)
     {
         return new AcceptTaskFileCommand(taskFileId, request.Grade);
     }
 
+    /// <summary>Преобразует <see cref="CaseFile"/> в ответ API.</summary>
+    /// <param name="file">Исходные данные.</param>
     public static TaskFileResponse ToResponse(this CaseFile file)
     {
         var comments = file.Comments
@@ -44,6 +57,8 @@ internal static class TaskFilesEndpointMappings
             comments);
     }
 
+    /// <summary>Преобразует <see cref="CaseFileComment"/> в ответ API.</summary>
+    /// <param name="comment">Исходные данные.</param>
     public static TaskFileCommentResponse ToResponse(this CaseFileComment comment)
     {
         return new TaskFileCommentResponse(comment.Id, comment.Text, comment.Created, comment.IsGenerated);

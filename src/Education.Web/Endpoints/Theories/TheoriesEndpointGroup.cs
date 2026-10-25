@@ -8,8 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «теории».</summary>
 internal static class TheoriesEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapTheoriesEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.Theories.Theory, async (

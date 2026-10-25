@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="AddTaskFileCommentRequest"/>.</summary>
 internal sealed class AddTaskFileCommentRequestValidator : AbstractValidator<AddTaskFileCommentRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public AddTaskFileCommentRequestValidator()
     {
         RuleFor(request => request.Comment)

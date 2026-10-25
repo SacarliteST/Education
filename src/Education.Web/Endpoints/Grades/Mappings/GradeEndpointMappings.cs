@@ -3,13 +3,18 @@ using Education.Contracts.Grades;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Преобразование данных раздела «оценки» между контрактами API и слоем приложения.</summary>
 internal static class GradeEndpointMappings
 {
+    /// <summary>Преобразует <see cref="PracticalGrade"/> в ответ API.</summary>
+    /// <param name="grade">Исходные данные.</param>
     public static PracticalGradeResponse ToResponse(this PracticalGrade grade)
     {
         return new PracticalGradeResponse(grade.Grade, grade.Messages);
     }
 
+    /// <summary>Преобразует <see cref="GradeStatus"/> в строковое значение контракта API.</summary>
+    /// <param name="status">Исходные данные.</param>
     public static string ToWire(this GradeStatus status) => status switch
     {
         GradeStatus.Passed => "passed",
@@ -17,6 +22,8 @@ internal static class GradeEndpointMappings
         _ => "incomplete",
     };
 
+    /// <summary>Преобразует <see cref="StudentPracticalGrade"/> в ответ API.</summary>
+    /// <param name="row">Исходные данные.</param>
     public static PracticalStudentGradeResponse ToResponse(this StudentPracticalGrade row)
     {
         return new PracticalStudentGradeResponse(
@@ -29,6 +36,8 @@ internal static class GradeEndpointMappings
             row.Grade.Messages);
     }
 
+    /// <summary>Преобразует <see cref="Gradebook"/> в ответ API.</summary>
+    /// <param name="gradebook">Исходные данные.</param>
     public static CourseGradebookResponse ToResponse(this Gradebook gradebook)
     {
         return new CourseGradebookResponse(

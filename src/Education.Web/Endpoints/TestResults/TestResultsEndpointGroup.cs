@@ -6,8 +6,12 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «результаты тестов».</summary>
 internal static class TestResultsEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapTestResultsEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.TestResults.Status, async (

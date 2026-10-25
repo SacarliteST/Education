@@ -12,6 +12,7 @@ internal sealed class ChangeStudentsRequestValidator : AbstractValidator<ChangeS
     /// <summary>Максимальное число идентификаторов в каждом из списков одного запроса.</summary>
     public const int MaxIdsPerList = 2000;
 
+    /// <summary>Создаёт правила валидации.</summary>
     public ChangeStudentsRequestValidator()
     {
         RuleFor(request => request.Add)

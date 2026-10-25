@@ -6,8 +6,12 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «практики».</summary>
 internal static class PracticalsEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapPracticalsEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.Modules.ModulePracticals, async (

@@ -8,8 +8,17 @@ namespace Education.Web.Identity;
 /// поэтому сервисы не платят за повторную проверку. Отсутствие профиля здесь не блокирует запрос: решение
 /// принимает конкретная ручка (403 там, где профиль нужен).
 /// </summary>
-public sealed class ProfileProvisioningMiddleware(RequestDelegate next)
+public sealed class ProfileProvisioningMiddleware
 {
+    private readonly RequestDelegate next;
+
+    /// <summary>Создаёт экземпляр класса <see cref="ProfileProvisioningMiddleware"/>.</summary>
+    /// <param name="next">Следующий обработчик конвейера.</param>
+    public ProfileProvisioningMiddleware(RequestDelegate next)
+    {
+        this.next = next;
+    }
+
     /// <summary>Выполняет проверку профиля и передаёт запрос дальше.</summary>
     public async Task InvokeAsync(HttpContext context, IEducationUserResolver resolver)
     {

@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="SubmitTestRequest"/>.</summary>
 internal sealed class SubmitTestRequestValidator : AbstractValidator<SubmitTestRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public SubmitTestRequestValidator()
     {
         RuleFor(request => request.Answers)

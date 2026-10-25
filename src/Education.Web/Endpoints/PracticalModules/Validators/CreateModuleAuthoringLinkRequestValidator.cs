@@ -10,6 +10,7 @@ namespace Education.Web.Endpoints;
 /// </summary>
 internal sealed class CreateModuleAuthoringLinkRequestValidator : AbstractValidator<CreateModuleAuthoringLinkRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public CreateModuleAuthoringLinkRequestValidator()
     {
         RuleFor(request => request.ReturnPath)

@@ -6,11 +6,19 @@ namespace Education.Web.Identity;
 /// <summary>
 /// Извлекает сведения о текущем пользователе из HTTP-контекста и JWT-claims.
 /// </summary>
-/// <param name="httpContextAccessor">Доступ к текущему HTTP-контексту.</param>
-/// <param name="configuration">Конфигурация типов claims для JWT.</param>
-public sealed class HttpCurrentUser(IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : ICurrentUser
+public sealed class HttpCurrentUser : ICurrentUser
 {
-    private readonly ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;
+    private readonly IConfiguration configuration;
+    private readonly ClaimsPrincipal? user;
+
+    /// <summary>Создаёт экземпляр класса <see cref="HttpCurrentUser"/>.</summary>
+    /// <param name="httpContextAccessor">Доступ к текущему HTTP-контексту.</param>
+    /// <param name="configuration">Конфигурация типов claims для JWT.</param>
+    public HttpCurrentUser(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+    {
+        this.configuration = configuration;
+        user = httpContextAccessor.HttpContext?.User;
+    }
 
     /// <inheritdoc />
     public Guid UserId

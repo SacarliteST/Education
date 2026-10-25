@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="CreateTheoryDocumentRequest"/>.</summary>
 internal sealed class CreateTheoryDocumentRequestValidator : AbstractValidator<CreateTheoryDocumentRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public CreateTheoryDocumentRequestValidator()
     {
         RuleFor(request => request.TheoryMaterialId)

@@ -7,8 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «файлы сдачи заданий».</summary>
 internal static class TaskFilesEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapTaskFilesEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.TaskFiles.StudentTaskFile, async (

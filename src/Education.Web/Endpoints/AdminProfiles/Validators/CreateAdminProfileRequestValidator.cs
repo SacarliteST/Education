@@ -4,8 +4,10 @@ using FluentValidation;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Правила валидации запроса <see cref="CreateAdminProfileRequest"/>.</summary>
 internal sealed class CreateAdminProfileRequestValidator : AbstractValidator<CreateAdminProfileRequest>
 {
+    /// <summary>Создаёт правила валидации.</summary>
     public CreateAdminProfileRequestValidator()
     {
         RuleFor(request => request.UserId)

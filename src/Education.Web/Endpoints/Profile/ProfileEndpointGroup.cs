@@ -6,8 +6,12 @@ using Education.Web.Identity;
 
 namespace Education.Web.Endpoints;
 
+/// <summary>Маршруты раздела «профиль текущего пользователя».</summary>
 internal static class ProfileEndpointGroup
 {
+    /// <summary>Регистрирует маршруты раздела.</summary>
+    /// <param name="app">Построитель маршрутов.</param>
+    /// <returns>Тот же построитель маршрутов.</returns>
     public static IEndpointRouteBuilder MapProfileEndpointGroup(this IEndpointRouteBuilder app)
     {
         app.MapGet(ApiRoutes.Profile.Me, async (
