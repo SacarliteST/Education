@@ -11,11 +11,15 @@ namespace Education.Kafka.Consuming;
 /// <see cref="HandleAsync"/> — упавший хендлер переигрывается при рестарте, обработчик
 /// должен быть идемпотентным.
 /// </summary>
+/// <typeparam name="TMessage">Тип сообщения топика.</typeparam>
 public abstract class KafkaConsumerBackgroundService<TMessage> : BackgroundService
 {
     private readonly IConsumer<string, string> consumer;
     private readonly ILogger logger;
 
+    /// <summary>Создаёт консьюмера с ручным коммитом офсета.</summary>
+    /// <param name="options">Настройки подключения к брокеру.</param>
+    /// <param name="logger">Журнал.</param>
     protected KafkaConsumerBackgroundService(IOptions<KafkaOptions> options, ILogger logger)
     {
         this.logger = logger;
@@ -30,10 +34,15 @@ public abstract class KafkaConsumerBackgroundService<TMessage> : BackgroundServi
         consumer = new ConsumerBuilder<string, string>(config).Build();
     }
 
+    /// <summary>Имя топика, который слушает консьюмер.</summary>
     protected abstract string Topic { get; }
 
+    /// <summary>Обрабатывает сообщение. Исключение оставляет офсет некоммиченным, и сообщение будет прочитано снова.</summary>
+    /// <param name="message">Десериализованное сообщение.</param>
+    /// <param name="ct">Токен отмены.</param>
     protected abstract Task HandleAsync(TMessage message, CancellationToken ct);
 
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         consumer.Subscribe(Topic);
@@ -102,6 +111,7 @@ public abstract class KafkaConsumerBackgroundService<TMessage> : BackgroundServi
         }
     }
 
+    /// <inheritdoc />
     public override void Dispose()
     {
         consumer.Dispose();

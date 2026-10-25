@@ -1,4 +1,4 @@
-namespace Education.Contracts.Practicals;
+﻿namespace Education.Contracts.Practicals;
 
 /// <summary>Детали практики: вид, лимиты и привязка к внешнему модулю.</summary>
 public sealed record PracticalDetailResponse(
@@ -10,11 +10,3 @@ public sealed record PracticalDetailResponse(
     int? TimeLimitMinutes,
     ExternalModuleBindingResponse? ModuleBinding,
     int? AttemptsPerSession = null);
-
-/// <summary>Привязка внешней практики к заданию модуля.</summary>
-public sealed record ExternalModuleBindingResponse(
-    Guid PracticalModuleId,
-    string PracticalModuleSlug,
-    string PracticalModuleName,
-    Guid TaskId,
-    string ExternalTaskRef);
