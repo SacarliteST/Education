@@ -79,6 +79,7 @@ builder.Services.Configure<ModuleIntegrationOptions>(
     builder.Configuration.GetSection(ModuleIntegrationOptions.SectionKey));
 builder.Services.AddScoped<IModuleIntegrationConfig, ModuleIntegrationConfig>();
 builder.Services.AddScoped<IModuleAuthoringService, ModuleAuthoringService>();
+builder.Services.AddScoped<IModuleTrainingService, ModuleTrainingService>();
 builder.Services.AddScoped<IModuleSessionsService, ModuleSessionsService>();
 builder.Services.AddScoped<IPracticeEventHandler, PracticeEventHandler>();
 builder.Services.AddHttpClient<IModulePushClient, HttpModulePushClient>(client =>
@@ -100,6 +101,7 @@ builder.Services.AddScoped<IValidator<CreatePracticalRequest>, CreatePracticalRe
 builder.Services.AddScoped<IValidator<BindPracticalModuleRequest>, BindPracticalModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreatePracticalModuleRequest>, CreatePracticalModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateModuleAuthoringLinkRequest>, CreateModuleAuthoringLinkRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateTrainingLinkRequest>, CreateTrainingLinkRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdatePracticalModuleRequest>, UpdatePracticalModuleRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateTaskRequest>, CreateTaskRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateTaskTextRequest>, UpdateTaskTextRequestValidator>();

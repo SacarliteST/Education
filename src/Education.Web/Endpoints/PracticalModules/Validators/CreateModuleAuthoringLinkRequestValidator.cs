@@ -14,12 +14,7 @@ internal sealed class CreateModuleAuthoringLinkRequestValidator : AbstractValida
     public CreateModuleAuthoringLinkRequestValidator()
     {
         RuleFor(request => request.ReturnPath)
-            .MaximumLength(512)
-            .Must(path => path is null || (path.StartsWith('/')
-                && !path.StartsWith("//", StringComparison.Ordinal)
-                && !path.Contains('\\')
-                && !path.Any(Char.IsControl)))
-            .WithMessage("Путь возврата должен быть относительным путём платформы, начинающимся с одного '/'.");
+            .MustBeRelativePlatformPath();
         RuleFor(request => request.TaskRef)
             .MaximumLength(100)
             .Matches("^[A-Za-z0-9_-]+$")

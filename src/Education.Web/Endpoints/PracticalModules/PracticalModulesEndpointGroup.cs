@@ -201,6 +201,74 @@ internal static class PracticalModulesEndpointGroup
             .Produces(StatusCodes.Status502BadGateway)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapGet(ApiRoutes.PracticalModules.TrainingModulesList, async (
+                IModuleTrainingService trainingService,
+                CancellationToken cancellationToken) =>
+            Results.Ok((await trainingService.GetTrainingModulesAsync(cancellationToken))
+                .Select(module => new TrainingModuleResponse(module.Id, module.Slug, module.Name, module.Description))))
+            .WithTags("PracticalModules")
+            .WithName("GetTrainingModules")
+            .WithSummary("Модули с открытым банком заданий (студент)")
+            .WithDescription("Включённые модули, у которых в конфигурации trainingBank.enabled = true.")
+            .Produces<IEnumerable<TrainingModuleResponse>>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .RequireAuthorization(AuthorizationPolicies.StudentOnly);
+
+        app.MapPost(ApiRoutes.PracticalModules.ModuleTrainingLink, async (
+                Guid practicalModuleId,
+                CreateTrainingLinkRequest? request,
+                IValidator<CreateTrainingLinkRequest> validator,
+                IModuleTrainingService trainingService,
+                CancellationToken cancellationToken) =>
+            {
+                if (request is not null)
+                {
+                    var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
+                    if (validation is not null)
+                    {
+                        return validation;
+                    }
+                }
+
+                try
+                {
+                    var link = await trainingService.CreateTrainingLinkAsync(
+                        practicalModuleId, request?.ReturnPath, cancellationToken);
+                    return link is null
+                        ? Results.NotFound()
+                        : Results.Ok(new ModuleTrainingLinkResponse(link.Url, link.ExpiresInSeconds));
+                }
+                catch (ModuleDisabledException)
+                {
+                    return Results.Json(new { reason = "ModuleDisabled" }, statusCode: StatusCodes.Status409Conflict);
+                }
+                catch (TrainingBankDisabledException)
+                {
+                    return Results.Json(new { reason = "TrainingBankDisabled" }, statusCode: StatusCodes.Status409Conflict);
+                }
+                catch (ModulePushFailedException exception)
+                {
+                    return Results.Json(
+                        new { reason = "IdentityUnavailable", detail = exception.Message },
+                        statusCode: StatusCodes.Status502BadGateway);
+                }
+            })
+            .WithTags("PracticalModules")
+            .WithName("CreateTrainingLink")
+            .WithSummary("Ссылка входа студента в банк заданий модуля")
+            .WithDescription(
+                "Обменивает токен студента на токен под audience модуля без сессии и возвращает URL перехода в банк заданий. " +
+                "Открывать в текущей вкладке; необязательный returnPath добавляет кнопку возврата на платформу.")
+            .Produces<ModuleTrainingLinkResponse>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status502BadGateway)
+            .RequireAuthorization(AuthorizationPolicies.StudentOnly);
+
         return app;
     }
 }

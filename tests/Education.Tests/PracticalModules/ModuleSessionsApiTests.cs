@@ -73,6 +73,21 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     }
 
     [Fact]
+    public async Task Resume_WhenModuleSessionAlreadyClosed_Returns409_SessionClosed()
+    {
+        var context = await BindFreshExternalPracticalAsync(triesCount: 2, timeLimitMinutes: null);
+        await StartAsync(StudentClient(new FakeModulePushClient()), context);
+
+        var closing = new FakeModulePushClient { ThrowSessionClosed = true };
+        var response = await StudentClient(closing).PostAsJsonAsync(
+            '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId),
+            new StartModuleSessionRequest(context.TaskId));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Contains("SessionClosed", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Start_WhenTriesExhausted_Returns409()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 1, timeLimitMinutes: null);

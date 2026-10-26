@@ -40,6 +40,10 @@ internal static class ModuleSessionsEndpointGroup
                 {
                     return Results.Json(new { reason = "TriesExhausted" }, statusCode: StatusCodes.Status409Conflict);
                 }
+                catch (ModuleSessionClosedException)
+                {
+                    return Results.Json(new { reason = "SessionClosed" }, statusCode: StatusCodes.Status409Conflict);
+                }
                 catch (ModulePushFailedException exception)
                 {
                     return Results.Json(

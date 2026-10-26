@@ -19,4 +19,14 @@ public interface IModuleIntegrationConfig
     /// <param name="returnPath">Проверенный относительный путь возврата на платформу или <see langword="null"/>.</param>
     /// <param name="taskRef">Проверенная ссылка на задание модуля или <see langword="null"/>.</param>
     string BuildAuthoringUrl(string moduleBasePath, string accessToken, string? returnPath = null, string? taskRef = null);
+
+    /// <summary>
+    /// <c>{origin}{basePath}{launchPath}[?return={path}]#access_token={token}</c> — вход студента в открытый банк заданий модуля.
+    /// Без сессии и <c>?session=</c>; токен только во фрагменте.
+    /// </summary>
+    /// <param name="moduleBasePath">Базовый путь модуля за общим reverse-proxy.</param>
+    /// <param name="launchPath">Относительный путь входа в SPA модуля (из конфигурации модуля).</param>
+    /// <param name="accessToken">Токен под audience модуля.</param>
+    /// <param name="returnPath">Проверенный относительный путь возврата на платформу или <see langword="null"/>.</param>
+    string BuildTrainingUrl(string moduleBasePath, string launchPath, string accessToken, string? returnPath = null);
 }

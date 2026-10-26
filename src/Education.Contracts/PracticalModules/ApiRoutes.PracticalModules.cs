@@ -34,9 +34,26 @@ public static partial class ApiRoutes
             PrefixV1 + "/practical-modules/{practicalModuleId:guid}/authoring-link";
 
         /// <summary>
+        /// Маршрут списка модулей с открытым банком заданий (студент).
+        /// </summary>
+        public const string TrainingModulesList = PrefixV1 + "/practical-modules/training";
+
+        /// <summary>
+        /// Шаблон маршрута ссылки входа студента в банк заданий модуля.
+        /// </summary>
+        public const string ModuleTrainingLink =
+            PrefixV1 + "/practical-modules/{practicalModuleId:guid}/training-link";
+
+        /// <summary>
         /// Шаблон маршрута приёма оценки от бэкенда модуля (сервер-сервер, <c>X-Service-Key</c>).
         /// </summary>
         public const string SessionComplete = PrefixV1 + "/module-sessions/{sessionId:guid}/complete";
+
+        /// <summary>
+        /// Создаёт маршрут ссылки входа студента в банк заданий модуля.
+        /// </summary>
+        public static string ForModuleTrainingLink(Guid practicalModuleId) =>
+            ReplaceUrlSegment(ModuleTrainingLink, "practicalModuleId:guid", practicalModuleId.ToString());
 
         /// <summary>
         /// Создаёт маршрут приёма оценки от модуля.

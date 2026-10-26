@@ -53,6 +53,14 @@ internal sealed class ModuleIntegrationConfig : IModuleIntegrationConfig
         return $"{origin}{basePath}/teacher/launch{queryString}#access_token={accessToken}";
     }
 
+    /// <inheritdoc />
+    public string BuildTrainingUrl(string moduleBasePath, string launchPath, string accessToken, string? returnPath = null)
+    {
+        var (origin, basePath) = ResolveModuleBase(moduleBasePath);
+        var queryString = String.IsNullOrEmpty(returnPath) ? String.Empty : "?return=" + Uri.EscapeDataString(returnPath);
+        return $"{origin}{basePath}{launchPath}{queryString}#access_token={accessToken}";
+    }
+
     // За общим reverse-proxy: {PlatformOrigin}{basePath}/... (SPA модуля смонтирована в basePath).
     // Безшлюзовая разработка (ModuleWebOrigin задан): SPA модуля отдаётся с корня своего порта,
     // basePath не добавляем.

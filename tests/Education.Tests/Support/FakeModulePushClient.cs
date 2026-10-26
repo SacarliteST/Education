@@ -11,6 +11,9 @@ public sealed class FakeModulePushClient : IModulePushClient
     /// <summary>Имитировать недоступность модуля: пуш завершается <see cref="ModulePushFailedException"/>.</summary>
     public bool ThrowUnavailable { get; init; }
 
+    /// <summary>Имитировать ответ модуля «сессия уже завершена»: пуш завершается <see cref="ModuleSessionClosedException"/>.</summary>
+    public bool ThrowSessionClosed { get; init; }
+
     /// <inheritdoc />
     public Task PushAsync(
         string sessionsEndpoint,
@@ -18,6 +21,11 @@ public sealed class FakeModulePushClient : IModulePushClient
         ModuleSessionPush push,
         CancellationToken cancellationToken = default)
     {
+        if (ThrowSessionClosed)
+        {
+            throw new ModuleSessionClosedException("test: session closed in module");
+        }
+
         if (ThrowUnavailable)
         {
             throw new ModulePushFailedException("test: module unavailable");

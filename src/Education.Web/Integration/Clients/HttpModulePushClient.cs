@@ -49,6 +49,12 @@ internal sealed class HttpModulePushClient : IModulePushClient
             throw new ModulePushFailedException($"Модуль '{moduleSlug}' не принял пуш сессии (нет ответа).");
         }
 
+        if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            // 409 при пуше — сессия в модуле уже завершена/истекла (ModuleSession.Completed); итог придёт обратным вызовом.
+            throw new ModuleSessionClosedException($"Сессия в модуле '{moduleSlug}' уже не активна.");
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             throw new ModulePushFailedException(
