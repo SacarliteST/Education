@@ -109,7 +109,9 @@ internal static class ModuleSessionsEndpointGroup
                         info.AttemptsCount,
                         info.TriesCount,
                         info.TimeLimitMinutes,
-                        info.BestGrade));
+                        info.BestGrade,
+                        info.AttemptsPerSession,
+                        info.SubmissionsCount));
                 }
                 catch (ExternalTaskNotFoundException)
                 {

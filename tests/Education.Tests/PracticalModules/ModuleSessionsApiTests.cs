@@ -142,6 +142,31 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     }
 
     [Fact]
+    public async Task Current_ShowsSubmissionsUsed_FromEventsJournal()
+    {
+        var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
+        var client = StudentClient(new FakeModulePushClient());
+        var started = await StartAsync(client, context);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+            var now = DateTimeOffset.UtcNow;
+            db.PracticalTaskEvents.AddRange(
+                new PracticalTaskEvent(Guid.NewGuid(), started.SessionId, "sql_submit", now, "{}"),
+                new PracticalTaskEvent(Guid.NewGuid(), started.SessionId, "sql_submit", now.AddSeconds(1), "{}"),
+                new PracticalTaskEvent(Guid.NewGuid(), started.SessionId, "other", now.AddSeconds(2), "{}"));
+            await db.SaveChangesAsync();
+        }
+
+        var current = await client.GetFromJsonAsync<CurrentModuleSessionResponse>(
+            '/' + ApiRoutes.Practicals.ForModuleSessionCurrent(context.PracticalId) + $"?taskId={context.TaskId}");
+
+        Assert.Equal(2, current!.SubmissionsCount);
+        Assert.Null(current.AttemptsPerSession);
+    }
+
+    [Fact]
     public async Task Abandon_Twice_SecondIs409()
     {
         var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);

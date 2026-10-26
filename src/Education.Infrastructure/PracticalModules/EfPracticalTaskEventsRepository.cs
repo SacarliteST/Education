@@ -40,6 +40,13 @@ internal sealed class EfPracticalTaskEventsRepository : IPracticalTaskEventsRepo
     }
 
     /// <inheritdoc />
+    public Task<int> CountByKindAsync(Guid sessionId, string kind, CancellationToken cancellationToken = default)
+    {
+        return context.PracticalTaskEvents.CountAsync(
+            taskEvent => taskEvent.SessionId == sessionId && taskEvent.Kind == kind, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PracticalTaskEvent>> GetForSessionAsync(
         Guid sessionId,
         CancellationToken cancellationToken = default)

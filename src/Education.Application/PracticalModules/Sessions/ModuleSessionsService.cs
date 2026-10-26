@@ -12,6 +12,9 @@ namespace Education.Application.PracticalModules;
 /// <summary>Жизненный цикл сессий внешнего практического модуля: запуск, возобновление, завершение и сроки.</summary>
 public sealed class ModuleSessionsService : IModuleSessionsService
 {
+    /// <summary>Вид события журнала, который модуль пишет на каждую засчитанную отправку решения.</summary>
+    private const string SubmitEventKind = "sql_submit";
+
     private readonly IEducationUserResolver userResolver;
     private readonly ICurrentUser currentUser;
     private readonly IPracticalsRepository practicalsRepository;
@@ -178,12 +181,18 @@ public sealed class ModuleSessionsService : IModuleSessionsService
         var attemptsCount = await sessionsRepository.CountForUserTaskAsync(userId, taskId, cancellationToken);
         var bestGrade = await sessionsRepository.BestGradeForUserTaskAsync(userId, taskId, cancellationToken);
 
+        var submissions = latest is null
+            ? 0
+            : await eventsRepository.CountByKindAsync(latest.Id, SubmitEventKind, cancellationToken);
+
         return new CurrentModuleSessionInfo(
             latest is null ? null : ToStatus(latest),
             attemptsCount,
             binding.TriesCount,
             binding.TimeLimitMinutes,
-            bestGrade);
+            bestGrade,
+            binding.AttemptsPerSession,
+            submissions);
     }
 
     /// <inheritdoc />
