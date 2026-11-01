@@ -4,7 +4,8 @@
 public sealed record ClassWindowInfo(
     Guid Id,
     Guid CourseId,
-    string GroupName,
+    string? GroupName,
+    IReadOnlyList<ClassWindowStudentInfo> Students,
     DateTimeOffset StartsAt,
     DateTimeOffset EndsAt,
     DateTimeOffset? ClosedAt,

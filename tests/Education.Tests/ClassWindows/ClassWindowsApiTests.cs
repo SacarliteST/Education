@@ -106,7 +106,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
         var teacher = TeacherClient();
         var second = await teacher.PostAsJsonAsync(
             '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId),
-            new StartClassWindowRequest("G-DUP", 30));
+            new StartClassWindowRequest("G-DUP", null, 30));
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
         Assert.Equal("ClassWindow.AlreadyOpen", await ReadCodeAsync(second));
     }
@@ -118,8 +118,78 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
         var teacher = TeacherClient();
         var response = await teacher.PostAsJsonAsync(
             '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId),
-            new StartClassWindowRequest("G-BAD", 3));
+            new StartClassWindowRequest("G-BAD", null, 3));
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Start_WithoutGroupAndStudents_Returns400()
+    {
+        var context = await CreateCourseAsync(practiceOnly: true, group: "G-NONE");
+        var teacher = TeacherClient();
+        var response = await teacher.PostAsJsonAsync(
+            '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId),
+            new StartClassWindowRequest(null, null, 30));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("ClassWindow.TargetRequired", await ReadCodeAsync(response));
+    }
+
+    [Fact]
+    public async Task Start_WithStudentNotAssignedToCourse_Returns400()
+    {
+        var context = await CreateCourseAsync(practiceOnly: true, group: "G-FOREIGN");
+        var teacher = TeacherClient();
+        var response = await teacher.PostAsJsonAsync(
+            '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId),
+            new StartClassWindowRequest(null, [Guid.NewGuid()], 30));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("ClassWindow.StudentsNotAssigned", await ReadCodeAsync(response));
+    }
+
+    [Fact]
+    public async Task Start_ForListedStudentWithoutGroup_GrantsAccess()
+    {
+        var context = await CreateCourseAsync(practiceOnly: true, group: null);
+
+        var window = await StartWindowAsync(context.CourseId, null, [factory.Seed.TestUserId], 30);
+        Assert.True(window.IsActive);
+        Assert.Null(window.GroupName);
+        Assert.Equal(factory.Seed.TestUserId, window.Students.Single().UserId);
+
+        var access = await GetAccessAsync(context.CourseId);
+        Assert.True(access.IsOpen);
+        Assert.NotNull(access.EndsAt);
+
+        var response = await StartSessionAsync(new FakeModulePushClient(), context);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Start_WhenStudentWindowAlreadyOpen_Returns409()
+    {
+        var context = await CreateCourseAsync(practiceOnly: true, group: "G-DS");
+        await StartWindowAsync(context.CourseId, null, [factory.Seed.TestUserId], 30);
+
+        var teacher = TeacherClient();
+        var second = await teacher.PostAsJsonAsync(
+            '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId),
+            new StartClassWindowRequest(null, [factory.Seed.TestUserId], 30));
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        Assert.Equal("ClassWindow.AlreadyOpen", await ReadCodeAsync(second));
+    }
+
+    [Fact]
+    public async Task Teacher_SeesCourseStudentsForPicker()
+    {
+        var context = await CreateCourseAsync(practiceOnly: false, group: "G-PICK");
+
+        var teacher = TeacherClient();
+        var overview = await teacher.GetFromJsonAsync<CourseClassWindowsResponse>(
+            '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId));
+        var student = Assert.Single(overview!.Students);
+        Assert.Equal(factory.Seed.TestUserId, student.UserId);
+        Assert.Equal("G-PICK", student.GroupName);
+        Assert.False(String.IsNullOrWhiteSpace(student.DisplayName));
     }
 
     [Fact]
@@ -187,7 +257,7 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
         teacher.AuthenticateAsIdentity(factory.Seed.OtherTeacherId, [EducationRoles.Teacher]);
         var response = await teacher.PostAsJsonAsync(
             '/' + ApiRoutes.Courses.ForClassWindows(context.CourseId),
-            new StartClassWindowRequest("G-SEC", 30));
+            new StartClassWindowRequest("G-SEC", null, 30));
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
@@ -242,10 +312,15 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
         return (await client.GetFromJsonAsync<ClassAccessResponse>('/' + ApiRoutes.Courses.ForClassAccess(courseId)))!;
     }
 
-    private async Task<ClassWindowResponse> StartWindowAsync(Guid courseId, string group, int minutes)
+    private async Task<ClassWindowResponse> StartWindowAsync(Guid courseId, string group, int minutes) =>
+        await StartWindowAsync(courseId, (string?)group, null, minutes);
+
+    private async Task<ClassWindowResponse> StartWindowAsync(
+        Guid courseId, string? group, IReadOnlyList<Guid>? studentUserIds, int minutes)
     {
         var response = await TeacherClient().PostAsJsonAsync(
-            '/' + ApiRoutes.Courses.ForClassWindows(courseId), new StartClassWindowRequest(group, minutes));
+            '/' + ApiRoutes.Courses.ForClassWindows(courseId),
+            new StartClassWindowRequest(group, studentUserIds, minutes));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ClassWindowResponse>())!;
     }

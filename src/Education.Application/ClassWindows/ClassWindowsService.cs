@@ -57,12 +57,14 @@ public sealed class ClassWindowsService : IClassWindowsService
         var course = await repository.GetCourseAsync(courseId, cancellationToken)
             ?? throw new CourseAccessDeniedException(courseId);
         var groups = await repository.ListGroupsAsync(courseId, cancellationToken);
+        var students = await repository.ListStudentsAsync(courseId, cancellationToken);
         var windows = await repository.ListForCourseAsync(courseId, HistorySize, cancellationToken);
         var now = timeProvider.GetUtcNow();
         return new CourseClassWindows(
             course.PracticeOnlyDuringClass,
             groups,
-            windows.Select(window => ToInfo(window, now)).ToList());
+            students,
+            windows.Select(window => ToInfo(window, students, now)).ToList());
     }
 
     /// <inheritdoc />
@@ -79,19 +81,35 @@ public sealed class ClassWindowsService : IClassWindowsService
 
     /// <inheritdoc />
     public async Task<ClassWindowInfo> StartAsync(
-        Guid courseId, string groupName, int durationMinutes, CancellationToken cancellationToken = default)
+        Guid courseId, string? groupName, IReadOnlyCollection<Guid> studentUserIds, int durationMinutes,
+        CancellationToken cancellationToken = default)
     {
         var teacherId = await EnsureCourseOwnerAsync(courseId, cancellationToken);
-        var group = groupName?.Trim();
-        if (String.IsNullOrEmpty(group))
+        var group = String.IsNullOrWhiteSpace(groupName) ? null : groupName.Trim();
+        var studentIds = studentUserIds.Distinct().ToList();
+        if (group is null && studentIds.Count == 0)
         {
-            throw new ClassWindowGroupRequiredException();
+            throw new ClassWindowTargetRequiredException();
+        }
+
+        var students = await repository.ListStudentsAsync(courseId, cancellationToken);
+        if (studentIds.Any(id => students.All(student => student.UserId != id)))
+        {
+            throw new ClassWindowStudentsNotAssignedException();
         }
 
         var now = timeProvider.GetUtcNow();
-        var existing = await repository.GetUnclosedAsync(courseId, group, cancellationToken);
-        if (existing is not null)
+        var unclosed = await repository.ListUnclosedAsync(courseId, cancellationToken);
+        foreach (var existing in unclosed)
         {
+            var sameGroup = group is not null
+                && String.Equals(existing.GroupName, group, StringComparison.OrdinalIgnoreCase);
+            var sameStudents = existing.Students.Any(student => studentIds.Contains(student.UserId));
+            if (!sameGroup && !sameStudents)
+            {
+                continue;
+            }
+
             if (existing.IsOpenAt(now))
             {
                 throw new ClassWindowAlreadyOpenException();
@@ -99,15 +117,16 @@ public sealed class ClassWindowsService : IClassWindowsService
 
             // Просроченная, но не закрытая вручную пара мешает уникальному индексу — закрываем.
             existing.Finish(existing.EndsAt, teacherId);
-            await repository.SaveChangesAsync(cancellationToken);
         }
 
-        var window = ClassWindow.Start(courseId, group, now, durationMinutes, teacherId);
+        await repository.SaveChangesAsync(cancellationToken);
+
+        var window = ClassWindow.Start(courseId, group, studentIds, now, durationMinutes, teacherId);
         await repository.AddAsync(window, cancellationToken);
         logger.LogInformation(
-            "Начата пара {WindowId}: курс {CourseId}, группа {Group}, {Minutes} мин, преподаватель {TeacherId}.",
-            window.Id, courseId, group, durationMinutes, teacherId);
-        return ToInfo(window, now);
+            "Начата пара {WindowId}: курс {CourseId}, группа {Group}, студентов {StudentsCount}, {Minutes} мин, преподаватель {TeacherId}.",
+            window.Id, courseId, group ?? "—", studentIds.Count, durationMinutes, teacherId);
+        return ToInfo(window, students, now);
     }
 
     /// <inheritdoc />
@@ -125,8 +144,8 @@ public sealed class ClassWindowsService : IClassWindowsService
         window.Extend(minutes, now);
         await repository.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Пара {WindowId} продлена на {Minutes} мин, конец {EndsAt}.", windowId, minutes, window.EndsAt);
-        await ApplyExpiryAsync(window, now, finished: false, cancellationToken);
-        return ToInfo(window, now);
+        await ApplyExpiryAsync(window, now, cancellationToken);
+        return await ToInfoWithNamesAsync(window, now, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -144,18 +163,19 @@ public sealed class ClassWindowsService : IClassWindowsService
         window.Finish(now, teacherId);
         await repository.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Пара {WindowId} завершена досрочно преподавателем {TeacherId}.", windowId, teacherId);
-        await ApplyExpiryAsync(window, now, finished: true, cancellationToken);
-        return ToInfo(window, now);
+        await ApplyExpiryAsync(window, now, cancellationToken);
+        return await ToInfoWithNamesAsync(window, now, cancellationToken);
     }
 
     /// <summary>
-    /// Переносит новый срок пары на идущие сессии группы: у модуля обновляется <c>expiresAt</c>, у платформы — срок сессии.
-    /// Сбой пуша не откатывает пару — только пишется в лог (сессия закроется по прежнему сроку).
+    /// Переносит новый срок пары на идущие сессии аудитории пары: у модуля обновляется <c>expiresAt</c>,
+    /// у платформы — срок сессии. Сбой пуша не откатывает пару — только пишется в лог (сессия закроется по прежнему сроку).
     /// </summary>
-    private async Task ApplyExpiryAsync(
-        ClassWindow window, DateTimeOffset now, bool finished, CancellationToken cancellationToken)
+    private async Task ApplyExpiryAsync(ClassWindow window, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        var targets = await repository.ListActiveSessionsAsync(window.CourseId, window.GroupName, cancellationToken);
+        var studentIds = window.Students.Select(student => student.UserId).ToList();
+        var targets = await repository.ListActiveSessionsAsync(
+            window.CourseId, window.GroupName, studentIds, cancellationToken);
         foreach (var target in targets)
         {
             var session = target.Session;
@@ -220,10 +240,24 @@ public sealed class ClassWindowsService : IClassWindowsService
         return userId;
     }
 
-    private static ClassWindowInfo ToInfo(ClassWindow window, DateTimeOffset now) => new(
+    private async Task<ClassWindowInfo> ToInfoWithNamesAsync(
+        ClassWindow window, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var students = await repository.ListStudentsAsync(window.CourseId, cancellationToken);
+        return ToInfo(window, students, now);
+    }
+
+    private static ClassWindowInfo ToInfo(
+        ClassWindow window, IReadOnlyList<ClassWindowStudentOption> courseStudents, DateTimeOffset now) => new(
         window.Id,
         window.CourseId,
         window.GroupName,
+        window.Students
+            .Select(student => new ClassWindowStudentInfo(
+                student.UserId,
+                courseStudents.FirstOrDefault(option => option.UserId == student.UserId)?.DisplayName
+                    ?? student.UserId.ToString()))
+            .ToList(),
         window.StartsAt,
         window.EffectiveEnd,
         window.ClosedAt,

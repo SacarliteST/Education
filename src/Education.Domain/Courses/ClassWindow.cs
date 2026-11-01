@@ -3,7 +3,8 @@
 namespace Education.Domain.Courses;
 
 /// <summary>
-/// «Пара» — окно доступа к тестам и практике курса для одной группы: начинает преподаватель, задаёт длительность.
+/// «Пара» — окно доступа к тестам и практике курса: начинает преподаватель, задаёт длительность.
+/// Доступ открывается группе (<see cref="GroupName"/>) и/или перечисленным студентам (<see cref="Students"/>).
 /// </summary>
 public sealed class ClassWindow : Entity
 {
@@ -19,8 +20,11 @@ public sealed class ClassWindow : Entity
     /// <summary>Курс.</summary>
     public Guid CourseId { get; private set; }
 
-    /// <summary>Группа студентов (как в <c>User.GroupName</c>).</summary>
-    public string GroupName { get; private set; } = String.Empty;
+    /// <summary>Группа студентов (как в <c>User.GroupName</c>); <see langword="null"/> — пара только для перечисленных студентов.</summary>
+    public string? GroupName { get; private set; }
+
+    /// <summary>Студенты с точечным доступом к паре.</summary>
+    public List<ClassWindowStudent> Students { get; private set; } = [];
 
     /// <summary>Начало пары (UTC).</summary>
     public DateTimeOffset StartsAt { get; private set; }
@@ -44,25 +48,38 @@ public sealed class ClassWindow : Entity
     {
     }
 
-    /// <summary>Начинает пару на заданную длительность.</summary>
+    /// <summary>Начинает пару на заданную длительность. Нужна группа и/или хотя бы один студент.</summary>
     public static ClassWindow Start(
-        Guid courseId, string groupName, DateTimeOffset now, int durationMinutes, Guid startedByUserId)
+        Guid courseId, string? groupName, IReadOnlyCollection<Guid> studentUserIds,
+        DateTimeOffset now, int durationMinutes, Guid startedByUserId)
     {
         if (durationMinutes is < MinDurationMinutes or > MaxDurationMinutes)
         {
             throw new ArgumentOutOfRangeException(nameof(durationMinutes));
         }
 
+        var group = groupName?.Trim();
+        if (String.IsNullOrEmpty(group) && studentUserIds.Count == 0)
+        {
+            throw new ArgumentException("Нужна группа или хотя бы один студент.", nameof(studentUserIds));
+        }
+
         var start = now.ToUniversalTime();
-        return new ClassWindow
+        var window = new ClassWindow
         {
             CourseId = courseId,
-            GroupName = groupName.Trim(),
+            GroupName = String.IsNullOrEmpty(group) ? null : group,
             StartsAt = start,
             EndsAt = start.AddMinutes(durationMinutes),
             StartedByUserId = startedByUserId,
             CreatedAt = start,
         };
+        foreach (var userId in studentUserIds.Distinct())
+        {
+            window.Students.Add(ClassWindowStudent.Create(userId));
+        }
+
+        return window;
     }
 
     /// <summary>Реальный конец пары: ручное завершение, если оно раньше планового конца.</summary>

@@ -26,6 +26,10 @@ internal static class ClassWindowsEndpointGroup
                 return Results.Ok(new CourseClassWindowsResponse(
                     result.PracticeOnlyDuringClass,
                     result.Groups,
+                    result.Students
+                        .Select(student => new ClassWindowStudentOptionResponse(
+                            student.UserId, student.DisplayName, student.GroupName))
+                        .ToList(),
                     result.Windows.Select(ToResponse).ToList()));
             }))
             .WithTags("ClassWindows")
@@ -57,10 +61,11 @@ internal static class ClassWindowsEndpointGroup
                 IClassWindowsService service,
                 CancellationToken cancellationToken) => ExecuteAsync(async () =>
             {
-                if (String.IsNullOrWhiteSpace(request.GroupName))
+                var studentIds = request.StudentUserIds ?? [];
+                if (String.IsNullOrWhiteSpace(request.GroupName) && studentIds.Count == 0)
                 {
                     return Results.Json(
-                        new { code = "ClassWindow.GroupRequired", detail = "Группа обязательна." },
+                        new { code = "ClassWindow.TargetRequired", detail = "Укажите группу или хотя бы одного студента." },
                         statusCode: StatusCodes.Status400BadRequest);
                 }
 
@@ -75,12 +80,13 @@ internal static class ClassWindowsEndpointGroup
                         statusCode: StatusCodes.Status400BadRequest);
                 }
 
-                var window = await service.StartAsync(courseId, request.GroupName, request.DurationMinutes, cancellationToken);
+                var window = await service.StartAsync(
+                    courseId, request.GroupName, studentIds, request.DurationMinutes, cancellationToken);
                 return Results.Ok(ToResponse(window));
             }))
             .WithTags("ClassWindows")
             .WithName("StartClassWindow")
-            .WithSummary("Начать пару для группы")
+            .WithSummary("Начать пару для группы и/или перечисленных студентов")
             .Produces<ClassWindowResponse>()
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status403Forbidden)
@@ -152,7 +158,14 @@ internal static class ClassWindowsEndpointGroup
     }
 
     private static ClassWindowResponse ToResponse(ClassWindowInfo info) => new(
-        info.Id, info.CourseId, info.GroupName, info.StartsAt, info.EndsAt, info.ClosedAt, info.IsActive);
+        info.Id,
+        info.CourseId,
+        info.GroupName,
+        info.Students.Select(student => new ClassWindowStudentResponse(student.UserId, student.DisplayName)).ToList(),
+        info.StartsAt,
+        info.EndsAt,
+        info.ClosedAt,
+        info.IsActive);
 
     private static async Task<IResult> ExecuteAsync(Func<Task<IResult>> command)
     {
@@ -182,10 +195,16 @@ internal static class ClassWindowsEndpointGroup
                 new { code = "ClassWindow.NotFound", detail = exception.Message },
                 statusCode: StatusCodes.Status404NotFound);
         }
-        catch (ClassWindowGroupRequiredException exception)
+        catch (ClassWindowTargetRequiredException exception)
         {
             return Results.Json(
-                new { code = "ClassWindow.GroupRequired", detail = exception.Message },
+                new { code = "ClassWindow.TargetRequired", detail = exception.Message },
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+        catch (ClassWindowStudentsNotAssignedException exception)
+        {
+            return Results.Json(
+                new { code = "ClassWindow.StudentsNotAssigned", detail = exception.Message },
                 statusCode: StatusCodes.Status400BadRequest);
         }
     }

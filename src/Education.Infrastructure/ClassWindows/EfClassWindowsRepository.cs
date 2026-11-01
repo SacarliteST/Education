@@ -55,6 +55,7 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
         return db.ClassWindows
             .AsNoTracking()
             .Where(window => window.CourseId == courseId
+                && window.GroupName != null
                 && window.GroupName.ToLower() == groupKey
                 && window.StartsAt <= at
                 && window.EndsAt > endCheck
@@ -64,18 +65,36 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
     }
 
     /// <inheritdoc />
-    public Task<ClassWindow?> GetUnclosedAsync(Guid courseId, string groupName, CancellationToken cancellationToken = default)
+    public Task<ClassWindow?> FindOpenForUserAsync(
+        Guid courseId, Guid userId, DateTimeOffset at, TimeSpan grace, CancellationToken cancellationToken = default)
     {
-        var groupKey = groupName.Trim();
-        return db.ClassWindows.FirstOrDefaultAsync(
-            window => window.CourseId == courseId && window.GroupName == groupKey && window.ClosedAt == null,
-            cancellationToken);
+        var endCheck = at - grace;
+        return db.ClassWindows
+            .AsNoTracking()
+            .Where(window => window.CourseId == courseId
+                && window.Students.Any(student => student.UserId == userId)
+                && window.StartsAt <= at
+                && window.EndsAt > endCheck
+                && (window.ClosedAt == null || window.ClosedAt > endCheck))
+            .OrderByDescending(window => window.StartsAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ClassWindow>> ListUnclosedAsync(Guid courseId, CancellationToken cancellationToken = default)
+    {
+        return await db.ClassWindows
+            .Include(window => window.Students)
+            .Where(window => window.CourseId == courseId && window.ClosedAt == null)
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<ClassWindow?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return db.ClassWindows.FirstOrDefaultAsync(window => window.Id == id, cancellationToken);
+        return db.ClassWindows
+            .Include(window => window.Students)
+            .FirstOrDefaultAsync(window => window.Id == id, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -84,6 +103,7 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
     {
         return await db.ClassWindows
             .AsNoTracking()
+            .Include(window => window.Students)
             .Where(window => window.CourseId == courseId)
             .OrderByDescending(window => window.StartsAt)
             .Take(take)
@@ -103,10 +123,34 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<ActiveSessionTarget>> ListActiveSessionsAsync(
-        Guid courseId, string groupName, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ClassWindowStudentOption>> ListStudentsAsync(
+        Guid courseId, CancellationToken cancellationToken = default)
     {
-        var groupKey = groupName.Trim().ToLower();
+        var rows = await db.CourseBindUsers
+            .AsNoTracking()
+            .Where(bind => bind.CourseId == courseId)
+            .Select(bind => new
+            {
+                bind.UserId,
+                bind.User.Login,
+                bind.User.FirstName,
+                bind.User.LastName,
+                bind.User.MiddleName,
+                bind.User.GroupName,
+            })
+            .ToListAsync(cancellationToken);
+        return rows
+            .Select(row => new ClassWindowStudentOption(
+                row.UserId, FormatDisplayName(row.LastName, row.FirstName, row.MiddleName, row.Login), row.GroupName))
+            .OrderBy(student => student.DisplayName)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ActiveSessionTarget>> ListActiveSessionsAsync(
+        Guid courseId, string? groupName, IReadOnlyCollection<Guid> studentUserIds, CancellationToken cancellationToken = default)
+    {
+        var groupKey = groupName?.Trim().ToLower();
         var rows = await (
             from session in db.PracticalModuleSessions
             join task in db.Cases on session.PracticalTaskId equals task.Id
@@ -114,8 +158,8 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
             where session.Status == ModuleSessionState.Active
                 && task.PracticalModuleId != null
                 && task.PracticalMaterial.Module.CourseId == courseId
-                && user.GroupName != null
-                && user.GroupName.ToLower() == groupKey
+                && ((groupKey != null && user.GroupName != null && user.GroupName.ToLower() == groupKey)
+                    || studentUserIds.Contains(session.UserId))
             select new
             {
                 Session = session,
@@ -139,4 +183,11 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
 
     /// <inheritdoc />
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) => db.SaveChangesAsync(cancellationToken);
+
+    private static string FormatDisplayName(string lastName, string firstName, string middleName, string login)
+    {
+        var full = $"{lastName} {firstName} {middleName}".Trim();
+        var collapsed = String.Join(' ', full.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        return collapsed.Length > 0 ? $"{collapsed} ({login})" : login;
+    }
 }

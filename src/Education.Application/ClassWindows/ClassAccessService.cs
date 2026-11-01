@@ -96,20 +96,27 @@ public sealed class ClassAccessService : IClassAccessService
     private async Task<Education.Domain.Courses.ClassWindow?> FindWindowAsync(
         Guid courseId, Guid userId, TimeSpan grace, CancellationToken cancellationToken)
     {
+        var now = timeProvider.GetUtcNow();
+        var userWindow = await repository.FindOpenForUserAsync(courseId, userId, now, grace, cancellationToken);
+
         var profile = await profiles.FindProfileAsync(userId, cancellationToken);
         var group = profile?.GroupName?.Trim();
-        if (String.IsNullOrEmpty(group))
+        var groupWindow = String.IsNullOrEmpty(group)
+            ? null
+            : await repository.FindOpenAsync(courseId, group, now, grace, cancellationToken);
+
+        if (groupWindow is null || userWindow is null)
         {
-            return null;
+            return groupWindow ?? userWindow;
         }
 
-        return await repository.FindOpenAsync(courseId, group, timeProvider.GetUtcNow(), grace, cancellationToken);
+        return groupWindow.EffectiveEnd >= userWindow.EffectiveEnd ? groupWindow : userWindow;
     }
 
     private void Deny(Guid courseId, Guid userId)
     {
         logger.LogWarning(
-            "Отказано в доступе к практике курса {CourseId}: у группы пользователя {UserId} нет идущей пары.",
+            "Отказано в доступе к практике курса {CourseId}: для пользователя {UserId} и его группы нет идущей пары.",
             courseId, userId);
         throw new ClassWindowClosedException();
     }

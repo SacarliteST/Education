@@ -10,7 +10,7 @@ public sealed class ClassWindowTests
     private static readonly Guid Teacher = Guid.NewGuid();
 
     private static ClassWindow NewWindow(int minutes = 90) =>
-        ClassWindow.Start(Guid.NewGuid(), "  G-1 ", Start, minutes, Teacher);
+        ClassWindow.Start(Guid.NewGuid(), "  G-1 ", [], Start, minutes, Teacher);
 
     [Fact]
     public void Start_TrimsGroup_AndSetsEnd()
@@ -20,6 +20,23 @@ public sealed class ClassWindowTests
         Assert.Equal("G-1", window.GroupName);
         Assert.Equal(Start.AddMinutes(90), window.EndsAt);
         Assert.Null(window.ClosedAt);
+    }
+
+    [Fact]
+    public void Start_WithoutGroup_ButWithStudents_Works()
+    {
+        var student = Guid.NewGuid();
+
+        var window = ClassWindow.Start(Guid.NewGuid(), null, [student, student], Start, 45, Teacher);
+
+        Assert.Null(window.GroupName);
+        Assert.Equal([student], window.Students.Select(item => item.UserId).ToList());
+    }
+
+    [Fact]
+    public void Start_WithoutGroupAndStudents_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => ClassWindow.Start(Guid.NewGuid(), " ", [], Start, 45, Teacher));
     }
 
     [Theory]

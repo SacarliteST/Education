@@ -50,7 +50,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .HasColumnName("ends_at");
 
                     b.Property<string>("GroupName")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("group_name");
@@ -67,9 +66,32 @@ namespace Education.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CourseId", "GroupName")
                         .IsUnique()
-                        .HasFilter("closed_at IS NULL");
+                        .HasFilter("closed_at IS NULL AND group_name IS NOT NULL");
 
                     b.ToTable("ClassWindows", (string)null);
+                });
+
+            modelBuilder.Entity("Education.Domain.Courses.ClassWindowStudent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClassWindowId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_window_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassWindowId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClassWindowStudents", (string)null);
                 });
 
             modelBuilder.Entity("Education.Domain.Courses.Course", b =>
@@ -869,6 +891,15 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Education.Domain.Courses.ClassWindowStudent", b =>
+                {
+                    b.HasOne("Education.Domain.Courses.ClassWindow", null)
+                        .WithMany("Students")
+                        .HasForeignKey("ClassWindowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Education.Domain.Courses.Course", b =>
                 {
                     b.HasOne("Education.Domain.Users.User", "User")
@@ -1103,6 +1134,11 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Education.Domain.Courses.ClassWindow", b =>
+                {
+                    b.Navigation("Students");
                 });
 
             modelBuilder.Entity("Education.Domain.Courses.Course", b =>

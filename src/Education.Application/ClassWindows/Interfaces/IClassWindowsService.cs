@@ -9,9 +9,10 @@ public interface IClassWindowsService
     /// <summary>Включает или выключает режим «практика только на парах».</summary>
     Task SetModeAsync(Guid courseId, bool practiceOnlyDuringClass, CancellationToken cancellationToken = default);
 
-    /// <summary>Начинает пару для группы.</summary>
+    /// <summary>Начинает пару для группы и/или перечисленных студентов.</summary>
     Task<ClassWindowInfo> StartAsync(
-        Guid courseId, string groupName, int durationMinutes, CancellationToken cancellationToken = default);
+        Guid courseId, string? groupName, IReadOnlyCollection<Guid> studentUserIds, int durationMinutes,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Продлевает идущую пару.</summary>
     Task<ClassWindowInfo> ExtendAsync(Guid windowId, int minutes, CancellationToken cancellationToken = default);
