@@ -22,8 +22,8 @@ Use the cheapest check that can reveal the current class of error:
 - During implementation: compile the affected project when useful; do not run all tests after every edit.
 - After a focused change: run the relevant integration test class or filter once.
 - If it fails: rerun only the failing test while fixing it.
-- After the task is fully implemented: run `dotnet format Education.sln --no-restore`, one build, and the complete test suite exactly once. Full-suite execution is the final acceptance gate, not a check after each edit.
+- After the task is fully implemented: build once and run the complete test suite exactly once. Full-suite execution is the final acceptance gate, not a check after each edit.
+- After the tests, run `dotnet format Education.sln --no-restore`, then perform one final `dotnet build Education.sln --no-restore --nologo -v:minimal`. Do not rerun tests merely because formatting completed, and do not spend time reviewing the formatter-only diff.
+- Then check only `git status` to avoid staging unrelated user work, stage the task-scoped files, and create the task commit without another broad analysis pass.
 
-Formatting is a final step. Inspect its diff and keep mechanical formatting separate from functional changes when it touches unrelated files.
-
-Do not start hosts, containers, migrations, code generation, network installs, commits, pushes, or cross-repository edits unless the task requires them. Stop processes and containers started for the task. Report exactly what was and was not verified.
+Do not start hosts, containers, migrations, code generation, network installs, pushes, or cross-repository edits unless the task requires them. Stop processes and containers started for the task. Report exactly what was and was not verified.
