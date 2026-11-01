@@ -79,11 +79,6 @@ public sealed class PracticalMaterial : Entity
     /// </summary>
     public List<TestResult> TestResults { get; private set; } = [];
 
-    /// <summary>
-    /// Связи практического материала с пользователями.
-    /// </summary>
-    public List<PracticalBindUser> PracticalBindUsers { get; private set; } = [];
-
     private PracticalMaterial()
     {
     }

@@ -33,21 +33,29 @@ internal sealed class TestSeedDataBuilder(string fileStorageRoot)
             DateTimeOffset.Parse("2025-02-01T00:00:00Z"),
             otherTeacher.Id);
 
-        await dbContext.Courses.AddRangeAsync(ownCourse, otherCourse);
+        // Курс того же преподавателя, но без назначенных студентов — для сценариев «студент не назначен».
+        var unassignedCourse = new Course(
+            "Teacher course without students",
+            "Own course without students",
+            DateTimeOffset.Parse("2025-03-01T00:00:00Z"),
+            testUser.Id);
+
+        await dbContext.Courses.AddRangeAsync(ownCourse, otherCourse, unassignedCourse);
         await dbContext.SaveChangesAsync();
 
         await dbContext.CourseBindUsers.AddAsync(new CourseBindUser(ownCourse.Id, testUser.Id));
 
         var module = new Module(ownCourse.Id, "Own module");
         var otherModule = new Module(otherCourse.Id, "Other module");
-        await dbContext.Modules.AddRangeAsync(module, otherModule);
+        var unassignedModule = new Module(unassignedCourse.Id, "Unassigned module");
+        await dbContext.Modules.AddRangeAsync(module, otherModule, unassignedModule);
         await dbContext.SaveChangesAsync();
 
         await dbContext.TheoreticalMaterials.AddAsync(new TheoreticalMaterial(module.Id, "Theory", "Theory text"));
         await dbContext.SaveChangesAsync();
 
         var assignedStartPractical = new PracticalMaterial(module.Id, "Assigned start practical");
-        var unassignedPractical = new PracticalMaterial(module.Id, "Unassigned practical");
+        var unassignedPractical = new PracticalMaterial(unassignedModule.Id, "Unassigned practical");
         var submitPractical = new PracticalMaterial(module.Id, "Submit practical");
         var limitedPractical = new PracticalMaterial(module.Id, "Limited practical");
         var protocolPractical = new PracticalMaterial(module.Id, "Protocol practical");
@@ -61,12 +69,8 @@ internal sealed class TestSeedDataBuilder(string fileStorageRoot)
             otherTeacherPractical);
         await dbContext.SaveChangesAsync();
 
-        await dbContext.PracticalBindUsers.AddRangeAsync(
-            new PracticalBindUser(assignedStartPractical.Id, testUser.Id),
-            new PracticalBindUser(submitPractical.Id, testUser.Id),
-            new PracticalBindUser(limitedPractical.Id, testUser.Id),
-            new PracticalBindUser(protocolPractical.Id, testUser.Id),
-            new PracticalBindUser(assignedStartPractical.Id, otherStudent.Id));
+        // Назначение единое — на курс: доступ к практике определяется связью с её курсом.
+        await dbContext.CourseBindUsers.AddAsync(new CourseBindUser(ownCourse.Id, otherStudent.Id));
         await dbContext.SaveChangesAsync();
 
         var assignedTask = new Case(assignedStartPractical.Id, "Assigned task", "Upload solution");

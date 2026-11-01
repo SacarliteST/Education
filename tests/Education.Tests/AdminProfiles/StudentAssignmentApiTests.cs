@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.AdminProfiles;
@@ -126,22 +126,22 @@ public sealed class StudentAssignmentApiTests : IClassFixture<TestWebApplication
     }
 
     [Fact]
-    public async Task Practical_PageAndChange_Work()
+    public async Task Practical_AssignmentEndpoints_AreRemoved()
     {
-        var group = await CreateStudentsAsync(2);
+        // Назначение единое — на курс; ручек назначения на практику больше нет.
         var client = TeacherClient();
         var practicalId = factory.Seed.SubmitPracticalId;
+        var baseRoute = '/' + ApiRoutes.Practicals.ForPractical(practicalId);
 
-        var change = await client.PostAsJsonAsync(
-            '/' + ApiRoutes.Practicals.ForStudentChanges(practicalId),
-            new ChangeStudentsRequest([group.Ids[0]], []));
-        Assert.Equal(HttpStatusCode.NoContent, change.StatusCode);
+        var replace = await client.PutAsJsonAsync(baseRoute + "/students", new ChangeStudentsRequest([], []));
+        var change = await client.PostAsJsonAsync(baseRoute + "/students/changes", new ChangeStudentsRequest([], []));
+        var page = await client.GetAsync(baseRoute + "/student-assignments");
+        var assignable = await client.GetAsync(baseRoute + "/assignable-students");
 
-        var page = await GetPageAsync(
-            client,
-            '/' + ApiRoutes.AdminProfiles.ForPracticalStudentAssignments(practicalId),
-            $"search={group.Marker}&assigned=true");
-        Assert.Equal(group.Ids[0], page.Items.Single().LegacyUserId);
+        Assert.Equal(HttpStatusCode.NotFound, replace.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, change.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, page.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, assignable.StatusCode);
     }
 
     [Fact]

@@ -25,7 +25,7 @@ internal sealed class EfTaskFilesRepository : ITaskFilesRepository
     {
         return context.Cases.AnyAsync(
             task => task.Id == taskId
-                && task.PracticalMaterial.PracticalBindUsers.Any(bind => bind.UserId == studentUserId),
+                && task.PracticalMaterial.Module.Course.CourseBindUsers.Any(bind => bind.UserId == studentUserId),
             cancellationToken);
     }
 

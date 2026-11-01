@@ -210,15 +210,11 @@ public sealed class TeacherWriteEndpointsApiTests : IClassFixture<TestWebApplica
 
         var courseStudents = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
             '/' + ApiRoutes.AdminProfiles.ForCourseAssignableStudents(factory.Seed.OwnCourseId));
-        var practicalStudents = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
-            '/' + ApiRoutes.AdminProfiles.ForPracticalAssignableStudents(factory.Seed.SubmitPracticalId));
 
         // связанный студенческий профиль в списке есть
         Assert.Contains(courseStudents!, item => item.LegacyUserId == factory.Seed.OtherStudentId);
-        Assert.Contains(practicalStudents!, item => item.LegacyUserId == factory.Seed.OtherStudentId);
         // связанный преподавательский профиль — нет
         Assert.DoesNotContain(courseStudents!, item => item.LegacyUserId == factory.Seed.TestUserId);
-        Assert.DoesNotContain(practicalStudents!, item => item.LegacyUserId == factory.Seed.TestUserId);
     }
 
     [Fact]
@@ -254,48 +250,6 @@ public sealed class TeacherWriteEndpointsApiTests : IClassFixture<TestWebApplica
         var response = await client.PutAsJsonAsync(
             '/' + ApiRoutes.Courses.ForCourseStudents(factory.Seed.OwnCourseId),
             new UpdateCourseStudentsRequest([factory.Seed.TestUserId]));
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    // G-6 -----------------------------------------------------------------
-
-    [Fact]
-    public async Task Teacher_ReplacesOwnPracticalStudents()
-    {
-        var client = TeacherClient();
-        var practicalId = factory.Seed.SubmitPracticalId;
-
-        var assign = await client.PutAsJsonAsync(
-            '/' + ApiRoutes.Practicals.ForStudents(practicalId),
-            new UpdatePracticalStudentsRequest([factory.Seed.OtherStudentId]));
-        Assert.Equal(HttpStatusCode.NoContent, assign.StatusCode);
-
-        var assigned = await client.GetFromJsonAsync<List<AssignableStudentResponse>>(
-            '/' + ApiRoutes.AdminProfiles.ForPracticalAssignableStudents(practicalId));
-        Assert.True(assigned!.Single(item => item.LegacyUserId == factory.Seed.OtherStudentId).IsAssigned);
-    }
-
-    [Fact]
-    public async Task Teacher_SetPracticalStudents_ForUnknownPractical_ReturnsForbidden()
-    {
-        var client = TeacherClient();
-
-        var response = await client.PutAsJsonAsync(
-            '/' + ApiRoutes.Practicals.ForStudents(Guid.NewGuid()),
-            new UpdatePracticalStudentsRequest([factory.Seed.TestUserId]));
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Admin_WithoutTeacherRole_CannotReplacePracticalStudents()
-    {
-        var client = AdminClient();
-
-        var response = await client.PutAsJsonAsync(
-            '/' + ApiRoutes.Practicals.ForStudents(factory.Seed.SubmitPracticalId),
-            new UpdatePracticalStudentsRequest([factory.Seed.TestUserId]));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }

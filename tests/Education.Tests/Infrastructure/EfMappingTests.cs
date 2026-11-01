@@ -60,7 +60,6 @@ public class EfMappingTests : IClassFixture<TestWebApplicationFactory>
 
         AssertForeignKeyToUser<Course>(model, nameof(Course.UserId));
         AssertForeignKeyToUser<CourseBindUser>(model, nameof(CourseBindUser.UserId));
-        AssertForeignKeyToUser<PracticalBindUser>(model, nameof(PracticalBindUser.UserId));
         AssertForeignKeyToUser<CaseFile>(model, nameof(CaseFile.UserId));
         AssertForeignKeyToUser<TestResult>(model, nameof(TestResult.UserId));
     }

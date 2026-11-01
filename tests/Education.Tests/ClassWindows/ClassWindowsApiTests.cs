@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Education.Application.PracticalModules;
@@ -271,7 +271,6 @@ public sealed class ClassWindowsApiTests : IClassFixture<TestWebApplicationFacto
             await db.Modules.AddAsync(module);
             var practical = new PracticalMaterial(module.Id, "p");
             await db.PracticalMaterials.AddAsync(practical);
-            await db.PracticalBindUsers.AddAsync(new PracticalBindUser(practical.Id, factory.Seed.TestUserId));
             var user = await db.Users.SingleAsync(item => item.Id == factory.Seed.TestUserId);
             user.ChangeGroup(group);
             await db.SaveChangesAsync();

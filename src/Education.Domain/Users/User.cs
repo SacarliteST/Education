@@ -75,11 +75,6 @@ public sealed class User : Entity
     /// </summary>
     public List<CourseBindUser> CourseBindUsers { get; private set; } = [];
 
-    /// <summary>
-    /// Связи пользователя с доступными практическими материалами.
-    /// </summary>
-    public List<PracticalBindUser> PracticalBindUsers { get; private set; } = [];
-
     private User()
     {
     }

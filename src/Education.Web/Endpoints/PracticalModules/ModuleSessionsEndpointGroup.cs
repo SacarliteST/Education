@@ -1,6 +1,7 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Education.Application.ClassWindows;
 using Education.Application.PracticalModules;
+using Education.Application.TestResults;
 using Education.Contracts;
 using Education.Contracts.PracticalModules;
 using Education.Domain.PracticalModules;
@@ -31,6 +32,10 @@ internal static class ModuleSessionsEndpointGroup
                 catch (ExternalTaskNotFoundException)
                 {
                     return Results.NotFound();
+                }
+                catch (StudentPracticalAccessDeniedException)
+                {
+                    return Results.Forbid();
                 }
                 catch (ClassWindowClosedException exception)
                 {
@@ -116,6 +121,10 @@ internal static class ModuleSessionsEndpointGroup
                 catch (ExternalTaskNotFoundException)
                 {
                     return Results.NotFound();
+                }
+                catch (StudentPracticalAccessDeniedException)
+                {
+                    return Results.Forbid();
                 }
             })
             .WithTags("ModuleSessions")

@@ -527,30 +527,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                     b.ToTable("CaseFileComments", (string)null);
                 });
 
-            modelBuilder.Entity("Education.Domain.Practicals.PracticalBindUser", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("PracticalMaterialId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("practical_material_id");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PracticalMaterialId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PracticalBindUsers", (string)null);
-                });
-
             modelBuilder.Entity("Education.Domain.Practicals.PracticalMaterial", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1031,25 +1007,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                     b.Navigation("CaseFile");
                 });
 
-            modelBuilder.Entity("Education.Domain.Practicals.PracticalBindUser", b =>
-                {
-                    b.HasOne("Education.Domain.Practicals.PracticalMaterial", "PracticalMaterial")
-                        .WithMany("PracticalBindUsers")
-                        .HasForeignKey("PracticalMaterialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Education.Domain.Users.User", "User")
-                        .WithMany("PracticalBindUsers")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PracticalMaterial");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Education.Domain.Practicals.PracticalMaterial", b =>
                 {
                     b.HasOne("Education.Domain.Courses.Module", "Module")
@@ -1185,8 +1142,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("Cases");
 
-                    b.Navigation("PracticalBindUsers");
-
                     b.Navigation("PracticalMaterialBindQuestions");
 
                     b.Navigation("TestResults");
@@ -1214,8 +1169,6 @@ namespace Education.Infrastructure.Persistence.Migrations
                     b.Navigation("CourseBindUsers");
 
                     b.Navigation("Courses");
-
-                    b.Navigation("PracticalBindUsers");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,7 +1,6 @@
 ﻿using Education.Application.AdminProfiles;
 using Education.Contracts.AdminProfiles;
 using Education.Contracts.Courses;
-using Education.Contracts.Practicals;
 using Education.Domain.Users;
 
 namespace Education.Web.Endpoints;
@@ -15,14 +14,6 @@ internal static class AdminProfilesEndpointMappings
     public static SetCourseStudentsCommand ToCommand(this UpdateCourseStudentsRequest request, Guid courseId)
     {
         return new SetCourseStudentsCommand(courseId, request.UserIds ?? []);
-    }
-
-    /// <summary>Преобразует <see cref="UpdatePracticalStudentsRequest"/> в команду приложения.</summary>
-    /// <param name="request">Исходные данные.</param>
-    /// <param name="practicalId">Идентификатор практики.</param>
-    public static SetPracticalStudentsCommand ToCommand(this UpdatePracticalStudentsRequest request, Guid practicalId)
-    {
-        return new SetPracticalStudentsCommand(practicalId, request.UserIds ?? []);
     }
 
     /// <summary>Преобразует <see cref="CreateAdminProfileRequest"/> в команду приложения.</summary>
@@ -100,14 +91,6 @@ internal static class AdminProfilesEndpointMappings
     public static ChangeCourseStudentsCommand ToCommand(this ChangeStudentsRequest request, Guid courseId)
     {
         return new ChangeCourseStudentsCommand(courseId, request.Add, request.Remove);
-    }
-
-    /// <summary>Преобразует <see cref="ChangeStudentsRequest"/> в команду изменения студентов практики.</summary>
-    /// <param name="request">Исходные данные.</param>
-    /// <param name="practicalId">Идентификатор практики.</param>
-    public static ChangePracticalStudentsCommand ToPracticalCommand(this ChangeStudentsRequest request, Guid practicalId)
-    {
-        return new ChangePracticalStudentsCommand(practicalId, request.Add, request.Remove);
     }
 }
 

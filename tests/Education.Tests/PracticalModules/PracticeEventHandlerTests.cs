@@ -1,4 +1,4 @@
-using Education.Application.PracticalModules;
+﻿using Education.Application.PracticalModules;
 using Education.Domain.PracticalModules;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
@@ -135,14 +135,14 @@ public sealed class PracticeEventHandlerTests : IClassFixture<TestWebApplication
     {
         var sessionId = await SeedSessionAsync("key-md-4", "ACTIVE");
         // Эмодзи — суррогатная пара (4 байта UTF-8); граница лимита не должна её рвать.
-        var huge = string.Concat(Enumerable.Repeat("😀", 20_000));
+        var huge = String.Concat(Enumerable.Repeat("😀", 20_000));
 
         await HandleAsync(new PracticeEventInput(
             sessionId, "key-md-4", Guid.NewGuid(), "sql_submit", DateTimeOffset.UtcNow, "{}", huge));
 
         var stored = Assert.Single(await ReadEventsAsync(sessionId)).Markdown!;
         var body = stored[..^PracticalTaskEvent.MarkdownTruncationMarker.Length];
-        Assert.False(char.IsHighSurrogate(body[^1]));
+        Assert.False(Char.IsHighSurrogate(body[^1]));
         Assert.True(System.Text.Encoding.UTF8.GetByteCount(stored) <= PracticalTaskEvent.MaxMarkdownBytes);
     }
 

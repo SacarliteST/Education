@@ -1,11 +1,11 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Education.Application.PracticalModules;
-using Education.Domain.PracticalModules;
 using Education.Contracts;
 using Education.Contracts.Grades;
 using Education.Contracts.PracticalModules;
 using Education.Contracts.Practicals;
+using Education.Domain.PracticalModules;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
 using Education.Tests.Support;
@@ -235,8 +235,8 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task ExternalGrade_BestOfN_ViaGradeEndpoint()
     {
-        // назначенная студенту практика — GradesService требует назначения
-        var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null, assignStudent: true);
+        // студент назначен на курс практики (сидер) — GradesService и гейт сессий требуют назначения
+        var context = await BindFreshExternalPracticalAsync(triesCount: 3, timeLimitMinutes: null);
         var client = StudentClient(new FakeModulePushClient());
 
         foreach (var grade in new[] { 60, 90, 40 })
@@ -305,6 +305,23 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
             new StartModuleSessionRequest(context.TaskId));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Student_NotAssignedToCourse_Forbidden()
+    {
+        // Практика в курсе, на который студент не назначен: назначение единое — на курс.
+        var context = await BindExistingPracticalAsync(factory.Seed.UnassignedPracticalId, triesCount: 2);
+        var client = StudentClient(new FakeModulePushClient());
+
+        var start = await client.PostAsJsonAsync(
+            '/' + ApiRoutes.Practicals.ForModuleSessions(context.PracticalId),
+            new StartModuleSessionRequest(context.TaskId));
+        var current = await client.GetAsync(
+            '/' + ApiRoutes.Practicals.ForModuleSessionCurrent(context.PracticalId) + $"?taskId={context.TaskId}");
+
+        Assert.Equal(HttpStatusCode.Forbidden, start.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, current.StatusCode);
     }
 
     [Fact]
@@ -442,7 +459,7 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
     private sealed record BoundContext(Guid PracticalId, Guid TaskId, string ExternalTaskRef);
 
     private async Task<BoundContext> BindFreshExternalPracticalAsync(
-        int triesCount, int? timeLimitMinutes, bool assignStudent = false)
+        int triesCount, int? timeLimitMinutes)
     {
         // отдельная практика на каждый тест — свой независимый счётчик попыток
         var teacher = factory.CreateClient();
@@ -452,15 +469,6 @@ public sealed class ModuleSessionsApiTests : IClassFixture<TestWebApplicationFac
             new CreatePracticalRequest(factory.Seed.OwnModuleId, "external practical " + Guid.NewGuid().ToString("N")[..8]));
         practicalResponse.EnsureSuccessStatusCode();
         var practicalId = (await practicalResponse.Content.ReadFromJsonAsync<PracticalResponse>())!.Id;
-
-        if (assignStudent)
-        {
-            // назначает преподаватель-владелец практики (эндпоинт теперь TeacherOnly + владелец)
-            var assign = await teacher.PutAsJsonAsync(
-                '/' + ApiRoutes.Practicals.ForStudents(practicalId),
-                new UpdatePracticalStudentsRequest([factory.Seed.TestUserId]));
-            assign.EnsureSuccessStatusCode();
-        }
 
         return await BindExistingPracticalAsync(practicalId, triesCount, timeLimitMinutes);
     }

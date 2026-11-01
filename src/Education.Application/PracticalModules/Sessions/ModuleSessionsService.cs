@@ -1,8 +1,9 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text.Json;
 using Education.Application.ClassWindows;
 using Education.Application.Identity;
 using Education.Application.Practicals;
+using Education.Application.TestResults;
 using Education.Application.Users;
 using Education.Domain.PracticalModules;
 using Microsoft.Extensions.Logging;
@@ -83,6 +84,14 @@ public sealed class ModuleSessionsService : IModuleSessionsService
             ?? throw new ExternalTaskNotFoundException();
         var module = await practicalModulesRepository.GetByIdAsync(binding.PracticalModuleId, cancellationToken)
             ?? throw new ExternalTaskNotFoundException();
+
+        if (!await practicalsRepository.IsPracticalAssignedToStudentAsync(practicalId, userId, cancellationToken))
+        {
+            logger.LogWarning(
+                "Отказано в запуске сессии модуля: студент {UserId} не назначен на курс практики {PracticalId}.",
+                userId, practicalId);
+            throw new StudentPracticalAccessDeniedException(practicalId);
+        }
 
         var now = timeProvider.GetUtcNow();
         var windowEnd = await classAccess.RequireWindowEndAsync(binding.CourseId, userId, cancellationToken);
@@ -171,6 +180,14 @@ public sealed class ModuleSessionsService : IModuleSessionsService
         var userId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         var binding = await practicalsRepository.GetExternalTaskBindingAsync(practicalId, taskId, cancellationToken)
             ?? throw new ExternalTaskNotFoundException();
+
+        if (!await practicalsRepository.IsPracticalAssignedToStudentAsync(practicalId, userId, cancellationToken))
+        {
+            logger.LogWarning(
+                "Отказано в чтении гейта практики {PracticalId}: студент {UserId} не назначен на курс.",
+                practicalId, userId);
+            throw new StudentPracticalAccessDeniedException(practicalId);
+        }
 
         var latest = await sessionsRepository.GetLatestForUserTaskAsync(userId, taskId, cancellationToken);
         if (latest is not null)

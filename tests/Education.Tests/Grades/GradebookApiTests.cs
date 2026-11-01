@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.Grades;
@@ -69,20 +69,6 @@ public sealed class GradebookApiTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(student.PassedCount >= 1);
         Assert.True(student.AssignedCount >= student.PassedCount);
         Assert.NotNull(student.AverageGrade);
-    }
-
-    [Fact]
-    public async Task Gradebook_UnassignedPractical_IsNotAssignedCell()
-    {
-        var teacher = factory.CreateClient();
-        teacher.AuthenticateAs(EducationRoles.Teacher);
-        var book = await teacher.GetFromJsonAsync<CourseGradebookResponse>(
-            '/' + ApiRoutes.Grades.ForCourseGradebook(factory.Seed.OwnCourseId));
-
-        var student = Assert.Single(book!.Students, item => item.StudentId == factory.Seed.TestUserId);
-        var cell = Assert.Single(student.Cells, item => item.PracticalId == factory.Seed.UnassignedPracticalId);
-        Assert.False(cell.Assigned);
-        Assert.Null(cell.Grade);
     }
 
     [Fact]

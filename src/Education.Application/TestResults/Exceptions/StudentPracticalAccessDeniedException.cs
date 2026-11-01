@@ -1,6 +1,6 @@
 ﻿namespace Education.Application.TestResults;
 
-/// <summary>Студент не назначен на практику, доступ запрещён.</summary>
+/// <summary>Студент не назначен на курс практики, доступ запрещён.</summary>
 /// <param name="practicalId">Идентификатор практики.</param>
 public sealed class StudentPracticalAccessDeniedException(Guid practicalId) : Exception
 {

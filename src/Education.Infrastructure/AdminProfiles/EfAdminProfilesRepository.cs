@@ -1,6 +1,5 @@
 ﻿using Education.Application.AdminProfiles;
 using Education.Domain.Courses;
-using Education.Domain.Practicals;
 using Education.Domain.Users;
 using Education.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -121,24 +120,6 @@ internal sealed class EfAdminProfilesRepository : IAdminProfilesRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForPracticalAsync(
-        Guid practicalId,
-        CancellationToken cancellationToken = default)
-    {
-        return await context.Users
-            .AsNoTracking()
-            .Where(user => user.RoleId == RoleIds.Student
-                && user.IsActive)
-            .OrderBy(user => user.LastName)
-            .ThenBy(user => user.FirstName)
-            .Select(user => new AssignableStudent(
-                user.Id,
-                user.LastName + " " + user.FirstName + " " + user.MiddleName,
-                user.PracticalBindUsers.Any(bind => bind.PracticalMaterialId == practicalId)))
-            .ToListAsync(cancellationToken);
-    }
-
-    /// <inheritdoc />
     public async Task SetCourseStudentsAsync(
         SetCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
@@ -162,29 +143,6 @@ internal sealed class EfAdminProfilesRepository : IAdminProfilesRepository
     }
 
     /// <inheritdoc />
-    public async Task SetPracticalStudentsAsync(
-        SetPracticalStudentsCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var desiredIds = command.UserIds.ToHashSet();
-        await EnsureLinkedUsersAsync(desiredIds, cancellationToken);
-
-        var currentBinds = await context.PracticalBindUsers
-            .Where(bind => bind.PracticalMaterialId == command.PracticalId)
-            .ToListAsync(cancellationToken);
-
-        context.PracticalBindUsers.RemoveRange(currentBinds.Where(bind => !desiredIds.Contains(bind.UserId)));
-
-        var currentIds = currentBinds.Select(bind => bind.UserId).ToHashSet();
-        var newBinds = desiredIds
-            .Where(userId => !currentIds.Contains(userId))
-            .Select(userId => new PracticalBindUser(command.PracticalId, userId));
-
-        await context.PracticalBindUsers.AddRangeAsync(newBinds, cancellationToken);
-        await SaveOrTranslateAsync(desiredIds, cancellationToken);
-    }
-
-    /// <inheritdoc />
     public Task<AssignableStudentsPage> GetAssignableStudentsPageForCourseAsync(
         Guid courseId,
         AssignableStudentsQuery query,
@@ -192,18 +150,6 @@ internal sealed class EfAdminProfilesRepository : IAdminProfilesRepository
     {
         var assignedIds = context.CourseBindUsers
             .Where(bind => bind.CourseId == courseId)
-            .Select(bind => bind.UserId);
-        return GetAssignableStudentsPageAsync(assignedIds, query, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
-        Guid practicalId,
-        AssignableStudentsQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var assignedIds = context.PracticalBindUsers
-            .Where(bind => bind.PracticalMaterialId == practicalId)
             .Select(bind => bind.UserId);
         return GetAssignableStudentsPageAsync(assignedIds, query, cancellationToken);
     }
@@ -230,31 +176,6 @@ internal sealed class EfAdminProfilesRepository : IAdminProfilesRepository
             .Select(userId => new CourseBindUser(command.CourseId, userId));
 
         await context.CourseBindUsers.AddRangeAsync(newBinds, cancellationToken);
-        await SaveOrTranslateAsync(addIds, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task ChangePracticalStudentsAsync(
-        ChangePracticalStudentsCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var addIds = command.Add.ToHashSet();
-        var removeIds = command.Remove.ToHashSet();
-        await EnsureLinkedUsersAsync(addIds, cancellationToken);
-
-        var affected = await context.PracticalBindUsers
-            .Where(bind => bind.PracticalMaterialId == command.PracticalId
-                && (addIds.Contains(bind.UserId) || removeIds.Contains(bind.UserId)))
-            .ToListAsync(cancellationToken);
-
-        context.PracticalBindUsers.RemoveRange(affected.Where(bind => removeIds.Contains(bind.UserId)));
-
-        var alreadyAssigned = affected.Select(bind => bind.UserId).ToHashSet();
-        var newBinds = addIds
-            .Where(userId => !alreadyAssigned.Contains(userId))
-            .Select(userId => new PracticalBindUser(command.PracticalId, userId));
-
-        await context.PracticalBindUsers.AddRangeAsync(newBinds, cancellationToken);
         await SaveOrTranslateAsync(addIds, cancellationToken);
     }
 

@@ -63,16 +63,6 @@ public static partial class ApiRoutes
         public const string ModuleSessionEvents = ModuleSession + "/events";
 
         /// <summary>
-        /// Шаблон маршрута набора студентов, назначенных на практический материал.
-        /// </summary>
-        public const string Students = Practical + "/students";
-
-        /// <summary>
-        /// Шаблон маршрута точечного изменения набора студентов практического материала (добавить и убрать).
-        /// </summary>
-        public const string StudentChanges = Students + "/changes";
-
-        /// <summary>
         /// Создаёт маршрут для конкретного практического материала.
         /// </summary>
         public static string ForPractical(Guid practicalId) => ReplaceUrlSegment(
@@ -154,21 +144,5 @@ public static partial class ApiRoutes
                 "practicalId:guid",
                 practicalId.ToString())
             .Replace("{sessionId:guid}", sessionId.ToString());
-
-        /// <summary>
-        /// Создаёт маршрут набора студентов практического материала.
-        /// </summary>
-        public static string ForStudents(Guid practicalId) => ReplaceUrlSegment(
-            Students,
-            "practicalId:guid",
-            practicalId.ToString());
-
-        /// <summary>
-        /// Создаёт маршрут точечного изменения набора студентов практического материала.
-        /// </summary>
-        public static string ForStudentChanges(Guid practicalId) => ReplaceUrlSegment(
-            StudentChanges,
-            "practicalId:guid",
-            practicalId.ToString());
     }
 }

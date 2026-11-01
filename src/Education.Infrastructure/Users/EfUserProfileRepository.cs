@@ -59,12 +59,6 @@ internal sealed class EfUserProfileRepository : IUserProfileRepository
             .Select(bind => bind.CourseId)
             .ToHashSetAsync(cancellationToken);
 
-        var assignedPracticalIds = await context.PracticalBindUsers
-            .AsNoTracking()
-            .Where(bind => bind.UserId == userId)
-            .Select(bind => bind.PracticalMaterialId)
-            .ToHashSetAsync(cancellationToken);
-
         var caseFileIds = await context.CaseFiles
             .AsNoTracking()
             .Where(file => file.UserId == userId)
@@ -81,7 +75,6 @@ internal sealed class EfUserProfileRepository : IUserProfileRepository
             userId,
             ownedCourseIds,
             assignedCourseIds,
-            assignedPracticalIds,
             caseFileIds,
             testResultIds);
     }

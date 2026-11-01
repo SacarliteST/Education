@@ -20,6 +20,12 @@ public interface IPracticalsRepository : IBaseRepository<PracticalMaterial, Guid
     Task<bool> IsTaskOwnerAsync(Guid taskId, Guid teacherUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Проверяет, назначен ли студент на курс практики. Назначение единое — на курс;
+    /// доступ к любой практике курса открыт всем его студентам.
+    /// </summary>
+    Task<bool> IsPracticalAssignedToStudentAsync(Guid practicalId, Guid studentUserId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Возвращает практические материалы модуля.
     /// </summary>
     Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(Guid moduleId, CancellationToken cancellationToken = default);

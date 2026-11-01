@@ -46,7 +46,6 @@ public class UserResolverTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(factory.Seed.TestUserId, relations.LegacyUserId);
         Assert.Contains(factory.Seed.OwnCourseId, relations.OwnedCourseIds);
         Assert.Contains(factory.Seed.OwnCourseId, relations.AssignedCourseIds);
-        Assert.Contains(factory.Seed.AssignedStartPracticalId, relations.AssignedPracticalIds);
         Assert.Contains(factory.Seed.OtherTeacherCaseFileId, relations.CaseFileIds);
         Assert.Contains(factory.Seed.CompletedLimitedResultId, relations.TestResultIds);
     }

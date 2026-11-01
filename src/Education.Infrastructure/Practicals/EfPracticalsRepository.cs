@@ -40,6 +40,18 @@ internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial,
     }
 
     /// <inheritdoc />
+    public Task<bool> IsPracticalAssignedToStudentAsync(
+        Guid practicalId,
+        Guid studentUserId,
+        CancellationToken cancellationToken = default)
+    {
+        return DatabaseContext.PracticalMaterials.AnyAsync(
+            practical => practical.Id == practicalId
+                && practical.Module.Course.CourseBindUsers.Any(bind => bind.UserId == studentUserId),
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PracticalMaterial>> GetPracticalsAsync(
         Guid moduleId,
         CancellationToken cancellationToken = default)

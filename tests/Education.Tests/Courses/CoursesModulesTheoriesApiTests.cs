@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using Education.Contracts;
 using Education.Contracts.Courses;
@@ -24,8 +24,9 @@ public sealed class CoursesModulesTheoriesApiTests : IClassFixture<TestWebApplic
 
         var courses = await client.GetFromJsonAsync<IReadOnlyList<CourseResponse>>('/' + ApiRoutes.Courses.TeacherCourses);
 
-        var course = Assert.Single(courses!);
-        Assert.Equal(factory.Seed.OwnCourseId, course.Id);
+        // два курса преподавателя: основной и курс без назначенных студентов
+        Assert.Equal(2, courses!.Count);
+        Assert.Contains(courses, course => course.Id == factory.Seed.OwnCourseId);
     }
 
     [Fact]

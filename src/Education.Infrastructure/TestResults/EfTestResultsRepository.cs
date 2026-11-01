@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
-using Education.Infrastructure.Users;
 using Education.Application.TestResults;
 using Education.Domain.Practicals;
 using Education.Domain.Tests;
 using Education.Infrastructure.Persistence;
+using Education.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.TestResults;
@@ -26,8 +26,10 @@ internal sealed class EfTestResultsRepository : ITestResultsRepository
         Guid studentUserId,
         CancellationToken cancellationToken = default)
     {
-        return context.PracticalBindUsers.AnyAsync(
-            bind => bind.PracticalMaterialId == practicalId && bind.UserId == studentUserId,
+        // Назначение единое — на курс: доступ к любой практике курса открыт всем его студентам.
+        return context.PracticalMaterials.AnyAsync(
+            practical => practical.Id == practicalId
+                && practical.Module.Course.CourseBindUsers.Any(bind => bind.UserId == studentUserId),
             cancellationToken);
     }
 
@@ -249,7 +251,7 @@ internal sealed class EfTestResultsRepository : ITestResultsRepository
                     score.UserAnswer,
                     score.IsCorrect,
                     question?.QuestionTypeId ?? Guid.Empty,
-                    question?.Options ?? string.Empty);
+                    question?.Options ?? String.Empty);
             })
             .ToList();
 

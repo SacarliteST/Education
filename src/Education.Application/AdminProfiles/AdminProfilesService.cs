@@ -1,36 +1,31 @@
 ﻿using Education.Application.Courses;
-using Education.Application.Practicals;
 using Education.Application.Users;
 using Microsoft.Extensions.Logging;
 
 namespace Education.Application.AdminProfiles;
 
-/// <summary>Администрирование учебных профилей и назначение студентов на курсы и практики.</summary>
+/// <summary>Администрирование учебных профилей и назначение студентов на курсы.</summary>
 public sealed class AdminProfilesService : IAdminProfilesService
 {
     private readonly IAdminProfilesRepository repository;
     private readonly IEducationUserResolver userResolver;
     private readonly ICoursesRepository coursesRepository;
-    private readonly IPracticalsRepository practicalsRepository;
     private readonly ILogger<AdminProfilesService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="AdminProfilesService"/>.</summary>
     /// <param name="repository">Хранилище учебных профилей.</param>
     /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
     /// <param name="coursesRepository">Хранилище курсов.</param>
-    /// <param name="practicalsRepository">Хранилище практик.</param>
     /// <param name="logger">Журнал.</param>
     public AdminProfilesService(
         IAdminProfilesRepository repository,
         IEducationUserResolver userResolver,
         ICoursesRepository coursesRepository,
-        IPracticalsRepository practicalsRepository,
         ILogger<AdminProfilesService> logger)
     {
         this.repository = repository;
         this.userResolver = userResolver;
         this.coursesRepository = coursesRepository;
-        this.practicalsRepository = practicalsRepository;
         this.logger = logger;
     }
 
@@ -83,30 +78,12 @@ public sealed class AdminProfilesService : IAdminProfilesService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<AssignableStudent>> GetAssignableStudentsForPracticalAsync(
-        Guid practicalId,
-        CancellationToken cancellationToken = default)
-    {
-        await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
-        return await repository.GetAssignableStudentsForPracticalAsync(practicalId, cancellationToken);
-    }
-
-    /// <inheritdoc />
     public async Task SetCourseStudentsAsync(
         SetCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
     {
         await EnsureCourseOwnerAsync(command.CourseId, cancellationToken);
         await repository.SetCourseStudentsAsync(command, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task SetPracticalStudentsAsync(
-        SetPracticalStudentsCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
-        await repository.SetPracticalStudentsAsync(command, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -120,31 +97,12 @@ public sealed class AdminProfilesService : IAdminProfilesService
     }
 
     /// <inheritdoc />
-    public async Task<AssignableStudentsPage> GetAssignableStudentsPageForPracticalAsync(
-        Guid practicalId,
-        AssignableStudentsQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
-        return await repository.GetAssignableStudentsPageForPracticalAsync(practicalId, query, cancellationToken);
-    }
-
-    /// <inheritdoc />
     public async Task ChangeCourseStudentsAsync(
         ChangeCourseStudentsCommand command,
         CancellationToken cancellationToken = default)
     {
         await EnsureCourseOwnerAsync(command.CourseId, cancellationToken);
         await repository.ChangeCourseStudentsAsync(command, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task ChangePracticalStudentsAsync(
-        ChangePracticalStudentsCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
-        await repository.ChangePracticalStudentsAsync(command, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -162,18 +120,6 @@ public sealed class AdminProfilesService : IAdminProfilesService
                 "Отказано в назначении студентов на курс {CourseId}: пользователь {LegacyUserId} не владелец.",
                 courseId, legacyUserId);
             throw new CourseAccessDeniedException(courseId);
-        }
-    }
-
-    private async Task EnsurePracticalOwnerAsync(Guid practicalId, CancellationToken cancellationToken)
-    {
-        var legacyUserId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
-        if (!await practicalsRepository.IsPracticalOwnerAsync(practicalId, legacyUserId, cancellationToken))
-        {
-            logger.LogWarning(
-                "Отказано в назначении студентов на практику {PracticalId}: пользователь {LegacyUserId} не владелец.",
-                practicalId, legacyUserId);
-            throw new CourseAccessDeniedException(practicalId);
         }
     }
 }

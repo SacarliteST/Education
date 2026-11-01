@@ -1,6 +1,6 @@
-﻿using System.Net;
-using Education.Tests.Auth;
+using System.Net;
 using Education.Infrastructure.Persistence;
+using Education.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -61,7 +61,7 @@ public sealed class HostSmokeTests : IClassFixture<TestWebApplicationFactory>
         var dbContext = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
 
         Assert.Equal(3, await dbContext.Users.CountAsync());
-        Assert.Equal(2, await dbContext.Courses.CountAsync());
+        Assert.Equal(3, await dbContext.Courses.CountAsync());
         Assert.Equal(6, await dbContext.PracticalMaterials.CountAsync());
 
         // Учебный id пользователя равен id в Identity (claim sub тестового токена).

@@ -2,7 +2,6 @@
 using Education.Contracts;
 using Education.Contracts.AdminProfiles;
 using Education.Contracts.Courses;
-using Education.Contracts.Practicals;
 using Education.Web.Identity;
 using FluentValidation;
 
@@ -123,22 +122,6 @@ internal static class AdminProfilesEndpointGroup
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
-        app.MapGet(ApiRoutes.AdminProfiles.PracticalAssignableStudents, (
-                Guid practicalId,
-                IAdminProfilesService service,
-                CancellationToken cancellationToken) =>
-            EndpointResults.ExecuteTeacherCommandAsync(async () =>
-                Results.Ok((await service.GetAssignableStudentsForPracticalAsync(practicalId, cancellationToken))
-                    .Select(student => student.ToResponse()))))
-            .WithTags("AdminProfiles")
-            .WithName("GetPracticalAssignableStudents")
-            .WithSummary("Получение студентов для назначения на практику")
-            .WithDescription("Студенты с признаком назначения на выбранную практику. Только для преподавателя-владельца практики.")
-            .Produces<IEnumerable<AssignableStudentResponse>>()
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
-
         app.MapPut(ApiRoutes.Courses.CourseStudents, async (
                 Guid courseId,
                 UpdateCourseStudentsRequest request,
@@ -159,33 +142,6 @@ internal static class AdminProfilesEndpointGroup
             .WithName("SetCourseStudents")
             .WithSummary("Назначение студентов на курс")
             .WithDescription("Заменяет набор студентов курса. Только для преподавателя-владельца; неизвестные / не привязанные id → 400.")
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
-
-        app.MapPut(ApiRoutes.Practicals.Students, async (
-                Guid practicalId,
-                UpdatePracticalStudentsRequest request,
-                IValidator<UpdatePracticalStudentsRequest> validator,
-                IAdminProfilesService service,
-                CancellationToken cancellationToken) =>
-            {
-                var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
-                if (validation is not null)
-                {
-                    return validation;
-                }
-
-                return await EndpointResults.ExecuteTeacherCommandAsync(() =>
-                    service.SetPracticalStudentsAsync(request.ToCommand(practicalId), cancellationToken));
-            })
-            .WithTags("AdminProfiles")
-            .WithName("SetPracticalStudents")
-            .WithSummary("Назначение студентов на практику")
-            .WithDescription("Заменяет набор студентов практики. Только для преподавателя-владельца; неизвестные / не привязанные id → 400.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -224,37 +180,6 @@ internal static class AdminProfilesEndpointGroup
             .Produces(StatusCodes.Status403Forbidden)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
-        app.MapGet(ApiRoutes.AdminProfiles.PracticalStudentAssignments, (
-                Guid practicalId,
-                string? search,
-                bool? assigned,
-                string? group,
-                int? page,
-                int? pageSize,
-                IAdminProfilesService service,
-                CancellationToken cancellationToken) =>
-            {
-                var paging = ReadAssignmentPaging(search, assigned, group, page, pageSize);
-                if (paging.Problem is not null)
-                {
-                    return Task.FromResult(paging.Problem);
-                }
-
-                return EndpointResults.ExecuteTeacherCommandAsync(async () =>
-                    Results.Ok((await service.GetAssignableStudentsPageForPracticalAsync(
-                            practicalId, paging.Query!, cancellationToken))
-                        .ToResponse(paging.Query!.Page, paging.Query.PageSize)));
-            })
-            .WithTags("AdminProfiles")
-            .WithName("GetPracticalStudentAssignments")
-            .WithSummary("Постраничный список студентов для назначения на практику")
-            .WithDescription("Поиск по ФИО, логину и группе, фильтры assigned (true/false) и group, страницы по pageSize ≤ 200. Только для преподавателя-владельца практики.")
-            .Produces<StudentAssignmentPageResponse>()
-            .ProducesValidationProblem()
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
-
         app.MapPost(ApiRoutes.Courses.CourseStudentChanges, async (
                 Guid courseId,
                 ChangeStudentsRequest request,
@@ -274,33 +199,6 @@ internal static class AdminProfilesEndpointGroup
             .WithTags("AdminProfiles")
             .WithName("ChangeCourseStudents")
             .WithSummary("Точечное изменение студентов курса")
-            .WithDescription("Добавляет студентов из add и снимает студентов из remove, остальных не затрагивает. Только для преподавателя-владельца; неизвестные / не привязанные id в add → 400.")
-            .Produces(StatusCodes.Status204NoContent)
-            .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status403Forbidden)
-            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
-
-        app.MapPost(ApiRoutes.Practicals.StudentChanges, async (
-                Guid practicalId,
-                ChangeStudentsRequest request,
-                IValidator<ChangeStudentsRequest> validator,
-                IAdminProfilesService service,
-                CancellationToken cancellationToken) =>
-            {
-                var validation = await EndpointResults.ValidateAsync(validator, request, cancellationToken);
-                if (validation is not null)
-                {
-                    return validation;
-                }
-
-                return await EndpointResults.ExecuteTeacherCommandAsync(() =>
-                    service.ChangePracticalStudentsAsync(request.ToPracticalCommand(practicalId), cancellationToken));
-            })
-            .WithTags("AdminProfiles")
-            .WithName("ChangePracticalStudents")
-            .WithSummary("Точечное изменение студентов практики")
             .WithDescription("Добавляет студентов из add и снимает студентов из remove, остальных не затрагивает. Только для преподавателя-владельца; неизвестные / не привязанные id в add → 400.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()

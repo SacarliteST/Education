@@ -33,19 +33,9 @@ public static partial class ApiRoutes
         public const string CourseAssignableStudents = Courses.Course + "/assignable-students";
 
         /// <summary>
-        /// Шаблон маршрута студентов, доступных для назначения на практический материал.
-        /// </summary>
-        public const string PracticalAssignableStudents = Practicals.Practical + "/assignable-students";
-
-        /// <summary>
         /// Шаблон маршрута постраничного списка студентов для назначения на курс (поиск, фильтр, пагинация).
         /// </summary>
         public const string CourseStudentAssignments = Courses.Course + "/student-assignments";
-
-        /// <summary>
-        /// Шаблон маршрута постраничного списка студентов для назначения на практический материал.
-        /// </summary>
-        public const string PracticalStudentAssignments = Practicals.Practical + "/student-assignments";
 
         /// <summary>
         /// Создаёт маршрут локального учебного профиля.
@@ -72,27 +62,11 @@ public static partial class ApiRoutes
             courseId.ToString());
 
         /// <summary>
-        /// Создаёт маршрут студентов, доступных для назначения на практический материал.
-        /// </summary>
-        public static string ForPracticalAssignableStudents(Guid practicalId) => ReplaceUrlSegment(
-            PracticalAssignableStudents,
-            "practicalId:guid",
-            practicalId.ToString());
-
-        /// <summary>
         /// Создаёт маршрут постраничного списка студентов для назначения на курс.
         /// </summary>
         public static string ForCourseStudentAssignments(Guid courseId) => ReplaceUrlSegment(
             CourseStudentAssignments,
             "courseId:guid",
             courseId.ToString());
-
-        /// <summary>
-        /// Создаёт маршрут постраничного списка студентов для назначения на практический материал.
-        /// </summary>
-        public static string ForPracticalStudentAssignments(Guid practicalId) => ReplaceUrlSegment(
-            PracticalStudentAssignments,
-            "practicalId:guid",
-            practicalId.ToString());
     }
 }

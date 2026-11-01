@@ -1,6 +1,6 @@
 ﻿using Education.Application.Grades;
-using Education.Domain.Practicals;
 using Education.Domain.PracticalModules;
+using Education.Domain.Practicals;
 using Education.Infrastructure.Persistence;
 using Education.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
@@ -51,8 +51,13 @@ internal sealed class EfGradesRepository : IGradesRepository
             return [];
         }
 
-        var studentIds = await context.PracticalBindUsers
-            .Where(bind => bind.PracticalMaterialId == practicalId)
+        // Курс практики достаём отдельным запросом: сущность загружена без Include(Module).
+        var courseId = await context.Modules
+            .Where(module => module.Id == practicalMaterial.ModuleId)
+            .Select(module => module.CourseId)
+            .FirstAsync(cancellationToken);
+        var studentIds = await context.CourseBindUsers
+            .Where(bind => bind.CourseId == courseId)
             .Select(bind => bind.UserId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -78,29 +83,19 @@ internal sealed class EfGradesRepository : IGradesRepository
             .OrderBy(item => item.ModuleName, StringComparer.CurrentCultureIgnoreCase)
             .ThenBy(item => item.Practical.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
-        var practicalIds = practicals.Select(item => item.Practical.Id).ToList();
-
-        var assignments = await context.PracticalBindUsers
-            .Where(bind => practicalIds.Contains(bind.PracticalMaterialId))
-            .Select(bind => new { bind.PracticalMaterialId, bind.UserId })
-            .ToListAsync(cancellationToken);
-        var courseStudentIds = await context.CourseBindUsers
+        // Назначение единое — на курс: в ведомости все студенты курса по всем его практикам.
+        var studentIds = await context.CourseBindUsers
             .Where(bind => bind.CourseId == courseId)
             .Select(bind => bind.UserId)
             .ToListAsync(cancellationToken);
-        var studentIds = courseStudentIds.Concat(assignments.Select(item => item.UserId)).Distinct().ToList();
         var people = await LoadPeopleAsync(studentIds, cancellationToken);
 
-        var assignedByPractical = assignments
-            .GroupBy(item => item.PracticalMaterialId)
-            .ToDictionary(group => group.Key, group => group.Select(item => item.UserId).ToHashSet());
         var gradesByPractical = new Dictionary<Guid, IReadOnlyDictionary<Guid, PracticalGrade>>();
         foreach (var item in practicals)
         {
-            var assigned = assignedByPractical.GetValueOrDefault(item.Practical.Id) ?? [];
-            gradesByPractical[item.Practical.Id] = assigned.Count == 0
+            gradesByPractical[item.Practical.Id] = studentIds.Count == 0
                 ? new Dictionary<Guid, PracticalGrade>()
-                : await CalculateAsync(item.Practical, assigned.ToList(), cancellationToken);
+                : await CalculateAsync(item.Practical, studentIds, cancellationToken);
         }
 
         var students = studentIds
@@ -109,14 +104,10 @@ internal sealed class EfGradesRepository : IGradesRepository
                 people[id].Name,
                 people[id].Login,
                 people[id].Group,
-                practicals.Select(item =>
-                {
-                    var assigned = assignedByPractical.GetValueOrDefault(item.Practical.Id)?.Contains(id) == true;
-                    return new GradebookCell(
-                        item.Practical.Id,
-                        assigned,
-                        assigned ? gradesByPractical[item.Practical.Id][id] : null);
-                }).ToList()))
+                practicals.Select(item => new GradebookCell(
+                    item.Practical.Id,
+                    Assigned: true,
+                    gradesByPractical[item.Practical.Id][id])).ToList()))
             .OrderBy(student => student.StudentName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
