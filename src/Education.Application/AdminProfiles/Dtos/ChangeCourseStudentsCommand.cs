@@ -1,4 +1,4 @@
-namespace Education.Application.AdminProfiles;
+﻿namespace Education.Application.AdminProfiles;
 
 /// <summary>
 /// Команда точечного изменения набора студентов курса.

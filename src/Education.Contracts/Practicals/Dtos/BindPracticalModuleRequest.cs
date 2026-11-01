@@ -1,4 +1,4 @@
-namespace Education.Contracts.Practicals;
+﻿namespace Education.Contracts.Practicals;
 
 /// <summary>Запрос привязки внешнего модуля к практике.</summary>
 public sealed record BindPracticalModuleRequest(

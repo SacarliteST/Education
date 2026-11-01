@@ -1,4 +1,4 @@
-namespace Education.Application.PracticalModules;
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>Жизненный цикл попыток внешнего практического модуля.</summary>
 public interface IModuleSessionsService

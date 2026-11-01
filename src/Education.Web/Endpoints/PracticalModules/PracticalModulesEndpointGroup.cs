@@ -1,4 +1,4 @@
-using Education.Application.PracticalModules;
+﻿using Education.Application.PracticalModules;
 using Education.Contracts;
 using Education.Contracts.PracticalModules;
 using Education.Web.Identity;

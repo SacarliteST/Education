@@ -1,4 +1,4 @@
-namespace Education.Application.AdminProfiles;
+﻿namespace Education.Application.AdminProfiles;
 
 /// <summary>
 /// Параметры постраничного списка студентов для назначения.

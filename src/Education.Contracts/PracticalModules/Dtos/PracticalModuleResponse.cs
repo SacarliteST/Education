@@ -1,4 +1,4 @@
-namespace Education.Contracts.PracticalModules;
+﻿namespace Education.Contracts.PracticalModules;
 
 /// <summary>Запись реестра внешнего практического модуля.</summary>
 public sealed record PracticalModuleResponse(

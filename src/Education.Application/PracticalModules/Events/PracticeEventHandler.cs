@@ -1,4 +1,4 @@
-using Education.Domain.PracticalModules;
+﻿using Education.Domain.PracticalModules;
 using Microsoft.Extensions.Logging;
 
 namespace Education.Application.PracticalModules;

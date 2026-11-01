@@ -1,4 +1,4 @@
-namespace Education.Contracts.PracticalModules;
+﻿namespace Education.Contracts.PracticalModules;
 
 /// <summary>Запрос на изменение записи реестра практического модуля. Slug не меняется.</summary>
 public sealed record UpdatePracticalModuleRequest(

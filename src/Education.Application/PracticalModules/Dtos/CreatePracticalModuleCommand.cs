@@ -1,4 +1,4 @@
-namespace Education.Application.PracticalModules;
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>Команда регистрации внешнего практического модуля.</summary>
 /// <param name="Slug">Уникальный короткий идентификатор модуля.</param>

@@ -1,4 +1,4 @@
-namespace Education.Contracts.Practicals;
+﻿namespace Education.Contracts.Practicals;
 
 /// <summary>
 /// Запрос на обновление текста задания практического материала.

@@ -1,4 +1,4 @@
-using Education.Domain.Courses;
+﻿using Education.Domain.Courses;
 using Education.Domain.Practicals;
 
 namespace Education.Tests.Domain;

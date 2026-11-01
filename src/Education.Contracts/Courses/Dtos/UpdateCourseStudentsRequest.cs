@@ -1,4 +1,4 @@
-namespace Education.Contracts.Courses;
+﻿namespace Education.Contracts.Courses;
 
 /// <summary>
 /// Запрос на обновление набора студентов, назначенных на курс.

@@ -1,4 +1,4 @@
-namespace Education.Contracts.Practicals;
+﻿namespace Education.Contracts.Practicals;
 
 /// <summary>
 /// Запрос на создание задания практического материала.

@@ -1,4 +1,4 @@
-using Education.Application.Common;
+﻿using Education.Application.Common;
 using Education.Domain.PracticalModules;
 
 namespace Education.Application.PracticalModules;

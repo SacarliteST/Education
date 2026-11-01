@@ -1,4 +1,4 @@
-using Education.Application.PracticalModules;
+﻿using Education.Application.PracticalModules;
 using Microsoft.Extensions.Options;
 
 namespace Education.Web.Integration;

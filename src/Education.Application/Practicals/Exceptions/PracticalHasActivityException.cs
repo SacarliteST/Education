@@ -1,4 +1,4 @@
-namespace Education.Application.Practicals;
+﻿namespace Education.Application.Practicals;
 
 /// <summary>
 /// Практику нельзя привязать к внешнему модулю: по ней уже есть работа студентов

@@ -59,7 +59,7 @@ internal sealed class EfUserProvisioner : IUserProvisioner
     }
 
     private bool AutoProvisionEnabled() =>
-        !bool.TryParse(configuration[AutoProvisionKey], out var enabled) || enabled;
+        !Boolean.TryParse(configuration[AutoProvisionKey], out var enabled) || enabled;
 
     private async Task<Guid> SyncAsync(User user, CancellationToken cancellationToken)
     {

@@ -1,4 +1,4 @@
-namespace Education.Contracts.Kafka;
+﻿namespace Education.Contracts.Kafka;
 
 /// <summary>Топики подключения практических модулей.</summary>
 public static class KafkaTopics

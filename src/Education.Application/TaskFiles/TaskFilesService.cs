@@ -1,4 +1,4 @@
-using Education.Application.ClassWindows;
+﻿using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.TestResults;

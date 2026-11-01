@@ -1,4 +1,4 @@
-namespace Education.Application.AdminProfiles;
+﻿namespace Education.Application.AdminProfiles;
 
 /// <summary>
 /// Среди переданных на назначение идентификаторов есть такие, которым не соответствует

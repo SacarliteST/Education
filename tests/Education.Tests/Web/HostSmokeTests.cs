@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
 using Microsoft.EntityFrameworkCore;

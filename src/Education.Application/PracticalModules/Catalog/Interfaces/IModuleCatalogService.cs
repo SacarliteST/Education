@@ -1,4 +1,4 @@
-namespace Education.Application.PracticalModules;
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>Отдаёт нормализованный каталог заданий зарегистрированного модуля.</summary>
 public interface IModuleCatalogService

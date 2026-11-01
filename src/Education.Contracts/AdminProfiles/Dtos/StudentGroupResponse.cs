@@ -1,4 +1,4 @@
-namespace Education.Contracts.AdminProfiles;
+﻿namespace Education.Contracts.AdminProfiles;
 
 /// <summary>
 /// Учебная группа студентов.

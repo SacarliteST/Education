@@ -1,7 +1,7 @@
-using Education.Application.PracticalModules;
-using Education.Infrastructure.Users;
+﻿using Education.Application.PracticalModules;
 using Education.Domain.PracticalModules;
 using Education.Infrastructure.Persistence;
+using Education.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Education.Infrastructure.PracticalModules;

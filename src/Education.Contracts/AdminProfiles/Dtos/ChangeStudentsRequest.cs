@@ -1,4 +1,4 @@
-namespace Education.Contracts.AdminProfiles;
+﻿namespace Education.Contracts.AdminProfiles;
 
 /// <summary>
 /// Запрос на изменение набора студентов курса или практики точечно: добавить и убрать.

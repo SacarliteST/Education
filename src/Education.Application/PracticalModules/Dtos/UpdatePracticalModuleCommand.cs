@@ -1,4 +1,4 @@
-namespace Education.Application.PracticalModules;
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>Команда изменения внешнего практического модуля.</summary>
 /// <param name="Name">Название модуля.</param>

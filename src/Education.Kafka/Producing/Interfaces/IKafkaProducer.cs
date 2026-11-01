@@ -1,4 +1,4 @@
-namespace Education.Kafka.Producing;
+﻿namespace Education.Kafka.Producing;
 
 /// <summary>Отправка сообщения в топик: сериализация в JSON, партиционирование по ключу.</summary>
 /// <typeparam name="TMessage">Тип сообщения.</typeparam>

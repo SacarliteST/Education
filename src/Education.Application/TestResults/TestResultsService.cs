@@ -1,4 +1,4 @@
-using Education.Application.ClassWindows;
+﻿using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Practicals;
 using Education.Application.Users;

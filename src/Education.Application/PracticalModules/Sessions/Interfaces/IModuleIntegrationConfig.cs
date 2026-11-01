@@ -1,4 +1,4 @@
-namespace Education.Application.PracticalModules;
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>Сборка URL запуска и возврата из зарегистрированного origin платформы (конфиг Web).</summary>
 public interface IModuleIntegrationConfig

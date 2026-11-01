@@ -1,4 +1,4 @@
-using Education.Kafka.Producing;
+﻿using Education.Kafka.Producing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,4 +1,4 @@
-namespace Education.Application.Practicals;
+﻿namespace Education.Application.Practicals;
 
 /// <summary>
 /// Команда создания задания практического материала.

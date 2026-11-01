@@ -1,4 +1,4 @@
-namespace Education.Web.Integration;
+﻿namespace Education.Web.Integration;
 
 /// <summary>Настройки подключения внешних модулей (секция <c>ModuleIntegration</c>).</summary>
 internal sealed class ModuleIntegrationOptions

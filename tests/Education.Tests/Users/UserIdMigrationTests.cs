@@ -1,4 +1,4 @@
-using Education.Infrastructure.Persistence;
+﻿using Education.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;

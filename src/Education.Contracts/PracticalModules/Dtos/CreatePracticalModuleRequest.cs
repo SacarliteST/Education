@@ -1,4 +1,4 @@
-namespace Education.Contracts.PracticalModules;
+﻿namespace Education.Contracts.PracticalModules;
 
 /// <summary>Запрос на регистрацию нового практического модуля.</summary>
 public sealed record CreatePracticalModuleRequest(

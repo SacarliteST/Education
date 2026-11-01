@@ -1,4 +1,4 @@
-using Education.Application.PracticalModules;
+﻿using Education.Application.PracticalModules;
 using Education.Domain.PracticalModules;
 using Education.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

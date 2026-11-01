@@ -1,4 +1,4 @@
-namespace Education.Contracts.PracticalModules;
+﻿namespace Education.Contracts.PracticalModules;
 
 /// <summary>
 /// Необязательные параметры перехода преподавателя в контур авторинга внешнего модуля.

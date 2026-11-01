@@ -1,4 +1,4 @@
-namespace Education.Application.TestResults;
+﻿namespace Education.Application.TestResults;
 
 /// <summary>
 /// Ответ в протоколе попытки, обогащённый типом и телом вопроса — чтобы UI мог

@@ -1,4 +1,4 @@
-using Education.Application.PracticalModules;
+﻿using Education.Application.PracticalModules;
 using Education.Contracts.Kafka;
 using Education.Kafka;
 using Education.Kafka.Consuming;

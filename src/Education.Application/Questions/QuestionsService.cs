@@ -1,4 +1,4 @@
-using Education.Application.Courses;
+﻿using Education.Application.Courses;
 using Education.Application.Modules;
 using Education.Application.Users;
 using Education.Domain.Tests;

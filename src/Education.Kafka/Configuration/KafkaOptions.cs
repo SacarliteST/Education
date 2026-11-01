@@ -1,4 +1,4 @@
-namespace Education.Kafka;
+﻿namespace Education.Kafka;
 
 /// <summary>Настройки подключения к брокеру. Секция конфигурации — <c>Kafka</c>.</summary>
 public sealed class KafkaOptions

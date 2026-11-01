@@ -1,5 +1,5 @@
+﻿using Education.Domain.PracticalModules;
 using Education.Domain.Practicals;
-using Education.Domain.PracticalModules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

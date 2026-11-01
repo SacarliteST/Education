@@ -1,4 +1,4 @@
-namespace Education.Application.PracticalModules;
+﻿namespace Education.Application.PracticalModules;
 
 /// <summary>Каталог заданий внешнего практического модуля.</summary>
 public sealed class ModuleCatalogService : IModuleCatalogService
