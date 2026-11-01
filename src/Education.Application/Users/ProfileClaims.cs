@@ -31,12 +31,13 @@ public static class ProfileClaims
     public static ProfileFromClaims FromCurrentUser(ICurrentUser user)
     {
         var login = ResolveLogin(user.Email, user.UserId);
+        var groupName = User.NormalizeGroupName(user.GroupName);
         var given = Clean(user.GivenName);
         var family = Clean(user.FamilyName);
         var middle = Clean(user.MiddleName);
         if (given is not null || family is not null)
         {
-            return new ProfileFromClaims(login, given ?? Unknown, family ?? Unknown, middle ?? Unknown, true);
+            return new ProfileFromClaims(login, given ?? Unknown, family ?? Unknown, middle ?? Unknown, true, groupName);
         }
 
         var name = Clean(user.Name);
@@ -48,10 +49,10 @@ public static class ProfileClaims
         var words = (name ?? String.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return words.Length switch
         {
-            0 => new ProfileFromClaims(login, Unknown, LocalPart(user.Email) ?? Unknown, Unknown, false),
-            1 => new ProfileFromClaims(login, Unknown, words[0], Unknown, false),
-            2 => new ProfileFromClaims(login, words[0], words[1], Unknown, false),
-            _ => new ProfileFromClaims(login, words[0], words[1], String.Join(' ', words.Skip(2)), false),
+            0 => new ProfileFromClaims(login, Unknown, LocalPart(user.Email) ?? Unknown, Unknown, false, groupName),
+            1 => new ProfileFromClaims(login, Unknown, words[0], Unknown, false, groupName),
+            2 => new ProfileFromClaims(login, words[0], words[1], Unknown, false, groupName),
+            _ => new ProfileFromClaims(login, words[0], words[1], String.Join(' ', words.Skip(2)), false, groupName),
         };
     }
 

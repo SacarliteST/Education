@@ -91,12 +91,13 @@ internal sealed class EfUserProvisioner : IUserProvisioner
         for (var attempt = 0; attempt < 2; attempt++)
         {
             var login = attempt == 0 ? profile.Login : $"{profile.Login}#{userId:N}"[..(profile.Login.Length + 9)];
-            context.Users.Add(new User(userId, login, profile.FirstName, profile.LastName, profile.MiddleName, roleId));
+            context.Users.Add(new User(userId, login, profile.FirstName, profile.LastName, profile.MiddleName, roleId, profile.GroupName));
             try
             {
                 await context.SaveChangesAsync(cancellationToken);
                 logger.LogInformation(
-                    "Создан учебный профиль {UserId} (логин {Login}, роль {RoleId}).", userId, login, roleId);
+                    "Создан учебный профиль {UserId} (логин {Login}, роль {RoleId}, группа {GroupName}).",
+                    userId, login, roleId, profile.GroupName);
                 return userId;
             }
             catch (DbUpdateException exception) when (IsUniqueViolation(exception))

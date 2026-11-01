@@ -20,7 +20,8 @@ internal static class AuthenticationTestExtensions
         string? name = null,
         string? givenName = null,
         string? familyName = null,
-        string? middleName = null)
+        string? middleName = null,
+        string? groupName = null)
     {
         client.AuthenticateAs(roles);
         client.DefaultRequestHeaders.Remove("X-Test-Sub");
@@ -29,6 +30,7 @@ internal static class AuthenticationTestExtensions
                  {
                      ("X-Test-Email", email), ("X-Test-Name", name), ("X-Test-Given-Name", givenName),
                      ("X-Test-Family-Name", familyName), ("X-Test-Middle-Name", middleName),
+                     ("X-Test-Group-Name", groupName),
                  })
         {
             client.DefaultRequestHeaders.Remove(header);

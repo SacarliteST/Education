@@ -70,6 +70,18 @@ public sealed class ProfileClaimsTests
         Assert.Equal(RoleIds.Student, ProfileClaims.ResolveRoleId(new HashSet<string>()));
     }
 
+    [Fact]
+    public void GroupClaim_IsPassedThrough_AndNormalized()
+    {
+        var withGroup = ProfileClaims.FromCurrentUser(
+            new Fake { Email = "a@x.test", GivenName = "Иван", GroupName = "  ИС-21  " });
+        var withoutGroup = ProfileClaims.FromCurrentUser(
+            new Fake { Email = "a@x.test", GivenName = "Иван", GroupName = "   " });
+
+        Assert.Equal("ИС-21", withGroup.GroupName);
+        Assert.Null(withoutGroup.GroupName);
+    }
+
     private sealed class Fake : ICurrentUser
     {
         public Guid UserId => ProfileClaimsTests.UserId;
@@ -83,6 +95,8 @@ public sealed class ProfileClaimsTests
         public string? FamilyName { get; init; }
 
         public string? MiddleName { get; init; }
+
+        public string? GroupName { get; init; }
 
         public IReadOnlySet<string> Roles { get; init; } = new HashSet<string>();
 

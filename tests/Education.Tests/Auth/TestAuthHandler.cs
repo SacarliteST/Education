@@ -42,6 +42,7 @@ internal sealed class TestAuthHandler(
         AddIfPresent(claims, "given_name", Header("X-Test-Given-Name"));
         AddIfPresent(claims, "family_name", Header("X-Test-Family-Name"));
         AddIfPresent(claims, "middle_name", Header("X-Test-Middle-Name"));
+        AddIfPresent(claims, "group_name", Header("X-Test-Group-Name"));
 
         // ClaimTypes.Role (не короткое "role"), т.к. HttpCurrentUser.Roles ищет claim
         // строго по Jwt:RoleClaimType из appsettings.Development.json — это длинный

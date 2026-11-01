@@ -46,6 +46,20 @@ public sealed class ProfileProvisioningApiTests : IClassFixture<TestWebApplicati
     }
 
     [Fact]
+    public async Task NewStudent_WithGroupClaim_CreatesProfileAlreadyInGroup()
+    {
+        var id = Guid.NewGuid();
+        var client = factory.CreateClient();
+        client.AuthenticateAsIdentity(
+            id, [EducationRoles.Student], $"g{id:N}@x.test", "Иван Групповой", "Иван", "Групповой", groupName: "ИС-21");
+
+        var response = await client.GetAsync(MeRoute);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("ИС-21", (await FindAsync(id))!.GroupName);
+    }
+
+    [Fact]
     public async Task RepeatedRequests_DoNotCreateDuplicates()
     {
         var id = Guid.NewGuid();

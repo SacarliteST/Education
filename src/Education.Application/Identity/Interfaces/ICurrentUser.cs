@@ -36,6 +36,11 @@ public interface ICurrentUser
     string? MiddleName { get; }
 
     /// <summary>
+    /// Учебная группа из Identity (claim <c>group_name</c>); <see langword="null"/>, если группа не назначалась.
+    /// </summary>
+    string? GroupName { get; }
+
+    /// <summary>
     /// Роли текущего пользователя.
     /// </summary>
     IReadOnlySet<string> Roles { get; }

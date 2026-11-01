@@ -52,6 +52,9 @@ public sealed class HttpCurrentUser : ICurrentUser
     public string? MiddleName => user?.FindFirstValue("middle_name");
 
     /// <inheritdoc />
+    public string? GroupName => user?.FindFirstValue("group_name");
+
+    /// <inheritdoc />
     public IReadOnlySet<string> Roles
     {
         get
