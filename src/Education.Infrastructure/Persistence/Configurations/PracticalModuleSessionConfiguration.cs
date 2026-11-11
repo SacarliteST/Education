@@ -35,10 +35,16 @@ internal sealed class PracticalModuleSessionConfiguration : IEntityTypeConfigura
         builder.Property(session => session.EndedAt).HasColumnName("ended_at");
         builder.Property(session => session.Grade).HasColumnName("grade");
         builder.Property(session => session.CompletionData).HasColumnName("completion_data").HasColumnType("jsonb");
+        builder.Property(session => session.AssignmentId).HasColumnName("assignment_id");
         builder.HasIndex(session => new { session.UserId, session.PracticalTaskId });
+        builder.HasIndex(session => session.AssignmentId);
         builder.HasOne<Case>()
             .WithMany()
             .HasForeignKey(session => session.PracticalTaskId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<PracticalTaskAssignment>()
+            .WithMany()
+            .HasForeignKey(session => session.AssignmentId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

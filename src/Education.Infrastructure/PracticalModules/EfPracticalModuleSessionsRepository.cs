@@ -64,6 +64,67 @@ internal sealed class EfPracticalModuleSessionsRepository : IPracticalModuleSess
     }
 
     /// <inheritdoc />
+    public Task<PracticalModuleSession?> GetLatestForUserAssignmentAsync(
+        Guid userId,
+        Guid assignmentId,
+        CancellationToken cancellationToken = default)
+    {
+        return context.PracticalModuleSessions
+            .Where(session => session.UserId == userId && session.AssignmentId == assignmentId)
+            .OrderByDescending(session => session.StartedAt)
+            .ThenByDescending(session => session.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<int> CountForUserAssignmentAsync(
+        Guid userId,
+        Guid assignmentId,
+        CancellationToken cancellationToken = default)
+    {
+        return context.PracticalModuleSessions
+            .CountAsync(
+                session => session.UserId == userId && session.AssignmentId == assignmentId,
+                cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int?> BestGradeForUserAssignmentAsync(
+        Guid userId,
+        Guid assignmentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.PracticalModuleSessions
+            .Where(session => session.UserId == userId
+                && session.AssignmentId == assignmentId
+                && session.Status == ModuleSessionState.Completed
+                && session.Grade != null)
+            .MaxAsync(session => (int?)session.Grade, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<AssignmentSessionInfo>> ListForAssignmentsAsync(
+        IReadOnlyCollection<Guid> assignmentIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (assignmentIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await context.PracticalModuleSessions
+            .AsNoTracking()
+            .Where(session => session.AssignmentId != null && assignmentIds.Contains(session.AssignmentId.Value))
+            .GroupBy(session => session.AssignmentId!.Value)
+            .Select(group => group
+                .OrderByDescending(session => session.StartedAt)
+                .ThenByDescending(session => session.Id)
+                .Select(session => new AssignmentSessionInfo(group.Key, session.Status, session.Grade))
+                .First())
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ModuleSessionSummary>> ListForPracticalAsync(
         Guid practicalId,
         CancellationToken cancellationToken = default)
@@ -74,7 +135,9 @@ internal sealed class EfPracticalModuleSessionsRepository : IPracticalModuleSess
 
         var query =
             from session in context.PracticalModuleSessions.AsNoTracking()
-            where caseIds.Contains(session.PracticalTaskId)
+            where (session.PracticalTaskId != null && caseIds.Contains(session.PracticalTaskId.Value))
+                || context.PracticalTaskAssignments.Any(assignment =>
+                    assignment.Id == session.AssignmentId && assignment.PracticalMaterialId == practicalId)
             join candidate in context.Users.AsNoTracking() on session.UserId equals candidate.Id into joined
             from user in joined.DefaultIfEmpty()
             orderby session.StartedAt descending, session.Id descending

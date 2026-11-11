@@ -1,5 +1,6 @@
 ﻿using Education.Application.Courses;
 using Education.Application.PracticalModules;
+using Education.Application.Practicals.TaskAssignments;
 using Education.Application.Users;
 using Education.Domain.Courses;
 using Education.Domain.PracticalModules;
@@ -16,6 +17,7 @@ public sealed class ClassWindowsService : IClassWindowsService
     private readonly IPracticalModulesRepository modulesRepository;
     private readonly IPracticalModuleSessionsRepository sessionsRepository;
     private readonly IModulePushClient pushClient;
+    private readonly ITaskAssignmentService taskAssignmentService;
     private readonly TimeProvider timeProvider;
     private readonly ILogger<ClassWindowsService> logger;
 
@@ -26,6 +28,7 @@ public sealed class ClassWindowsService : IClassWindowsService
     /// <param name="modulesRepository">Реестр внешних практических модулей.</param>
     /// <param name="sessionsRepository">Хранилище сессий внешних модулей.</param>
     /// <param name="pushClient">Клиент передачи сессии бэкенду модуля.</param>
+    /// <param name="taskAssignmentService">Формирование случайных наборов заданий по правилам выборки.</param>
     /// <param name="timeProvider">Источник текущего времени.</param>
     /// <param name="logger">Журнал.</param>
     public ClassWindowsService(
@@ -35,6 +38,7 @@ public sealed class ClassWindowsService : IClassWindowsService
         IPracticalModulesRepository modulesRepository,
         IPracticalModuleSessionsRepository sessionsRepository,
         IModulePushClient pushClient,
+        ITaskAssignmentService taskAssignmentService,
         TimeProvider timeProvider,
         ILogger<ClassWindowsService> logger)
     {
@@ -44,6 +48,7 @@ public sealed class ClassWindowsService : IClassWindowsService
         this.modulesRepository = modulesRepository;
         this.sessionsRepository = sessionsRepository;
         this.pushClient = pushClient;
+        this.taskAssignmentService = taskAssignmentService;
         this.timeProvider = timeProvider;
         this.logger = logger;
     }
@@ -126,6 +131,16 @@ public sealed class ClassWindowsService : IClassWindowsService
         logger.LogInformation(
             "Начата пара {WindowId}: курс {CourseId}, группа {Group}, студентов {StudentsCount}, {Minutes} мин, преподаватель {TeacherId}.",
             window.Id, courseId, group ?? "—", studentIds.Count, durationMinutes, teacherId);
+        try
+        {
+            await taskAssignmentService.GenerateForWindowAsync(window.Id, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            // Ошибка генерации наборов не роняет открытие пары — наборы доберутся ленивой догенерацией.
+            logger.LogWarning(exception, "Не удалось сформировать наборы заданий при открытии пары {WindowId}.", window.Id);
+        }
+
         return ToInfo(window, students, now);
     }
 

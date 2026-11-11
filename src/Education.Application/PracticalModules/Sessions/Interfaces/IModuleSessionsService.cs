@@ -9,6 +9,17 @@ public interface IModuleSessionsService
     /// <exception cref="ModulePushFailedException">Модуль/IdentityService недоступны.</exception>
     Task<StartModuleSessionResult> StartAsync(Guid practicalId, Guid taskId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Запускает новую попытку или продолжает живую ACTIVE-сессию по назначению случайного набора.
+    /// </summary>
+    /// <exception cref="ExternalTaskNotFoundException">Назначение не найдено / не принадлежит студенту и практике.</exception>
+    /// <exception cref="TriesExhaustedException">Лимит запусков исчерпан.</exception>
+    /// <exception cref="ModulePushFailedException">Модуль/IdentityService недоступны.</exception>
+    Task<StartModuleSessionResult> StartByAssignmentAsync(
+        Guid practicalId,
+        Guid assignmentId,
+        CancellationToken cancellationToken = default);
+
     /// <returns><see langword="null"/>, если сессия не найдена или принадлежит другому студенту.</returns>
     Task<ModuleSessionStatus?> GetStatusAsync(Guid practicalId, Guid sessionId, CancellationToken cancellationToken = default);
 

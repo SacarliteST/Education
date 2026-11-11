@@ -71,6 +71,16 @@ public sealed class EducationDbContext : DbContext
     public DbSet<PracticalTaskEvent> PracticalTaskEvents => Set<PracticalTaskEvent>();
 
     /// <summary>
+    /// Правила случайной выборки заданий модуля для практик.
+    /// </summary>
+    public DbSet<TaskSelectionRule> TaskSelectionRules => Set<TaskSelectionRule>();
+
+    /// <summary>
+    /// Материализованные наборы заданий модуля, выданные студентам на пару.
+    /// </summary>
+    public DbSet<PracticalTaskAssignment> PracticalTaskAssignments => Set<PracticalTaskAssignment>();
+
+    /// <summary>
     /// Задачи практических материалов.
     /// </summary>
     public DbSet<Case> Cases => Set<Case>();

@@ -156,8 +156,10 @@ internal sealed class EfGradesRepository : IGradesRepository
                     .Where(session => studentIds.Contains(session.UserId)
                         && session.Status == ModuleSessionState.Completed
                         && session.Grade != null
-                        && context.Cases.Any(task =>
-                            task.Id == session.PracticalTaskId && task.PracticalMaterialId == practical.Id))
+                        && (context.Cases.Any(task =>
+                                task.Id == session.PracticalTaskId && task.PracticalMaterialId == practical.Id)
+                            || context.PracticalTaskAssignments.Any(assignment =>
+                                assignment.Id == session.AssignmentId && assignment.PracticalMaterialId == practical.Id)))
                     .GroupBy(session => session.UserId)
                     .Select(group => new { UserId = group.Key, Best = group.Max(session => session.Grade) })
                     .ToListAsync(cancellationToken))

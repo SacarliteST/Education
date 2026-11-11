@@ -16,6 +16,7 @@ internal static class EducationEndpointGroups
         app.MapClassWindowsEndpointGroup();
         app.MapModulesEndpointGroup();
         app.MapPracticalsEndpointGroup();
+        app.MapTaskAssignmentsEndpointGroup();
         app.MapQuestionsEndpointGroup();
         app.MapTheoriesEndpointGroup();
         app.MapTestResultsEndpointGroup();

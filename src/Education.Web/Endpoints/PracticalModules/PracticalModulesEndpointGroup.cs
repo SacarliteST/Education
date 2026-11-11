@@ -131,7 +131,9 @@ internal static class PracticalModulesEndpointGroup
                     return tasks is null
                         ? Results.NotFound()
                         : Results.Ok(tasks.Select(task =>
-                            new ModuleTaskResponse(task.Ref, task.Name, task.Description)));
+                            new ModuleTaskResponse(
+                                task.Ref, task.Name, task.Description,
+                                task.DifficultyLevel, task.TopicId, task.TopicName)));
                 }
                 catch (ModuleCatalogUnavailableException exception)
                 {
