@@ -93,6 +93,13 @@ public sealed class ClassAccessService : IClassAccessService
         }
     }
 
+    /// <inheritdoc />
+    public Task<Education.Domain.Courses.ClassWindow?> FindOpenWindowAsync(
+        Guid courseId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return FindWindowAsync(courseId, userId, TimeSpan.Zero, cancellationToken);
+    }
+
     private async Task<Education.Domain.Courses.ClassWindow?> FindWindowAsync(
         Guid courseId, Guid userId, TimeSpan grace, CancellationToken cancellationToken)
     {

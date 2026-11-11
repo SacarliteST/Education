@@ -6,6 +6,7 @@ using Education.Application.Grades;
 using Education.Application.Modules;
 using Education.Application.PracticalModules;
 using Education.Application.Practicals;
+using Education.Application.Practicals.TaskAssignments;
 using Education.Application.Questions;
 using Education.Application.TaskFiles;
 using Education.Application.TestResults;
@@ -57,6 +58,8 @@ public static class DependencyInjection
         services.AddScoped<IPracticalModulesRepository, EfPracticalModulesRepository>();
         services.AddScoped<IPracticalModuleSessionsRepository, EfPracticalModuleSessionsRepository>();
         services.AddScoped<IPracticalTaskEventsRepository, EfPracticalTaskEventsRepository>();
+        services.AddScoped<ITaskSelectionRulesRepository, EfTaskSelectionRulesRepository>();
+        services.AddScoped<IPracticalTaskAssignmentsRepository, EfPracticalTaskAssignmentsRepository>();
         services.AddScoped<IQuestionsRepository, EfQuestionsRepository>();
         services.AddScoped<ITestResultsRepository, EfTestResultsRepository>();
         services.AddScoped<IGradesRepository, EfGradesRepository>();

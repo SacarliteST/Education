@@ -13,8 +13,17 @@ public sealed class PracticalModuleSession : Entity
     /// <summary>Жёсткий потолок жизни ACTIVE-сессии — сборка мусора при отсутствии лимита времени.</summary>
     public static readonly TimeSpan HardCeiling = TimeSpan.FromHours(24);
 
-    /// <summary>Идентификатор задания (<c>Case.Id</c>) внешней практики.</summary>
-    public Guid PracticalTaskId { get; private set; }
+    /// <summary>
+    /// Идентификатор задания (<c>Case.Id</c>) внешней практики;
+    /// <see langword="null"/> — сессия стартована по назначению случайного набора (см. <see cref="AssignmentId"/>).
+    /// </summary>
+    public Guid? PracticalTaskId { get; private set; }
+
+    /// <summary>
+    /// Назначение случайного набора (<c>PracticalTaskAssignment.Id</c>), по которому стартовала сессия;
+    /// <see langword="null"/> — сессия стартована по заданию <see cref="Practicals.Case"/> фиксированного списка.
+    /// </summary>
+    public Guid? AssignmentId { get; private set; }
 
     /// <summary>Пользователь учебной системы (legacy id, не identity sub).</summary>
     public Guid UserId { get; private set; }
@@ -62,15 +71,17 @@ public sealed class PracticalModuleSession : Entity
     /// <param name="returnUrl">Адрес возврата студента на платформу.</param>
     /// <param name="startedAt">Момент запуска.</param>
     /// <param name="expiresAt">Срок действия или <see langword="null"/> — без ограничения по времени.</param>
+    /// <param name="assignmentId">Назначение случайного набора или <see langword="null"/> — старт по заданию фиксированного списка.</param>
     public PracticalModuleSession(
         Guid id,
-        Guid practicalTaskId,
+        Guid? practicalTaskId,
         Guid userId,
         int tryNumber,
         string sessionKey,
         string returnUrl,
         DateTimeOffset startedAt,
-        DateTimeOffset? expiresAt)
+        DateTimeOffset? expiresAt,
+        Guid? assignmentId = null)
     {
         Id = id;
         PracticalTaskId = practicalTaskId;
@@ -80,6 +91,7 @@ public sealed class PracticalModuleSession : Entity
         ReturnUrl = returnUrl;
         StartedAt = startedAt;
         ExpiresAt = expiresAt;
+        AssignmentId = assignmentId;
         Status = ModuleSessionState.Active;
     }
 

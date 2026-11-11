@@ -109,5 +109,19 @@ public interface IPracticalsRepository : IBaseRepository<PracticalMaterial, Guid
         Guid practicalId,
         Guid taskId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Переводит практику в режим случайной выборки: вид <c>external</c> с текущими лимитами,
+    /// служебные задания-связки с модулем удаляются (ручные задания — повод для 409 на уровне сервиса).
+    /// </summary>
+    Task EnableRandomSelectionAsync(Guid practicalId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Данные внешней практики для старта сессии по назначению случайного набора.
+    /// </summary>
+    /// <returns><see langword="null"/>, если практика не найдена или не внешняя.</returns>
+    Task<AssignmentStartBinding?> GetAssignmentStartBindingAsync(
+        Guid practicalId,
+        CancellationToken cancellationToken = default);
 }
 

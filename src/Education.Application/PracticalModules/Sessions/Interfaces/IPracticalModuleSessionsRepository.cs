@@ -20,6 +20,23 @@ public interface IPracticalModuleSessionsRepository
     /// <summary>Максимальная оценка по <c>COMPLETED</c>-попыткам пользователя по заданию.</summary>
     Task<int?> BestGradeForUserTaskAsync(Guid userId, Guid practicalTaskId, CancellationToken cancellationToken = default);
 
+    /// <summary>Последняя (по <c>StartedAt</c>) попытка пользователя по назначению случайного набора, отслеживаемая.</summary>
+    Task<PracticalModuleSession?> GetLatestForUserAssignmentAsync(
+        Guid userId,
+        Guid assignmentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Всего попыток пользователя по назначению случайного набора, включая <c>EXPIRED</c>.</summary>
+    Task<int> CountForUserAssignmentAsync(Guid userId, Guid assignmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>Максимальная оценка по <c>COMPLETED</c>-попыткам пользователя по назначению случайного набора.</summary>
+    Task<int?> BestGradeForUserAssignmentAsync(Guid userId, Guid assignmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>Последние попытки по перечисленным назначениям случайных наборов (по одной на назначение).</summary>
+    Task<IReadOnlyList<AssignmentSessionInfo>> ListForAssignmentsAsync(
+        IReadOnlyCollection<Guid> assignmentIds,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Все попытки по практике (по всем заданиям и студентам), новые — первыми.</summary>
     Task<IReadOnlyList<ModuleSessionSummary>> ListForPracticalAsync(
         Guid practicalId,

@@ -4,6 +4,7 @@ using Education.Application.Courses;
 using Education.Application.Files;
 using Education.Application.PracticalModules;
 using Education.Application.Practicals;
+using Education.Application.Practicals.TaskAssignments;
 using Education.Application.TestResults;
 using FluentValidation;
 
@@ -82,6 +83,22 @@ internal static class EndpointResults
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status404NotFound);
         }
         catch (PracticalHasActivityException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (PracticalNotExternalException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (TaskSelectionModeConflictException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (TaskSelectionRuleLockedException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (AssignmentRegenerationForbiddenException exception)
         {
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
         }

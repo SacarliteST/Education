@@ -153,7 +153,7 @@ internal sealed class EfClassWindowsRepository : IClassWindowsRepository
         var groupKey = groupName?.Trim().ToLower();
         var rows = await (
             from session in db.PracticalModuleSessions
-            join task in db.Cases on session.PracticalTaskId equals task.Id
+            join task in db.Cases on session.PracticalTaskId equals (Guid?)task.Id
             join user in db.Users on session.UserId equals user.Id
             where session.Status == ModuleSessionState.Active
                 && task.PracticalModuleId != null

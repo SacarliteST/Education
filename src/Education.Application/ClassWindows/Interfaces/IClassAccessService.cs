@@ -16,4 +16,8 @@ public interface IClassAccessService
 
     /// <summary>Состояние доступа студента к курсу.</summary>
     Task<ClassAccessState> GetStateAsync(Guid courseId, Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Идущая сейчас пара студента на курсе (точечная или его группы) или <see langword="null"/>.</summary>
+    Task<Education.Domain.Courses.ClassWindow?> FindOpenWindowAsync(
+        Guid courseId, Guid userId, CancellationToken cancellationToken = default);
 }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Education.Application.ClassWindows;
 using Education.Application.Identity;
 using Education.Application.Practicals;
+using Education.Application.Practicals.TaskAssignments;
 using Education.Application.TestResults;
 using Education.Application.Users;
 using Education.Domain.PracticalModules;
@@ -26,6 +27,8 @@ public sealed class ModuleSessionsService : IModuleSessionsService
     private readonly ITokenExchangeClient tokenExchangeClient;
     private readonly IModuleIntegrationConfig integrationConfig;
     private readonly IClassAccessService classAccess;
+    private readonly ITaskSelectionRulesRepository rulesRepository;
+    private readonly IPracticalTaskAssignmentsRepository assignmentsRepository;
     private readonly TimeProvider timeProvider;
     private readonly ILogger<ModuleSessionsService> logger;
 
@@ -40,6 +43,8 @@ public sealed class ModuleSessionsService : IModuleSessionsService
     /// <param name="tokenExchangeClient">Клиент обмена токена для запуска модуля.</param>
     /// <param name="integrationConfig">Настройки интеграции с внешними модулями.</param>
     /// <param name="classAccess">Проверка доступа по парам.</param>
+    /// <param name="rulesRepository">Хранилище правил случайной выборки заданий.</param>
+    /// <param name="assignmentsRepository">Хранилище назначений заданий случайного набора.</param>
     /// <param name="timeProvider">Источник текущего времени.</param>
     /// <param name="logger">Журнал.</param>
     public ModuleSessionsService(
@@ -53,6 +58,8 @@ public sealed class ModuleSessionsService : IModuleSessionsService
         ITokenExchangeClient tokenExchangeClient,
         IModuleIntegrationConfig integrationConfig,
         IClassAccessService classAccess,
+        ITaskSelectionRulesRepository rulesRepository,
+        IPracticalTaskAssignmentsRepository assignmentsRepository,
         TimeProvider timeProvider,
         ILogger<ModuleSessionsService> logger)
     {
@@ -66,6 +73,8 @@ public sealed class ModuleSessionsService : IModuleSessionsService
         this.tokenExchangeClient = tokenExchangeClient;
         this.integrationConfig = integrationConfig;
         this.classAccess = classAccess;
+        this.rulesRepository = rulesRepository;
+        this.assignmentsRepository = assignmentsRepository;
         this.timeProvider = timeProvider;
         this.logger = logger;
     }
@@ -150,6 +159,102 @@ public sealed class ModuleSessionsService : IModuleSessionsService
             "Запущена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} " +
             "(задание {TaskId}, попытка {TryNumber}/{TriesCount}).",
             session.Id, module.Slug, userId, taskId, session.TryNumber, binding.TriesCount);
+        return new StartModuleSessionResult(
+            session.Id, newLaunchUrl, session.ExpiresAt, session.TryNumber, Resumed: false);
+    }
+
+    /// <inheritdoc />
+    public async Task<StartModuleSessionResult> StartByAssignmentAsync(
+        Guid practicalId,
+        Guid assignmentId,
+        CancellationToken cancellationToken = default)
+    {
+        var userId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
+        // Тело пуша адресует владельца сессии по identity-id (== sub обменянного токена),
+        // а не по legacy-id Education — модуль сверяет именно его.
+        var identityUserId = currentUser.UserId;
+        var assignment = await assignmentsRepository.GetByIdAsync(assignmentId, cancellationToken);
+        if (assignment is null || assignment.PracticalMaterialId != practicalId || assignment.StudentId != userId)
+        {
+            logger.LogWarning(
+                "Отказано в запуске сессии по назначению {AssignmentId}: не найдено для студента {UserId} и практики {PracticalId}.",
+                assignmentId, userId, practicalId);
+            throw new ExternalTaskNotFoundException();
+        }
+
+        var binding = await practicalsRepository.GetAssignmentStartBindingAsync(practicalId, cancellationToken)
+            ?? throw new ExternalTaskNotFoundException();
+        var rule = await rulesRepository.GetByPracticalIdAsync(practicalId, cancellationToken)
+            ?? throw new ExternalTaskNotFoundException();
+        var module = await practicalModulesRepository.GetByIdAsync(rule.PracticalModuleId, cancellationToken)
+            ?? throw new ExternalTaskNotFoundException();
+
+        if (!await practicalsRepository.IsPracticalAssignedToStudentAsync(practicalId, userId, cancellationToken))
+        {
+            logger.LogWarning(
+                "Отказано в запуске сессии модуля: студент {UserId} не назначен на курс практики {PracticalId}.",
+                userId, practicalId);
+            throw new StudentPracticalAccessDeniedException(practicalId);
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var windowEnd = await classAccess.RequireWindowEndAsync(binding.CourseId, userId, cancellationToken);
+        var latest = await sessionsRepository.GetLatestForUserAssignmentAsync(userId, assignmentId, cancellationToken);
+
+        if (latest is { IsActive: true } && !latest.IsExpiredBy(now))
+        {
+            var launchUrl = await PushAndBuildLaunchUrlAsync(
+                module, latest, assignment.ExternalTaskRef, binding.AttemptsPerSession, identityUserId, cancellationToken);
+            logger.LogInformation(
+                "Возобновлена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} (назначение {AssignmentId}).",
+                latest.Id, module.Slug, userId, assignmentId);
+            return new StartModuleSessionResult(
+                latest.Id, launchUrl, latest.ExpiresAt, latest.TryNumber, Resumed: true);
+        }
+
+        if (latest is { IsActive: true })
+        {
+            latest.Expire(now, ModuleSessionEndReason.Timeout);
+            await sessionsRepository.SaveChangesAsync(cancellationToken);
+        }
+
+        var attemptsCount = await sessionsRepository.CountForUserAssignmentAsync(userId, assignmentId, cancellationToken);
+        if (attemptsCount >= binding.TriesCount)
+        {
+            logger.LogWarning(
+                "Отказано в запуске сессии модуля {ModuleSlug}: пользователь {UserId} исчерпал попытки " +
+                "({AttemptsCount}/{TriesCount}) по назначению {AssignmentId}.",
+                module.Slug, userId, attemptsCount, binding.TriesCount, assignmentId);
+            throw new TriesExhaustedException();
+        }
+
+        var sessionId = Guid.NewGuid();
+        var expiresAt = binding.TimeLimitMinutes is { } minutes ? now.AddMinutes(minutes) : (DateTimeOffset?)null;
+        if (windowEnd is { } end && (expiresAt is null || end < expiresAt))
+        {
+            expiresAt = end;
+        }
+
+        var session = new PracticalModuleSession(
+            sessionId,
+            practicalTaskId: null,
+            userId,
+            attemptsCount + 1,
+            GenerateSessionKey(),
+            integrationConfig.BuildReturnUrl(binding.CourseId, binding.ModuleId, practicalId, sessionId),
+            now,
+            expiresAt,
+            assignment.Id);
+
+        // Пуш до персиста — неудачный запуск не тратит попытку (спека E4.5).
+        var newLaunchUrl = await PushAndBuildLaunchUrlAsync(
+            module, session, assignment.ExternalTaskRef, binding.AttemptsPerSession, identityUserId, cancellationToken);
+        await sessionsRepository.AddAsync(session, cancellationToken);
+
+        logger.LogInformation(
+            "Запущена сессия {SessionId} модуля {ModuleSlug} для пользователя {UserId} " +
+            "(назначение {AssignmentId}, попытка {TryNumber}/{TriesCount}).",
+            session.Id, module.Slug, userId, assignmentId, session.TryNumber, binding.TriesCount);
         return new StartModuleSessionResult(
             session.Id, newLaunchUrl, session.ExpiresAt, session.TryNumber, Resumed: false);
     }
@@ -263,7 +368,12 @@ public sealed class ModuleSessionsService : IModuleSessionsService
             return null;
         }
 
-        if (!await practicalsRepository.IsTaskInPracticalAsync(session.PracticalTaskId, practicalId, cancellationToken))
+        var belongsToPractical = session.PracticalTaskId is { } sessionTaskId
+            ? await practicalsRepository.IsTaskInPracticalAsync(sessionTaskId, practicalId, cancellationToken)
+            : session.AssignmentId is { } sessionAssignmentId
+                && (await assignmentsRepository.GetByIdAsync(sessionAssignmentId, cancellationToken))
+                    ?.PracticalMaterialId == practicalId;
+        if (!belongsToPractical)
         {
             return null;
         }

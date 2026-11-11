@@ -301,6 +301,46 @@ internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial,
     }
 
     /// <inheritdoc />
+    public async Task EnableRandomSelectionAsync(Guid practicalId, CancellationToken cancellationToken = default)
+    {
+        var practical = await DatabaseContext.PracticalMaterials.FirstOrDefaultAsync(
+            item => item.Id == practicalId,
+            cancellationToken);
+        if (practical is null)
+        {
+            return;
+        }
+
+        if (practical.Kind != PracticalKind.External)
+        {
+            practical.BindExternalModule(practical.TriesCount, practical.TimeLimitMinutes, practical.AttemptsPerSession);
+        }
+
+        await DatabaseContext.Cases
+            .Where(task => task.PracticalMaterialId == practicalId && task.PracticalModuleId != null)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<AssignmentStartBinding?> GetAssignmentStartBindingAsync(
+        Guid practicalId,
+        CancellationToken cancellationToken = default)
+    {
+        return await DatabaseContext.PracticalMaterials
+            .AsNoTracking()
+            .Where(practical => practical.Id == practicalId && practical.Kind == PracticalKind.External)
+            .Select(practical => new AssignmentStartBinding(
+                practical.ModuleId,
+                practical.Module.CourseId,
+                practical.TriesCount,
+                practical.TimeLimitMinutes,
+                practical.AttemptsPerSession))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task ConfigureQuestionsAsync(
         ConfigurePracticalQuestionsCommand command,
         CancellationToken cancellationToken = default)

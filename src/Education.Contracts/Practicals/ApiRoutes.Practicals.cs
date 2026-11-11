@@ -63,6 +63,31 @@ public static partial class ApiRoutes
         public const string ModuleSessionEvents = ModuleSession + "/events";
 
         /// <summary>
+        /// Шаблон маршрута правила случайной выборки заданий практики.
+        /// </summary>
+        public const string TaskSelectionRule = Practical + "/task-selection-rule";
+
+        /// <summary>
+        /// Шаблон маршрута назначений случайных наборов заданий практики на пару.
+        /// </summary>
+        public const string TaskAssignments = Practical + "/assignments";
+
+        /// <summary>
+        /// Шаблон маршрута пересбора набора заданий студента.
+        /// </summary>
+        public const string TaskAssignmentRegenerate = TaskAssignments + "/regenerate";
+
+        /// <summary>
+        /// Шаблон маршрута запуска/продолжения сессии модуля по назначению случайного набора.
+        /// </summary>
+        public const string TaskAssignmentStart = TaskAssignments + "/{assignmentId:guid}/start";
+
+        /// <summary>
+        /// Шаблон маршрута набора заданий текущего студента по практике.
+        /// </summary>
+        public const string MyTaskAssignments = Practical + "/my-assignments";
+
+        /// <summary>
         /// Создаёт маршрут для конкретного практического материала.
         /// </summary>
         public static string ForPractical(Guid practicalId) => ReplaceUrlSegment(

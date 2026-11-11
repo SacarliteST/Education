@@ -1,6 +1,7 @@
 ﻿using Education.Application.Courses;
 using Education.Application.Modules;
 using Education.Application.PracticalModules;
+using Education.Application.Practicals.TaskAssignments;
 using Education.Application.Questions;
 using Education.Application.Users;
 using Education.Domain.Practicals;
@@ -16,6 +17,7 @@ public sealed class PracticalsService : IPracticalsService
     private readonly IPracticalsRepository practicalsRepository;
     private readonly IPracticalModulesRepository practicalModulesRepository;
     private readonly IQuestionsRepository questionsRepository;
+    private readonly ITaskSelectionRulesRepository rulesRepository;
     private readonly ILogger<PracticalsService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="PracticalsService"/>.</summary>
@@ -24,6 +26,7 @@ public sealed class PracticalsService : IPracticalsService
     /// <param name="practicalsRepository">Хранилище практик.</param>
     /// <param name="practicalModulesRepository">Реестр внешних практических модулей.</param>
     /// <param name="questionsRepository">Хранилище вопросов.</param>
+    /// <param name="rulesRepository">Хранилище правил случайной выборки заданий.</param>
     /// <param name="logger">Журнал.</param>
     public PracticalsService(
         IEducationUserResolver userResolver,
@@ -31,6 +34,7 @@ public sealed class PracticalsService : IPracticalsService
         IPracticalsRepository practicalsRepository,
         IPracticalModulesRepository practicalModulesRepository,
         IQuestionsRepository questionsRepository,
+        ITaskSelectionRulesRepository rulesRepository,
         ILogger<PracticalsService> logger)
     {
         this.userResolver = userResolver;
@@ -38,6 +42,7 @@ public sealed class PracticalsService : IPracticalsService
         this.practicalsRepository = practicalsRepository;
         this.practicalModulesRepository = practicalModulesRepository;
         this.questionsRepository = questionsRepository;
+        this.rulesRepository = rulesRepository;
         this.logger = logger;
     }
 
@@ -104,6 +109,7 @@ public sealed class PracticalsService : IPracticalsService
     public async Task<Case> CreateTaskAsync(CreateTaskCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
+        await EnsureNoSelectionRuleAsync(command.PracticalId, cancellationToken);
         var task = await practicalsRepository.CreateTaskAsync(command, cancellationToken);
         logger.LogInformation("Задание {TaskId} создано в практике {PracticalId}.", task.Id, command.PracticalId);
         return task;
@@ -113,6 +119,7 @@ public sealed class PracticalsService : IPracticalsService
     public async Task UpdateTaskTextAsync(Guid taskId, UpdateTaskTextCommand command, CancellationToken cancellationToken = default)
     {
         await EnsureTaskOwnerAsync(taskId, cancellationToken);
+        await EnsureNoSelectionRuleForTaskAsync(taskId, cancellationToken);
         await practicalsRepository.UpdateTaskTextAsync(taskId, command.Text, cancellationToken);
     }
 
@@ -120,6 +127,7 @@ public sealed class PracticalsService : IPracticalsService
     public async Task DeleteTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
         await EnsureTaskOwnerAsync(taskId, cancellationToken);
+        await EnsureNoSelectionRuleForTaskAsync(taskId, cancellationToken);
         await practicalsRepository.DeleteTaskAsync(taskId, cancellationToken);
         logger.LogInformation("Задание {TaskId} удалено.", taskId);
     }
@@ -158,6 +166,7 @@ public sealed class PracticalsService : IPracticalsService
     public async Task BindModuleAsync(BindPracticalModuleCommand command, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(command.PracticalId, cancellationToken);
+        await EnsureNoSelectionRuleAsync(command.PracticalId, cancellationToken);
 
         var module = await practicalModulesRepository.GetByIdAsync(command.PracticalModuleId, cancellationToken);
         if (module is null || !module.IsEnabled)
@@ -207,6 +216,27 @@ public sealed class PracticalsService : IPracticalsService
                 "Отказано в доступе к заданию {TaskId}: пользователь {LegacyUserId} не владелец.",
                 taskId, legacyUserId);
             throw new CourseAccessDeniedException(taskId);
+        }
+    }
+
+    private async Task EnsureNoSelectionRuleForTaskAsync(Guid taskId, CancellationToken cancellationToken)
+    {
+        var task = await practicalsRepository.GetTaskAsync(taskId, cancellationToken);
+        if (task is not null)
+        {
+            await EnsureNoSelectionRuleAsync(task.PracticalMaterialId, cancellationToken);
+        }
+    }
+
+    private async Task EnsureNoSelectionRuleAsync(Guid practicalId, CancellationToken cancellationToken)
+    {
+        if (await rulesRepository.GetByPracticalIdAsync(practicalId, cancellationToken) is not null)
+        {
+            logger.LogWarning(
+                "Отклонено изменение ручного списка заданий практики {PracticalId}: задано правило случайной выборки.",
+                practicalId);
+            throw new TaskSelectionModeConflictException(
+                "Практика работает в режиме случайной выборки — ручной список заданий менять нельзя.");
         }
     }
 }
