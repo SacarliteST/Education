@@ -55,6 +55,10 @@ internal static class EndpointResults
         {
             return Results.Forbid();
         }
+        catch (ActiveModuleSessionsException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
         catch (UnknownStudentsException exception)
         {
             return BadRequestProblem(exception.Message);
