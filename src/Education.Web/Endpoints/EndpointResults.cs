@@ -86,6 +86,10 @@ internal static class EndpointResults
         {
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
         }
+        catch (ActiveModuleSessionsException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);
+        }
         catch (PracticalNotExternalException exception)
         {
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status409Conflict);

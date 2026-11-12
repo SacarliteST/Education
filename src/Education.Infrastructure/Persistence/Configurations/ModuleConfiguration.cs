@@ -16,6 +16,8 @@ internal sealed class ModuleConfiguration : IEntityTypeConfiguration<Module>
         builder.Property(module => module.Name).HasColumnName("m_name").IsRequired();
         builder.Property(module => module.CourseId).HasColumnName("course_id");
         builder.HasOne(module => module.Course).WithMany(course => course.Modules).HasForeignKey(module => module.CourseId);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 

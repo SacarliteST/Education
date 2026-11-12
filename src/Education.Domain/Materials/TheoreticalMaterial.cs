@@ -66,5 +66,16 @@ public sealed class TheoreticalMaterial : Entity
     /// </summary>
     /// <param name="text">Новый текст материала.</param>
     public void UpdateText(string text) => Text = text;
+
+    /// <summary>
+    /// Метка мягкого удаления; не-null — сущность удалена и скрыта из выборок.
+    /// </summary>
+    public DateTimeOffset? DeletedAt { get; private set; }
+
+    /// <summary>
+    /// Помечает сущность удалённой (мягкое удаление, запись остаётся в базе).
+    /// </summary>
+    /// <param name="deletedAt">Момент удаления (UTC).</param>
+    public void MarkDeleted(DateTimeOffset deletedAt) => DeletedAt ??= deletedAt;
 }
 

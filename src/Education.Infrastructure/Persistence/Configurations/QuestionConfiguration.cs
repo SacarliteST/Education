@@ -21,6 +21,8 @@ internal sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
         builder.Property(question => question.ModuleId).HasColumnName("module_id");
         builder.HasOne(question => question.QuestionType).WithMany().HasForeignKey(question => question.QuestionTypeId);
         builder.HasOne(question => question.Module).WithMany(module => module.Questions).HasForeignKey(question => question.ModuleId);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 

@@ -45,6 +45,6 @@ internal sealed class PracticalModuleSessionConfiguration : IEntityTypeConfigura
         builder.HasOne<PracticalTaskAssignment>()
             .WithMany()
             .HasForeignKey(session => session.AssignmentId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

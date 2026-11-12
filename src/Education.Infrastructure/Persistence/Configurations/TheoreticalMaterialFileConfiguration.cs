@@ -24,6 +24,8 @@ internal sealed class TheoreticalMaterialFileConfiguration : IEntityTypeConfigur
         builder.HasOne(file => file.TheoreticalMaterial)
             .WithMany(theory => theory.Files)
             .HasForeignKey(file => file.TheoreticalMaterialId);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 

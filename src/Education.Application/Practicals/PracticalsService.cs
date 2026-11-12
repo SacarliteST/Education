@@ -18,6 +18,7 @@ public sealed class PracticalsService : IPracticalsService
     private readonly IPracticalModulesRepository practicalModulesRepository;
     private readonly IQuestionsRepository questionsRepository;
     private readonly ITaskSelectionRulesRepository rulesRepository;
+    private readonly IPracticalModuleSessionsRepository moduleSessionsRepository;
     private readonly ILogger<PracticalsService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="PracticalsService"/>.</summary>
@@ -27,6 +28,7 @@ public sealed class PracticalsService : IPracticalsService
     /// <param name="practicalModulesRepository">Реестр внешних практических модулей.</param>
     /// <param name="questionsRepository">Хранилище вопросов.</param>
     /// <param name="rulesRepository">Хранилище правил случайной выборки заданий.</param>
+    /// <param name="moduleSessionsRepository">Хранилище сессий внешних модулей.</param>
     /// <param name="logger">Журнал.</param>
     public PracticalsService(
         IEducationUserResolver userResolver,
@@ -35,6 +37,7 @@ public sealed class PracticalsService : IPracticalsService
         IPracticalModulesRepository practicalModulesRepository,
         IQuestionsRepository questionsRepository,
         ITaskSelectionRulesRepository rulesRepository,
+        IPracticalModuleSessionsRepository moduleSessionsRepository,
         ILogger<PracticalsService> logger)
     {
         this.userResolver = userResolver;
@@ -43,6 +46,7 @@ public sealed class PracticalsService : IPracticalsService
         this.practicalModulesRepository = practicalModulesRepository;
         this.questionsRepository = questionsRepository;
         this.rulesRepository = rulesRepository;
+        this.moduleSessionsRepository = moduleSessionsRepository;
         this.logger = logger;
     }
 
@@ -89,8 +93,14 @@ public sealed class PracticalsService : IPracticalsService
     public async Task DeletePracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
         await EnsurePracticalOwnerAsync(practicalId, cancellationToken);
+        if (await moduleSessionsRepository.HasActiveForPracticalAsync(practicalId, cancellationToken))
+        {
+            logger.LogWarning(
+                "Отказано в удалении практики {PracticalId}: есть активные сессии модуля.", practicalId);
+            throw new ActiveModuleSessionsException("практику");
+        }
         await practicalsRepository.DeletePracticalAsync(practicalId, cancellationToken);
-        logger.LogInformation("Практика {PracticalId} удалена.", practicalId);
+        logger.LogInformation("Практика {PracticalId} удалена (мягкое удаление).", practicalId);
     }
 
     /// <inheritdoc />

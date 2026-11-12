@@ -48,9 +48,10 @@ internal sealed class EfCoursesRepository : RepositoryBase<Course, Guid>, ICours
     /// <inheritdoc />
     public async Task DeleteCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.Courses
-            .Where(course => course.Id == courseId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var course = await DatabaseContext.Courses
+            .FirstOrDefaultAsync(item => item.Id == courseId, cancellationToken);
+        course?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />

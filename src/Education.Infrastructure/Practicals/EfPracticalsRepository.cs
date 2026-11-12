@@ -164,9 +164,10 @@ internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial,
     /// <inheritdoc />
     public async Task DeletePracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.PracticalMaterials
-            .Where(practical => practical.Id == practicalId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var practical = await DatabaseContext.PracticalMaterials
+            .FirstOrDefaultAsync(item => item.Id == practicalId, cancellationToken);
+        practical?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -214,9 +215,10 @@ internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial,
     /// <inheritdoc />
     public async Task DeleteTaskAsync(Guid taskId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.Cases
-            .Where(task => task.Id == taskId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var task = await DatabaseContext.Cases
+            .FirstOrDefaultAsync(item => item.Id == taskId, cancellationToken);
+        task?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -266,9 +268,14 @@ internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial,
 
         practical.BindExternalModule(command.TriesCount, command.TimeLimitMinutes, command.AttemptsPerSession);
 
-        await DatabaseContext.Cases
-            .Where(task => task.PracticalMaterialId == command.PracticalId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var oldTasks = await DatabaseContext.Cases
+            .Where(item => item.PracticalMaterialId == command.PracticalId)
+            .ToListAsync(cancellationToken);
+        foreach (var oldTask in oldTasks)
+        {
+            oldTask.MarkDeleted(DateTimeOffset.UtcNow);
+        }
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         var task = new Case(command.PracticalId, "Задание внешнего модуля", String.Empty);
         task.LinkExternalTask(command.PracticalModuleId, command.ExternalTaskRef);
@@ -316,9 +323,14 @@ internal sealed class EfPracticalsRepository : RepositoryBase<PracticalMaterial,
             practical.BindExternalModule(practical.TriesCount, practical.TimeLimitMinutes, practical.AttemptsPerSession);
         }
 
-        await DatabaseContext.Cases
+        var serviceTasks = await DatabaseContext.Cases
             .Where(task => task.PracticalMaterialId == practicalId && task.PracticalModuleId != null)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+        foreach (var task in serviceTasks)
+        {
+            task.MarkDeleted(DateTimeOffset.UtcNow);
+        }
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
 
         await DatabaseContext.SaveChangesAsync(cancellationToken);
     }

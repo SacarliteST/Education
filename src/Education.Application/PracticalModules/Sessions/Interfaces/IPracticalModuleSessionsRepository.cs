@@ -42,6 +42,15 @@ public interface IPracticalModuleSessionsRepository
         Guid practicalId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Есть ли активные (<c>ACTIVE</c>) сессии по практике — по заданиям и по назначениям случайных наборов.</summary>
+    Task<bool> HasActiveForPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default);
+
+    /// <summary>Есть ли активные сессии по любой практике модуля.</summary>
+    Task<bool> HasActiveForModuleAsync(Guid moduleId, CancellationToken cancellationToken = default);
+
+    /// <summary>Есть ли активные сессии по любой практике курса.</summary>
+    Task<bool> HasActiveForCourseAsync(Guid courseId, CancellationToken cancellationToken = default);
+
     /// <summary>Добавляет новую сессию и сохраняет изменения.</summary>
     /// <param name="session">Новая сессия.</param>
     /// <param name="cancellationToken">Токен отмены.</param>

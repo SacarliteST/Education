@@ -30,6 +30,8 @@ internal sealed class PracticalMaterialConfiguration : IEntityTypeConfiguration<
         builder.HasOne(practical => practical.Module)
             .WithMany(module => module.PracticalMaterials)
             .HasForeignKey(practical => practical.ModuleId);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 

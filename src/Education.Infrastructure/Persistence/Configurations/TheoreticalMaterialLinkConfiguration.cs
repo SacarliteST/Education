@@ -19,6 +19,8 @@ internal sealed class TheoreticalMaterialLinkConfiguration : IEntityTypeConfigur
         builder.HasOne(link => link.TheoreticalMaterial)
             .WithMany(theory => theory.Links)
             .HasForeignKey(link => link.TheoreticalMaterialId);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 

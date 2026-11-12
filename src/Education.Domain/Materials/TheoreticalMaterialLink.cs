@@ -43,5 +43,16 @@ public sealed class TheoreticalMaterialLink : Entity
         Description = description;
         Link = link;
     }
+
+    /// <summary>
+    /// Метка мягкого удаления; не-null — сущность удалена и скрыта из выборок.
+    /// </summary>
+    public DateTimeOffset? DeletedAt { get; private set; }
+
+    /// <summary>
+    /// Помечает сущность удалённой (мягкое удаление, запись остаётся в базе).
+    /// </summary>
+    /// <param name="deletedAt">Момент удаления (UTC).</param>
+    public void MarkDeleted(DateTimeOffset deletedAt) => DeletedAt ??= deletedAt;
 }
 

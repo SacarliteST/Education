@@ -27,6 +27,8 @@ internal sealed class CaseConfiguration : IEntityTypeConfiguration<Case>
             .HasForeignKey(task => task.PracticalModuleId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 

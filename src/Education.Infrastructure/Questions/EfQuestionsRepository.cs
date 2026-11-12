@@ -75,9 +75,10 @@ internal sealed class EfQuestionsRepository : RepositoryBase<Question, Guid>, IQ
     /// <inheritdoc />
     public async Task DeleteQuestionAsync(Guid questionId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.Questions
-            .Where(question => question.Id == questionId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var question = await DatabaseContext.Questions
+            .FirstOrDefaultAsync(item => item.Id == questionId, cancellationToken);
+        question?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />

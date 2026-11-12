@@ -143,9 +143,10 @@ internal sealed class EfTheoriesRepository : RepositoryBase<TheoreticalMaterial,
     /// <inheritdoc />
     public async Task DeleteTheoryAsync(Guid theoryId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.TheoreticalMaterials
-            .Where(theory => theory.Id == theoryId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var theory = await DatabaseContext.TheoreticalMaterials
+            .FirstOrDefaultAsync(item => item.Id == theoryId, cancellationToken);
+        theory?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -161,9 +162,10 @@ internal sealed class EfTheoriesRepository : RepositoryBase<TheoreticalMaterial,
     /// <inheritdoc />
     public async Task DeleteTheoryDocumentAsync(Guid documentId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.TheoreticalMaterialFiles
-            .Where(file => file.Id == documentId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var file = await DatabaseContext.TheoreticalMaterialFiles
+            .FirstOrDefaultAsync(item => item.Id == documentId, cancellationToken);
+        file?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -185,9 +187,10 @@ internal sealed class EfTheoriesRepository : RepositoryBase<TheoreticalMaterial,
     /// <inheritdoc />
     public async Task DeleteTheoryLinkAsync(Guid linkId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.TheoreticalMaterialLinks
-            .Where(link => link.Id == linkId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var link = await DatabaseContext.TheoreticalMaterialLinks
+            .FirstOrDefaultAsync(item => item.Id == linkId, cancellationToken);
+        link?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 }
 

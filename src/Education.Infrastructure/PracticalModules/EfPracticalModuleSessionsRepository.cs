@@ -203,6 +203,64 @@ internal sealed class EfPracticalModuleSessionsRepository : IPracticalModuleSess
     }
 
     /// <inheritdoc />
+    public Task<bool> HasActiveForPracticalAsync(Guid practicalId, CancellationToken cancellationToken = default)
+    {
+        var practicalIds = context.PracticalMaterials
+            .Where(practical => practical.Id == practicalId)
+            .Select(practical => practical.Id);
+        return HasActiveForPracticalIdsAsync(practicalIds, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> HasActiveForModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
+    {
+        var practicalIds = context.PracticalMaterials
+            .Where(practical => practical.ModuleId == moduleId)
+            .Select(practical => practical.Id);
+        return HasActiveForPracticalIdsAsync(practicalIds, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> HasActiveForCourseAsync(Guid courseId, CancellationToken cancellationToken = default)
+    {
+        var moduleIds = context.Modules
+            .Where(module => module.CourseId == courseId)
+            .Select(module => module.Id);
+        var practicalIds = context.PracticalMaterials
+            .Where(practical => moduleIds.Contains(practical.ModuleId))
+            .Select(practical => practical.Id);
+        return HasActiveForPracticalIdsAsync(practicalIds, cancellationToken);
+    }
+
+    private async Task<bool> HasActiveForPracticalIdsAsync(
+        IQueryable<Guid> practicalIds,
+        CancellationToken cancellationToken)
+    {
+        var taskIds = context.Cases
+            .Where(task => practicalIds.Contains(task.PracticalMaterialId))
+            .Select(task => (Guid?)task.Id);
+        var hasByTasks = await ActiveSessions()
+            .AnyAsync(
+                session => session.PracticalTaskId != null && taskIds.Contains(session.PracticalTaskId),
+                cancellationToken);
+        if (hasByTasks)
+        {
+            return true;
+        }
+
+        var assignmentIds = context.PracticalTaskAssignments
+            .Where(assignment => practicalIds.Contains(assignment.PracticalMaterialId))
+            .Select(assignment => (Guid?)assignment.Id);
+        return await ActiveSessions()
+            .AnyAsync(
+                session => session.AssignmentId != null && assignmentIds.Contains(session.AssignmentId),
+                cancellationToken);
+    }
+
+    private IQueryable<PracticalModuleSession> ActiveSessions() =>
+        context.PracticalModuleSessions.Where(session => session.Status == ModuleSessionState.Active);
+
+    /// <inheritdoc />
     public async Task AddAsync(PracticalModuleSession session, CancellationToken cancellationToken = default)
     {
         await context.PracticalModuleSessions.AddAsync(session, cancellationToken);

@@ -1,4 +1,6 @@
-﻿using Education.Application.Users;
+﻿using Education.Application.PracticalModules;
+using Education.Application.Practicals;
+using Education.Application.Users;
 using Education.Domain.Courses;
 using Microsoft.Extensions.Logging;
 
@@ -9,19 +11,23 @@ public sealed class CoursesService : ICoursesService
 {
     private readonly IEducationUserResolver userResolver;
     private readonly ICoursesRepository coursesRepository;
+    private readonly IPracticalModuleSessionsRepository moduleSessionsRepository;
     private readonly ILogger<CoursesService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="CoursesService"/>.</summary>
     /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
     /// <param name="coursesRepository">Хранилище курсов.</param>
+    /// <param name="moduleSessionsRepository">Хранилище сессий внешних модулей.</param>
     /// <param name="logger">Журнал.</param>
     public CoursesService(
         IEducationUserResolver userResolver,
         ICoursesRepository coursesRepository,
+        IPracticalModuleSessionsRepository moduleSessionsRepository,
         ILogger<CoursesService> logger)
     {
         this.userResolver = userResolver;
         this.coursesRepository = coursesRepository;
+        this.moduleSessionsRepository = moduleSessionsRepository;
         this.logger = logger;
     }
 
@@ -55,8 +61,16 @@ public sealed class CoursesService : ICoursesService
             throw new CourseAccessDeniedException(courseId);
         }
 
+        if (await moduleSessionsRepository.HasActiveForCourseAsync(courseId, cancellationToken))
+        {
+            logger.LogWarning(
+                "Отказано в удалении курса {CourseId}: есть активные сессии модуля.", courseId);
+            throw new ActiveModuleSessionsException("курс");
+        }
+
         await coursesRepository.DeleteCourseAsync(courseId, cancellationToken);
-        logger.LogInformation("Курс {CourseId} удалён преподавателем {LegacyUserId}.", courseId, legacyUserId);
+        logger.LogInformation(
+            "Курс {CourseId} удалён преподавателем {LegacyUserId} (мягкое удаление).", courseId, legacyUserId);
     }
 
     /// <inheritdoc />

@@ -58,9 +58,10 @@ internal sealed class EfModulesRepository : RepositoryBase<Module, Guid>, IModul
     /// <inheritdoc />
     public async Task DeleteModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     {
-        await DatabaseContext.Modules
-            .Where(module => module.Id == moduleId)
-            .ExecuteDeleteAsync(cancellationToken);
+        var module = await DatabaseContext.Modules
+            .FirstOrDefaultAsync(item => item.Id == moduleId, cancellationToken);
+        module?.MarkDeleted(DateTimeOffset.UtcNow);
+        await DatabaseContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />

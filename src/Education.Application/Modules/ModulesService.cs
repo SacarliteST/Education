@@ -1,4 +1,6 @@
 ﻿using Education.Application.Courses;
+using Education.Application.PracticalModules;
+using Education.Application.Practicals;
 using Education.Application.Users;
 using Education.Domain.Courses;
 using Education.Domain.Materials;
@@ -12,22 +14,26 @@ public sealed class ModulesService : IModulesService
     private readonly IEducationUserResolver userResolver;
     private readonly ICoursesRepository coursesRepository;
     private readonly IModulesRepository modulesRepository;
+    private readonly IPracticalModuleSessionsRepository moduleSessionsRepository;
     private readonly ILogger<ModulesService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="ModulesService"/>.</summary>
     /// <param name="userResolver">Сопоставление пользователя Identity с учебным пользователем.</param>
     /// <param name="coursesRepository">Хранилище курсов.</param>
     /// <param name="modulesRepository">Хранилище модулей курса.</param>
+    /// <param name="moduleSessionsRepository">Хранилище сессий внешних модулей.</param>
     /// <param name="logger">Журнал.</param>
     public ModulesService(
         IEducationUserResolver userResolver,
         ICoursesRepository coursesRepository,
         IModulesRepository modulesRepository,
+        IPracticalModuleSessionsRepository moduleSessionsRepository,
         ILogger<ModulesService> logger)
     {
         this.userResolver = userResolver;
         this.coursesRepository = coursesRepository;
         this.modulesRepository = modulesRepository;
+        this.moduleSessionsRepository = moduleSessionsRepository;
         this.logger = logger;
     }
 
@@ -74,8 +80,16 @@ public sealed class ModulesService : IModulesService
             throw new CourseAccessDeniedException(moduleId);
         }
 
+        if (await moduleSessionsRepository.HasActiveForModuleAsync(moduleId, cancellationToken))
+        {
+            logger.LogWarning(
+                "Отказано в удалении модуля {ModuleId}: есть активные сессии модуля.", moduleId);
+            throw new ActiveModuleSessionsException("модуль");
+        }
+
         await modulesRepository.DeleteModuleAsync(moduleId, cancellationToken);
-        logger.LogInformation("Модуль {ModuleId} удалён преподавателем {LegacyUserId}.", moduleId, legacyUserId);
+        logger.LogInformation(
+            "Модуль {ModuleId} удалён преподавателем {LegacyUserId} (мягкое удаление).", moduleId, legacyUserId);
     }
 
     /// <inheritdoc />

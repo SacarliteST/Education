@@ -19,6 +19,8 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.Property(course => course.UserId).HasColumnName("user_id");
         builder.Property(course => course.PracticeOnlyDuringClass).HasColumnName("practice_only_during_class").HasDefaultValue(false);
         builder.HasOne(course => course.User).WithMany(user => user.Courses).HasForeignKey(course => course.UserId);
+        builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.HasQueryFilter(x => x.DeletedAt == null);
     }
 }
 
