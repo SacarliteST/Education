@@ -51,13 +51,13 @@ internal static class GradesEndpointGroup
 
         app.MapGet(ApiRoutes.Grades.CourseGradebook, async (
                 Guid courseId,
-                [AsParameters] GetCourseGradebookRequest request,
+                Guid? classWindowId,
                 IGradesService service,
                 CancellationToken cancellationToken) =>
             await EndpointResults.ExecuteTeacherCommandAsync(async () =>
                 Results.Ok((await service.GetCourseGradebookAsync(
                     courseId,
-                    request.ClassWindowId,
+                    classWindowId,
                     cancellationToken)).ToResponse())))
             .WithTags("Grades")
             .WithName("GetCourseGradebook")
@@ -76,14 +76,14 @@ internal static class GradesEndpointGroup
         app.MapGet(ApiRoutes.Grades.StudentPracticalResults, async (
                 Guid practicalId,
                 Guid studentId,
-                [AsParameters] GetStudentPracticalResultsRequest request,
+                Guid? classWindowId,
                 IGradesService service,
                 CancellationToken cancellationToken) =>
             await EndpointResults.ExecuteTeacherCommandAsync(async () =>
                 Results.Ok((await service.GetStudentPracticalResultsAsync(
                     practicalId,
                     studentId,
-                    request.ClassWindowId,
+                    classWindowId,
                     cancellationToken)).ToResponse())))
             .WithTags("Grades")
             .WithName("GetStudentPracticalResults")
