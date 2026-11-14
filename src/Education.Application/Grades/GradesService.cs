@@ -1,5 +1,6 @@
 ﻿using Education.Application.Courses;
 using Education.Application.ClassWindows;
+using Education.Application.PracticalModules;
 using Education.Application.Practicals;
 using Education.Application.TestResults;
 using Education.Application.Users;
@@ -16,6 +17,7 @@ public sealed class GradesService : IGradesService
     private readonly IPracticalsRepository practicalsRepository;
     private readonly ICoursesRepository coursesRepository;
     private readonly IClassWindowResultsScopeResolver classWindowScopeResolver;
+    private readonly IModuleCatalogService moduleCatalogService;
     private readonly ILogger<GradesService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="GradesService"/>.</summary>
@@ -25,6 +27,7 @@ public sealed class GradesService : IGradesService
     /// <param name="practicalsRepository">Хранилище практик.</param>
     /// <param name="coursesRepository">Хранилище курсов.</param>
     /// <param name="classWindowScopeResolver">Определение границ выбранной пары.</param>
+    /// <param name="moduleCatalogService">Каталог заданий внешних модулей.</param>
     /// <param name="logger">Журнал.</param>
     public GradesService(
         IEducationUserResolver userResolver,
@@ -33,6 +36,7 @@ public sealed class GradesService : IGradesService
         IPracticalsRepository practicalsRepository,
         ICoursesRepository coursesRepository,
         IClassWindowResultsScopeResolver classWindowScopeResolver,
+        IModuleCatalogService moduleCatalogService,
         ILogger<GradesService> logger)
     {
         this.userResolver = userResolver;
@@ -41,6 +45,7 @@ public sealed class GradesService : IGradesService
         this.practicalsRepository = practicalsRepository;
         this.coursesRepository = coursesRepository;
         this.classWindowScopeResolver = classWindowScopeResolver;
+        this.moduleCatalogService = moduleCatalogService;
         this.logger = logger;
     }
 
@@ -130,11 +135,52 @@ public sealed class GradesService : IGradesService
             access.CourseId,
             classWindowId,
             cancellationToken);
-        return await gradesRepository.GetStudentPracticalResultsAsync(
+        var results = await gradesRepository.GetStudentPracticalResultsAsync(
             practicalId,
             studentId,
             access.StudentName,
             classWindowScope,
             cancellationToken);
+        return await AddTaskNamesAsync(results, cancellationToken);
+    }
+
+    private async Task<StudentPracticalResults> AddTaskNamesAsync(
+        StudentPracticalResults results,
+        CancellationToken cancellationToken)
+    {
+        if (results.PracticalModuleId is null || results.Tasks.Count == 0)
+        {
+            return results;
+        }
+
+        IReadOnlyList<ModuleCatalogTask>? catalog;
+        try
+        {
+            catalog = await moduleCatalogService.GetTasksAsync(results.PracticalModuleId.Value, cancellationToken);
+        }
+        catch (ModuleCatalogUnavailableException exception)
+        {
+            logger.LogWarning(
+                exception,
+                "Не удалось получить названия заданий модуля {ModuleId} для детализации практики {PracticalId}.",
+                results.PracticalModuleId,
+                results.PracticalId);
+            return results;
+        }
+
+        if (catalog is null)
+        {
+            return results;
+        }
+
+        var namesByRef = catalog
+            .GroupBy(task => task.Ref, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First().Name, StringComparer.Ordinal);
+        return results with
+        {
+            Tasks = results.Tasks
+                .Select(task => task with { TaskName = namesByRef.GetValueOrDefault(task.ExternalTaskRef) })
+                .ToList(),
+        };
     }
 }
