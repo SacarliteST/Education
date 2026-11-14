@@ -18,6 +18,9 @@ public interface IGradesRepository
     /// <summary>
     /// Возвращает ведомость курса: все практики курса и студентов (назначенных на курс или на любую его практику).
     /// </summary>
-    Task<Gradebook> GetCourseGradebookAsync(Guid courseId, CancellationToken cancellationToken = default);
+    Task<Gradebook> GetCourseGradebookAsync(
+        Guid courseId,
+        ClassWindows.ClassWindowResultsScope? classWindowScope = null,
+        CancellationToken cancellationToken = default);
 }
 

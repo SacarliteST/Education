@@ -1,4 +1,5 @@
 ﻿using Education.Application.Courses;
+using Education.Application.ClassWindows;
 using Education.Application.Practicals;
 using Education.Application.TestResults;
 using Education.Application.Users;
@@ -14,6 +15,7 @@ public sealed class GradesService : IGradesService
     private readonly IGradesRepository gradesRepository;
     private readonly IPracticalsRepository practicalsRepository;
     private readonly ICoursesRepository coursesRepository;
+    private readonly IClassWindowResultsScopeResolver classWindowScopeResolver;
     private readonly ILogger<GradesService> logger;
 
     /// <summary>Создаёт экземпляр класса <see cref="GradesService"/>.</summary>
@@ -22,6 +24,7 @@ public sealed class GradesService : IGradesService
     /// <param name="gradesRepository">Хранилище данных для расчёта оценок.</param>
     /// <param name="practicalsRepository">Хранилище практик.</param>
     /// <param name="coursesRepository">Хранилище курсов.</param>
+    /// <param name="classWindowScopeResolver">Определение границ выбранной пары.</param>
     /// <param name="logger">Журнал.</param>
     public GradesService(
         IEducationUserResolver userResolver,
@@ -29,6 +32,7 @@ public sealed class GradesService : IGradesService
         IGradesRepository gradesRepository,
         IPracticalsRepository practicalsRepository,
         ICoursesRepository coursesRepository,
+        IClassWindowResultsScopeResolver classWindowScopeResolver,
         ILogger<GradesService> logger)
     {
         this.userResolver = userResolver;
@@ -36,6 +40,7 @@ public sealed class GradesService : IGradesService
         this.gradesRepository = gradesRepository;
         this.practicalsRepository = practicalsRepository;
         this.coursesRepository = coursesRepository;
+        this.classWindowScopeResolver = classWindowScopeResolver;
         this.logger = logger;
     }
 
@@ -72,7 +77,10 @@ public sealed class GradesService : IGradesService
     }
 
     /// <inheritdoc />
-    public async Task<Gradebook> GetCourseGradebookAsync(Guid courseId, CancellationToken cancellationToken = default)
+    public async Task<Gradebook> GetCourseGradebookAsync(
+        Guid courseId,
+        Guid? classWindowId = null,
+        CancellationToken cancellationToken = default)
     {
         var teacherId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
         if (!await coursesRepository.IsCourseOwnerAsync(courseId, teacherId, cancellationToken))
@@ -83,6 +91,10 @@ public sealed class GradesService : IGradesService
             throw new CourseAccessDeniedException(courseId);
         }
 
-        return await gradesRepository.GetCourseGradebookAsync(courseId, cancellationToken);
+        var classWindowScope = await classWindowScopeResolver.ResolveAsync(
+            courseId,
+            classWindowId,
+            cancellationToken);
+        return await gradesRepository.GetCourseGradebookAsync(courseId, classWindowScope, cancellationToken);
     }
 }

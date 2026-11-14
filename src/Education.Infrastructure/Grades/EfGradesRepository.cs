@@ -1,5 +1,6 @@
 ﻿using Education.Application.Grades;
 using Education.Domain.PracticalModules;
+using Education.Application.ClassWindows;
 using Education.Domain.Practicals;
 using Education.Infrastructure.Persistence;
 using Education.Infrastructure.Users;
@@ -71,7 +72,10 @@ internal sealed class EfGradesRepository : IGradesRepository
     }
 
     /// <inheritdoc />
-    public async Task<Gradebook> GetCourseGradebookAsync(Guid courseId, CancellationToken cancellationToken = default)
+    public async Task<Gradebook> GetCourseGradebookAsync(
+        Guid courseId,
+        ClassWindowResultsScope? classWindowScope = null,
+        CancellationToken cancellationToken = default)
     {
         var practicals = await (
                 from practical in context.PracticalMaterials.AsNoTracking()
@@ -95,7 +99,7 @@ internal sealed class EfGradesRepository : IGradesRepository
         {
             gradesByPractical[item.Practical.Id] = studentIds.Count == 0
                 ? new Dictionary<Guid, PracticalGrade>()
-                : await CalculateAsync(item.Practical, studentIds, cancellationToken);
+                : await CalculateAsync(item.Practical, studentIds, cancellationToken, classWindowScope);
         }
 
         var students = studentIds
@@ -148,18 +152,37 @@ internal sealed class EfGradesRepository : IGradesRepository
     private async Task<Dictionary<Guid, PracticalGrade>> CalculateAsync(
         PracticalMaterial practical,
         IReadOnlyCollection<Guid> studentIds,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ClassWindowResultsScope? classWindowScope = null)
     {
         if (practical.Kind == PracticalKind.External)
         {
-            var bestScores = (await context.PracticalModuleSessions
-                    .Where(session => studentIds.Contains(session.UserId)
-                        && session.Status == ModuleSessionState.Completed
-                        && session.Grade != null
-                        && (context.Cases.Any(task =>
-                                task.Id == session.PracticalTaskId && task.PracticalMaterialId == practical.Id)
-                            || context.PracticalTaskAssignments.Any(assignment =>
-                                assignment.Id == session.AssignmentId && assignment.PracticalMaterialId == practical.Id)))
+            var sessions = context.PracticalModuleSessions
+                .Where(session => studentIds.Contains(session.UserId)
+                    && session.Status == ModuleSessionState.Completed
+                    && session.Grade != null);
+            if (classWindowScope is null)
+            {
+                sessions = sessions.Where(session =>
+                    context.Cases.Any(task =>
+                        task.Id == session.PracticalTaskId && task.PracticalMaterialId == practical.Id)
+                    || context.PracticalTaskAssignments.Any(assignment =>
+                        assignment.Id == session.AssignmentId && assignment.PracticalMaterialId == practical.Id));
+            }
+            else
+            {
+                sessions = sessions.Where(session =>
+                    context.PracticalTaskAssignments.Any(assignment =>
+                        assignment.Id == session.AssignmentId
+                        && assignment.PracticalMaterialId == practical.Id
+                        && assignment.ClassWindowId == classWindowScope.ClassWindowId)
+                    || (session.StartedAt >= classWindowScope.StartsAt
+                        && session.StartedAt <= classWindowScope.EndsAt
+                        && context.Cases.Any(task =>
+                            task.Id == session.PracticalTaskId && task.PracticalMaterialId == practical.Id)));
+            }
+
+            var bestScores = (await sessions
                     .GroupBy(session => session.UserId)
                     .Select(group => new { UserId = group.Key, Best = group.Max(session => session.Grade) })
                     .ToListAsync(cancellationToken))
@@ -170,16 +193,28 @@ internal sealed class EfGradesRepository : IGradesRepository
                 id => PracticalGradeCalculator.External(practical, bestScores.GetValueOrDefault(id)));
         }
 
-        var totalTasks = await context.Cases.CountAsync(task => task.PracticalMaterialId == practical.Id, cancellationToken);
+        var totalTasks = classWindowScope is null
+            ? await context.Cases.CountAsync(task => task.PracticalMaterialId == practical.Id, cancellationToken)
+            : 0;
         var files = await context.CaseFiles
-            .Where(file => file.Case.PracticalMaterialId == practical.Id && studentIds.Contains(file.UserId))
+            .Where(file => classWindowScope == null
+                && file.Case.PracticalMaterialId == practical.Id
+                && studentIds.Contains(file.UserId))
             .Select(file => new { file.UserId, file.IsAccepted, file.Grade })
             .ToListAsync(cancellationToken);
-        var results = await context.TestResults
+        var testResults = context.TestResults
             .AsNoTracking()
             .Where(result => result.PracticalMaterialId == practical.Id
                 && studentIds.Contains(result.UserId)
-                && result.IsCompleted)
+                && result.IsCompleted);
+        if (classWindowScope is not null)
+        {
+            var startsAt = classWindowScope.StartsAt.UtcDateTime;
+            var endsAt = classWindowScope.EndsAt.UtcDateTime;
+            testResults = testResults.Where(result => result.StatedDate >= startsAt && result.StatedDate <= endsAt);
+        }
+
+        var results = await testResults
             .Select(result => new { result.UserId, result.Score, result.MaxScore })
             .ToListAsync(cancellationToken);
 

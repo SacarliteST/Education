@@ -20,6 +20,9 @@ public interface IGradesService
     /// Возвращает ведомость курса для преподавателя — владельца курса.
     /// </summary>
     /// <exception cref="Courses.CourseAccessDeniedException">Курс не принадлежит преподавателю.</exception>
-    Task<Gradebook> GetCourseGradebookAsync(Guid courseId, CancellationToken cancellationToken = default);
+    Task<Gradebook> GetCourseGradebookAsync(
+        Guid courseId,
+        Guid? classWindowId = null,
+        CancellationToken cancellationToken = default);
 }
 

@@ -51,19 +51,26 @@ internal static class GradesEndpointGroup
 
         app.MapGet(ApiRoutes.Grades.CourseGradebook, async (
                 Guid courseId,
+                [AsParameters] GetCourseGradebookRequest request,
                 IGradesService service,
                 CancellationToken cancellationToken) =>
             await EndpointResults.ExecuteTeacherCommandAsync(async () =>
-                Results.Ok((await service.GetCourseGradebookAsync(courseId, cancellationToken)).ToResponse())))
+                Results.Ok((await service.GetCourseGradebookAsync(
+                    courseId,
+                    request.ClassWindowId,
+                    cancellationToken)).ToResponse())))
             .WithTags("Grades")
             .WithName("GetCourseGradebook")
             .WithSummary("Ведомость курса (преподаватель)")
             .WithDescription(
                 "Студенты курса × практики курса: оценка 2–5 и статус каждой ячейки, число назначенных и зачтённых практик, " +
-                "средняя оценка. Студенты — назначенные на курс или на любую его практику. Доступ: владелец курса.")
+                "средняя оценка. Необязательный classWindowId ограничивает результаты выбранной парой. " +
+                "Студенты — назначенные на курс или на любую его практику. Доступ: владелец курса.")
             .Produces<CourseGradebookResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
         return app;

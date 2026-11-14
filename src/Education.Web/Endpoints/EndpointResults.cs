@@ -82,6 +82,14 @@ internal static class EndpointResults
         {
             return Results.Forbid();
         }
+        catch (ClassWindowNotFoundException exception)
+        {
+            return ClassWindowNotFound(exception);
+        }
+        catch (ClassWindowCourseMismatchException exception)
+        {
+            return ClassWindowCourseMismatch(exception);
+        }
         catch (PracticalModuleNotFoundException exception)
         {
             return Results.Problem(exception.Message, statusCode: StatusCodes.Status404NotFound);
@@ -180,6 +188,22 @@ internal static class EndpointResults
         return Results.Json(
             new { code = "ClassWindow.Closed", detail = exception.Message },
             statusCode: StatusCodes.Status403Forbidden);
+    }
+
+    /// <summary>404 с кодом <c>ClassWindow.NotFound</c>.</summary>
+    public static IResult ClassWindowNotFound(ClassWindowNotFoundException exception)
+    {
+        return Results.Json(
+            new { code = "ClassWindow.NotFound", detail = exception.Message },
+            statusCode: StatusCodes.Status404NotFound);
+    }
+
+    /// <summary>400 с кодом <c>ClassWindow.CourseMismatch</c>.</summary>
+    public static IResult ClassWindowCourseMismatch(ClassWindowCourseMismatchException exception)
+    {
+        return Results.Json(
+            new { code = "ClassWindow.CourseMismatch", detail = exception.Message },
+            statusCode: StatusCodes.Status400BadRequest);
     }
 
     private static IResult BadRequestProblem(string detail)
