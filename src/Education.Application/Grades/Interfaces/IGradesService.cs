@@ -24,5 +24,14 @@ public interface IGradesService
         Guid courseId,
         Guid? classWindowId = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Возвращает детализацию результатов студента по практике для преподавателя-владельца курса.
+    /// </summary>
+    Task<StudentPracticalResults> GetStudentPracticalResultsAsync(
+        Guid practicalId,
+        Guid studentId,
+        Guid? classWindowId = null,
+        CancellationToken cancellationToken = default);
 }
 

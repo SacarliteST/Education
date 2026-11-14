@@ -2,6 +2,7 @@
 using Education.Application.ClassWindows;
 using Education.Application.Courses;
 using Education.Application.Files;
+using Education.Application.Grades;
 using Education.Application.PracticalModules;
 using Education.Application.Practicals;
 using Education.Application.Practicals.TaskAssignments;
@@ -89,6 +90,18 @@ internal static class EndpointResults
         catch (ClassWindowCourseMismatchException exception)
         {
             return ClassWindowCourseMismatch(exception);
+        }
+        catch (PracticalResultsNotFoundException exception)
+        {
+            return Results.Json(
+                new { code = "Practical.NotFound", detail = exception.Message },
+                statusCode: StatusCodes.Status404NotFound);
+        }
+        catch (StudentNotAssignedToCourseException exception)
+        {
+            return Results.Json(
+                new { code = "Student.NotAssignedToCourse", detail = exception.Message },
+                statusCode: StatusCodes.Status404NotFound);
         }
         catch (PracticalModuleNotFoundException exception)
         {

@@ -97,4 +97,44 @@ public sealed class GradesService : IGradesService
             cancellationToken);
         return await gradesRepository.GetCourseGradebookAsync(courseId, classWindowScope, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<StudentPracticalResults> GetStudentPracticalResultsAsync(
+        Guid practicalId,
+        Guid studentId,
+        Guid? classWindowId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var teacherId = await userResolver.ResolveCurrentLegacyUserIdAsync(cancellationToken);
+        var access = await gradesRepository.GetStudentPracticalResultsAccessAsync(
+            practicalId,
+            studentId,
+            cancellationToken)
+            ?? throw new PracticalResultsNotFoundException();
+
+        if (access.TeacherId != teacherId)
+        {
+            logger.LogWarning(
+                "Отказано в детализации практики {PracticalId}: преподаватель {UserId} не владелец курса.",
+                practicalId,
+                teacherId);
+            throw new CourseAccessDeniedException(access.CourseId);
+        }
+
+        if (!access.IsStudentAssigned)
+        {
+            throw new StudentNotAssignedToCourseException();
+        }
+
+        var classWindowScope = await classWindowScopeResolver.ResolveAsync(
+            access.CourseId,
+            classWindowId,
+            cancellationToken);
+        return await gradesRepository.GetStudentPracticalResultsAsync(
+            practicalId,
+            studentId,
+            access.StudentName,
+            classWindowScope,
+            cancellationToken);
+    }
 }

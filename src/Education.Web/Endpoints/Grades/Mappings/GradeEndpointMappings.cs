@@ -1,5 +1,7 @@
 ﻿using Education.Application.Grades;
 using Education.Contracts.Grades;
+using Education.Domain.PracticalModules;
+using Education.Domain.Practicals;
 
 namespace Education.Web.Endpoints;
 
@@ -58,6 +60,42 @@ internal static class GradeEndpointMappings
                     student.AssignedCount,
                     student.PassedCount,
                     student.AverageGrade))
+                .ToList());
+    }
+
+    /// <summary>Преобразует детализацию результатов студента в ответ API.</summary>
+    public static StudentPracticalResultsResponse ToResponse(this StudentPracticalResults results)
+    {
+        return new StudentPracticalResultsResponse(
+            results.StudentId,
+            results.StudentName,
+            results.PracticalId,
+            results.Kind.ToWire(),
+            results.ClassWindowId,
+            results.Tasks.Select(task => new StudentPracticalTaskResultResponse(
+                    task.AssignmentId,
+                    task.PracticalTaskId,
+                    task.SortOrder,
+                    task.ExternalTaskRef,
+                    task.TaskName,
+                    task.ClassWindowId,
+                    task.Sessions.Select(session => new StudentPracticalSessionResultResponse(
+                            session.SessionId,
+                            session.Status.ToWire(),
+                            session.EndReason?.ToWire(),
+                            session.Grade,
+                            session.StartedAt,
+                            session.EndedAt))
+                        .ToList()))
+                .ToList(),
+            results.TestAttempts.Select(attempt => new StudentTestAttemptResultResponse(
+                    attempt.TestResultId,
+                    attempt.TryNumber,
+                    attempt.Score,
+                    attempt.MaxScore,
+                    attempt.StartedAt,
+                    attempt.TurnedAt,
+                    attempt.IsCompleted))
                 .ToList());
     }
 }

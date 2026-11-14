@@ -127,6 +127,224 @@ internal sealed class EfGradesRepository : IGradesRepository
             students);
     }
 
+    /// <inheritdoc />
+    public async Task<StudentPracticalResultsAccess?> GetStudentPracticalResultsAccessAsync(
+        Guid practicalId,
+        Guid studentId,
+        CancellationToken cancellationToken = default)
+    {
+        var practical = await context.PracticalMaterials
+            .AsNoTracking()
+            .Where(item => item.Id == practicalId)
+            .Select(item => new
+            {
+                item.Module.CourseId,
+                TeacherId = item.Module.Course.UserId,
+                IsStudentAssigned = item.Module.Course.CourseBindUsers.Any(bind => bind.UserId == studentId),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (practical is null)
+        {
+            return null;
+        }
+
+        var student = await context.Users
+            .AsNoTracking()
+            .Where(user => user.Id == studentId)
+            .Select(user => new { user.LastName, user.FirstName, user.MiddleName })
+            .FirstOrDefaultAsync(cancellationToken);
+        var studentName = student is null
+            ? studentId.ToString()
+            : PersonNameFormatter.Format(student.LastName, student.FirstName, student.MiddleName);
+
+        return new StudentPracticalResultsAccess(
+            practical.CourseId,
+            practical.TeacherId,
+            practical.IsStudentAssigned,
+            studentName);
+    }
+
+    /// <inheritdoc />
+    public async Task<StudentPracticalResults> GetStudentPracticalResultsAsync(
+        Guid practicalId,
+        Guid studentId,
+        string studentName,
+        ClassWindowResultsScope? classWindowScope = null,
+        CancellationToken cancellationToken = default)
+    {
+        var kind = await context.PracticalMaterials
+            .AsNoTracking()
+            .Where(practical => practical.Id == practicalId)
+            .Select(practical => practical.Kind)
+            .SingleAsync(cancellationToken);
+
+        if (kind == PracticalKind.Internal)
+        {
+            var attemptsQuery = context.TestResults
+                .AsNoTracking()
+                .Where(result => result.PracticalMaterialId == practicalId && result.UserId == studentId);
+            if (classWindowScope is not null)
+            {
+                var startsAt = classWindowScope.StartsAt.UtcDateTime;
+                var endsAt = classWindowScope.EndsAt.UtcDateTime;
+                attemptsQuery = attemptsQuery.Where(result =>
+                    result.StatedDate >= startsAt && result.StatedDate <= endsAt);
+            }
+
+            var attemptRows = await attemptsQuery
+                .OrderByDescending(result => result.StatedDate)
+                .Select(result => new
+                {
+                    result.Id,
+                    result.TryNumber,
+                    result.Score,
+                    result.MaxScore,
+                    result.StatedDate,
+                    result.TurnedDate,
+                    result.IsCompleted,
+                })
+                .ToListAsync(cancellationToken);
+            var attempts = attemptRows.Select(result => new StudentTestAttemptResult(
+                    result.Id,
+                    result.TryNumber,
+                    result.Score,
+                    result.MaxScore,
+                    ToUtcOffset(result.StatedDate),
+                    result.TurnedDate == null ? null : ToUtcOffset(result.TurnedDate.Value),
+                    result.IsCompleted))
+                .ToList();
+
+            return new StudentPracticalResults(
+                studentId,
+                studentName,
+                practicalId,
+                kind,
+                classWindowScope?.ClassWindowId,
+                null,
+                [],
+                attempts);
+        }
+
+        var selectionModuleId = await context.TaskSelectionRules
+            .AsNoTracking()
+            .Where(rule => rule.PracticalMaterialId == practicalId)
+            .Select(rule => (Guid?)rule.PracticalModuleId)
+            .FirstOrDefaultAsync(cancellationToken);
+        var tasks = selectionModuleId is not null
+            ? await LoadAssignedTaskResultsAsync(practicalId, studentId, classWindowScope, cancellationToken)
+            : await LoadFixedTaskResultsAsync(practicalId, studentId, classWindowScope, cancellationToken);
+        var practicalModuleId = selectionModuleId ?? await context.Cases
+            .AsNoTracking()
+            .Where(task => task.PracticalMaterialId == practicalId && task.PracticalModuleId != null)
+            .Select(task => task.PracticalModuleId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return new StudentPracticalResults(
+            studentId,
+            studentName,
+            practicalId,
+            kind,
+            classWindowScope?.ClassWindowId,
+            practicalModuleId,
+            tasks,
+            []);
+    }
+
+    private async Task<IReadOnlyList<StudentPracticalTaskResult>> LoadAssignedTaskResultsAsync(
+        Guid practicalId,
+        Guid studentId,
+        ClassWindowResultsScope? classWindowScope,
+        CancellationToken cancellationToken)
+    {
+        var assignmentsQuery = context.PracticalTaskAssignments
+            .AsNoTracking()
+            .Where(assignment => assignment.PracticalMaterialId == practicalId && assignment.StudentId == studentId);
+        if (classWindowScope is not null)
+        {
+            assignmentsQuery = assignmentsQuery.Where(assignment =>
+                assignment.ClassWindowId == classWindowScope.ClassWindowId);
+        }
+
+        var assignments = await assignmentsQuery
+            .OrderByDescending(assignment => assignment.CreatedAt)
+            .ThenBy(assignment => assignment.SortOrder)
+            .Select(assignment => new
+            {
+                assignment.Id,
+                assignment.SortOrder,
+                assignment.ExternalTaskRef,
+                assignment.ClassWindowId,
+            })
+            .ToListAsync(cancellationToken);
+        var assignmentIds = assignments.Select(assignment => assignment.Id).ToList();
+        var sessions = await context.PracticalModuleSessions
+            .AsNoTracking()
+            .Where(session => session.AssignmentId != null && assignmentIds.Contains(session.AssignmentId.Value))
+            .OrderByDescending(session => session.StartedAt)
+            .ToListAsync(cancellationToken);
+
+        return assignments.Select(assignment => new StudentPracticalTaskResult(
+            assignment.Id,
+            null,
+            assignment.SortOrder,
+            assignment.ExternalTaskRef,
+            null,
+            assignment.ClassWindowId,
+            sessions.Where(session => session.AssignmentId == assignment.Id).Select(ToResult).ToList()))
+            .ToList();
+    }
+
+    private async Task<IReadOnlyList<StudentPracticalTaskResult>> LoadFixedTaskResultsAsync(
+        Guid practicalId,
+        Guid studentId,
+        ClassWindowResultsScope? classWindowScope,
+        CancellationToken cancellationToken)
+    {
+        var fixedTasks = await context.Cases
+            .AsNoTracking()
+            .Where(task => task.PracticalMaterialId == practicalId && task.ExternalTaskRef != null)
+            .OrderBy(task => task.Name)
+            .ThenBy(task => task.Id)
+            .Select(task => new { task.Id, ExternalTaskRef = task.ExternalTaskRef! })
+            .ToListAsync(cancellationToken);
+        var taskIds = fixedTasks.Select(task => task.Id).ToList();
+        var sessionsQuery = context.PracticalModuleSessions
+            .AsNoTracking()
+            .Where(session => session.UserId == studentId
+                && session.PracticalTaskId != null
+                && taskIds.Contains(session.PracticalTaskId.Value));
+        if (classWindowScope is not null)
+        {
+            sessionsQuery = sessionsQuery.Where(session =>
+                session.StartedAt >= classWindowScope.StartsAt && session.StartedAt <= classWindowScope.EndsAt);
+        }
+
+        var sessions = await sessionsQuery
+            .OrderByDescending(session => session.StartedAt)
+            .ToListAsync(cancellationToken);
+
+        return fixedTasks.Select((task, index) => new StudentPracticalTaskResult(
+            null,
+            task.Id,
+            index,
+            task.ExternalTaskRef,
+            null,
+            null,
+            sessions.Where(session => session.PracticalTaskId == task.Id).Select(ToResult).ToList()))
+            .ToList();
+    }
+
+    private static StudentPracticalSessionResult ToResult(PracticalModuleSession session) => new(
+        session.Id,
+        session.Status,
+        session.EndReason,
+        session.Grade,
+        session.StartedAt,
+        session.EndedAt);
+
+    private static DateTimeOffset ToUtcOffset(DateTime value) =>
+        new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
+
     private async Task<Dictionary<Guid, (string Name, string Login, string? Group)>> LoadPeopleAsync(
         IReadOnlyCollection<Guid> userIds,
         CancellationToken cancellationToken)

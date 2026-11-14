@@ -22,5 +22,19 @@ public interface IGradesRepository
         Guid courseId,
         ClassWindows.ClassWindowResultsScope? classWindowScope = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Возвращает данные для проверки доступа к детализации результатов или <see langword="null"/>.</summary>
+    Task<StudentPracticalResultsAccess?> GetStudentPracticalResultsAccessAsync(
+        Guid practicalId,
+        Guid studentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Возвращает задания, сессии и тестовые попытки студента по практике.</summary>
+    Task<StudentPracticalResults> GetStudentPracticalResultsAsync(
+        Guid practicalId,
+        Guid studentId,
+        string studentName,
+        ClassWindows.ClassWindowResultsScope? classWindowScope = null,
+        CancellationToken cancellationToken = default);
 }
 

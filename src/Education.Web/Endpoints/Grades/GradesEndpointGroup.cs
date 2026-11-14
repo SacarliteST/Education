@@ -73,6 +73,31 @@ internal static class GradesEndpointGroup
             .ProducesProblem(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
 
+        app.MapGet(ApiRoutes.Grades.StudentPracticalResults, async (
+                Guid practicalId,
+                Guid studentId,
+                [AsParameters] GetStudentPracticalResultsRequest request,
+                IGradesService service,
+                CancellationToken cancellationToken) =>
+            await EndpointResults.ExecuteTeacherCommandAsync(async () =>
+                Results.Ok((await service.GetStudentPracticalResultsAsync(
+                    practicalId,
+                    studentId,
+                    request.ClassWindowId,
+                    cancellationToken)).ToResponse())))
+            .WithTags("Grades")
+            .WithName("GetStudentPracticalResults")
+            .WithSummary("Детализация результатов студента по практике")
+            .WithDescription(
+                "Возвращает задания и сессии внешнего модуля либо попытки внутреннего теста. " +
+                "Необязательный classWindowId ограничивает результаты выбранной парой. Доступ: владелец курса практики.")
+            .Produces<StudentPracticalResultsResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization(AuthorizationPolicies.TeacherOnly);
+
         return app;
     }
 }
