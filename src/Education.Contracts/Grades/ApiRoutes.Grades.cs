@@ -45,5 +45,20 @@ public static partial class ApiRoutes
             CourseGradebook,
             "courseId:guid",
             courseId.ToString());
+
+        /// <summary>
+        /// Шаблон маршрута детализации результатов студента по практическому материалу.
+        /// </summary>
+        public const string StudentPracticalResults =
+            Practicals.Practical + "/students/{studentId:guid}/results";
+
+        /// <summary>
+        /// Создаёт маршрут детализации результатов студента по практическому материалу.
+        /// </summary>
+        public static string ForStudentPracticalResults(Guid practicalId, Guid studentId) => ReplaceUrlSegment(
+                StudentPracticalResults,
+                "practicalId:guid",
+                practicalId.ToString())
+            .Replace("{studentId:guid}", studentId.ToString());
     }
 }
