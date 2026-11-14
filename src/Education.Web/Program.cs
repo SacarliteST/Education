@@ -69,6 +69,7 @@ builder.Services.AddScoped<IAdminProfilesService, AdminProfilesService>();
 builder.Services.AddScoped<ICoursesService, CoursesService>();
 builder.Services.AddScoped<IClassAccessService, ClassAccessService>();
 builder.Services.AddScoped<IClassWindowsService, ClassWindowsService>();
+builder.Services.AddScoped<IClassWindowResultsScopeResolver, ClassWindowResultsScopeResolver>();
 builder.Services.AddScoped<IModulesService, ModulesService>();
 builder.Services.AddScoped<IPracticalsService, PracticalsService>();
 builder.Services.AddScoped<ITaskAssignmentService, TaskAssignmentService>();
