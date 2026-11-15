@@ -35,7 +35,11 @@ internal sealed class ModuleIntegrationConfig : IModuleIntegrationConfig
 
     /// <inheritdoc />
     public string BuildAuthoringUrl(
-        string moduleBasePath, string accessToken, string? returnPath = null, string? taskRef = null)
+        string moduleBasePath,
+        string accessToken,
+        string? returnPath = null,
+        string? taskRef = null,
+        Guid? moduleSessionId = null)
     {
         var (origin, basePath) = ResolveModuleBase(moduleBasePath);
         var query = new List<string>(2);
@@ -47,6 +51,11 @@ internal sealed class ModuleIntegrationConfig : IModuleIntegrationConfig
         if (!String.IsNullOrEmpty(taskRef))
         {
             query.Add("task=" + Uri.EscapeDataString(taskRef));
+        }
+
+        if (moduleSessionId is { } sessionId)
+        {
+            query.Add("moduleSessionId=" + sessionId.ToString("D"));
         }
 
         var queryString = query.Count == 0 ? String.Empty : "?" + String.Join('&', query);

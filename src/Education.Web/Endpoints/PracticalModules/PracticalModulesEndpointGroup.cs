@@ -170,7 +170,11 @@ internal static class PracticalModulesEndpointGroup
                 try
                 {
                     var link = await authoringService.CreateAuthoringLinkAsync(
-                        practicalModuleId, request?.ReturnPath, request?.TaskRef, cancellationToken);
+                        practicalModuleId,
+                        request?.ReturnPath,
+                        request?.TaskRef,
+                        request?.ModuleSessionId,
+                        cancellationToken);
                     return link is null
                         ? Results.NotFound()
                         : Results.Ok(new ModuleAuthoringLinkResponse(link.Url, link.ExpiresInSeconds));
@@ -193,7 +197,7 @@ internal static class PracticalModulesEndpointGroup
                 "Обменивает токен преподавателя на токен под audience модуля без сессии и " +
                 "возвращает URL перехода в /teacher-контур модуля. Открывать в текущей вкладке; " +
                 "необязательные returnPath/taskRef добавляют кнопку возврата на платформу и " +
-                "открытие конкретного задания.")
+                "открытие конкретного задания; moduleSessionId открывает попытки проверенной сессии.")
             .Produces<ModuleAuthoringLinkResponse>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized)

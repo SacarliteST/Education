@@ -10,7 +10,7 @@ public interface IModuleIntegrationConfig
     string BuildLaunchUrl(string moduleBasePath, Guid sessionId, string accessToken);
 
     /// <summary>
-    /// <c>{origin}{basePath}/teacher/launch[?return={path}&amp;task={ref}]#access_token={token}</c> —
+    /// <c>{origin}{basePath}/teacher/launch[?return={path}&amp;task={ref}&amp;moduleSessionId={id}]#access_token={token}</c> —
     /// SSO преподавателя в контур авторинга модуля. Без сессии и <c>?session=</c>.
     /// Токен только во фрагменте; <c>return</c> и <c>task</c> — в query и необязательны.
     /// </summary>
@@ -18,7 +18,13 @@ public interface IModuleIntegrationConfig
     /// <param name="accessToken">Токен под audience модуля.</param>
     /// <param name="returnPath">Проверенный относительный путь возврата на платформу или <see langword="null"/>.</param>
     /// <param name="taskRef">Проверенная ссылка на задание модуля или <see langword="null"/>.</param>
-    string BuildAuthoringUrl(string moduleBasePath, string accessToken, string? returnPath = null, string? taskRef = null);
+    /// <param name="moduleSessionId">Проверенная сессия модуля или <see langword="null"/>.</param>
+    string BuildAuthoringUrl(
+        string moduleBasePath,
+        string accessToken,
+        string? returnPath = null,
+        string? taskRef = null,
+        Guid? moduleSessionId = null);
 
     /// <summary>
     /// <c>{origin}{basePath}{launchPath}[?return={path}]#access_token={token}</c> — вход студента в открытый банк заданий модуля.

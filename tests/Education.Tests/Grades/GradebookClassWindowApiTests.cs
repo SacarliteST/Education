@@ -74,6 +74,7 @@ public sealed class GradebookClassWindowApiTests : IClassFixture<TestWebApplicat
 
         Assert.Equal("external", response!.Kind);
         Assert.Equal(scenario.WindowId, response.ClassWindowId);
+        Assert.NotNull(response.PracticalModuleId);
         Assert.Empty(response.TestAttempts);
         var task = Assert.Single(response.Tasks);
         Assert.Equal(scenario.AssignmentId, task.AssignmentId);

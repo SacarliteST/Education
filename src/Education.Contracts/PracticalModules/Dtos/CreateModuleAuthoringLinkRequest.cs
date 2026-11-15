@@ -13,4 +13,11 @@
 /// Ссылка на задание модуля (<c>externalTaskRef</c>), которое нужно открыть сразу;
 /// допустимы латиница, цифры, «-» и «_».
 /// </param>
-public sealed record CreateModuleAuthoringLinkRequest(string? ReturnPath, string? TaskRef);
+/// <param name="ModuleSessionId">
+/// Платформенная сессия, попытки которой нужно открыть преподавателю;
+/// должна относиться к запрошенному внешнему модулю.
+/// </param>
+public sealed record CreateModuleAuthoringLinkRequest(
+    string? ReturnPath,
+    string? TaskRef,
+    Guid? ModuleSessionId = null);

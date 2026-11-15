@@ -25,6 +25,23 @@ internal sealed class EfPracticalModuleSessionsRepository : IPracticalModuleSess
     }
 
     /// <inheritdoc />
+    public Task<bool> BelongsToModuleAsync(
+        Guid sessionId,
+        Guid practicalModuleId,
+        CancellationToken cancellationToken = default)
+    {
+        return context.PracticalModuleSessions
+            .AsNoTracking()
+            .AnyAsync(session => session.Id == sessionId &&
+                ((session.PracticalTaskId != null && context.Cases.Any(task =>
+                    task.Id == session.PracticalTaskId && task.PracticalModuleId == practicalModuleId))
+                || (session.AssignmentId != null && context.PracticalTaskAssignments.Any(assignment =>
+                    assignment.Id == session.AssignmentId && context.TaskSelectionRules.Any(rule =>
+                        rule.PracticalMaterialId == assignment.PracticalMaterialId
+                        && rule.PracticalModuleId == practicalModuleId)))), cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<PracticalModuleSession?> GetLatestForUserTaskAsync(
         Guid userId,
         Guid practicalTaskId,

@@ -44,6 +44,19 @@ public class ModuleIntegrationConfigTests
         Assert.DoesNotContain("session", url);
     }
 
+    [Fact]
+    public void BuildAuthoringUrl_WithModuleSession_PutsIdentifierInQuery()
+    {
+        var url = Build(String.Empty).BuildAuthoringUrl(
+            BasePath,
+            Token,
+            moduleSessionId: SessionId);
+
+        Assert.Equal(
+            $"https://app.example.com/modules/sql/teacher/launch?moduleSessionId={SessionId:D}#access_token={Token}",
+            url);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("http://localhost:5174/")]

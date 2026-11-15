@@ -4,6 +4,9 @@ using System.Text.Json;
 using Education.Application.PracticalModules;
 using Education.Contracts;
 using Education.Contracts.PracticalModules;
+using Education.Domain.PracticalModules;
+using Education.Domain.Practicals;
+using Education.Infrastructure.Persistence;
 using Education.Tests.Auth;
 using Education.Tests.Support;
 using Education.Web.Identity;
@@ -136,6 +139,41 @@ public sealed class ModuleAuthoringApiTests : IClassFixture<TestWebApplicationFa
         Assert.DoesNotContain(RecordingExchangeClient.Token, body.Url.Split('#')[0]);
     }
 
+    [Fact]
+    public async Task Teacher_RequestsAuthoringLink_ForModuleSession_OpensSessionAttempts()
+    {
+        var moduleId = await CreateModuleAsync();
+        var sessionId = await CreateSessionAsync(moduleId);
+        var exchange = new RecordingExchangeClient();
+
+        var response = await TeacherClient(exchange).PostAsJsonAsync(
+            '/' + ApiRoutes.PracticalModules.ForModuleAuthoringLink(moduleId),
+            new CreateModuleAuthoringLinkRequest(null, null, sessionId));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ModuleAuthoringLinkResponse>();
+        Assert.EndsWith(
+            $"/teacher/launch?moduleSessionId={sessionId:D}#access_token={RecordingExchangeClient.Token}",
+            body!.Url);
+        Assert.Null(Assert.Single(exchange.Calls).SessionId);
+    }
+
+    [Fact]
+    public async Task AuthoringLink_WithSessionOfAnotherModule_ReturnsNotFoundWithoutTokenExchange()
+    {
+        var requestedModuleId = await CreateModuleAsync();
+        var otherModuleId = await CreateModuleAsync();
+        var sessionId = await CreateSessionAsync(otherModuleId);
+        var exchange = new RecordingExchangeClient();
+
+        var response = await TeacherClient(exchange).PostAsJsonAsync(
+            '/' + ApiRoutes.PracticalModules.ForModuleAuthoringLink(requestedModuleId),
+            new CreateModuleAuthoringLinkRequest(null, null, sessionId));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Empty(exchange.Calls);
+    }
+
     [Theory]
     [InlineData("//evil.example/x")]
     [InlineData("https://evil.example/x")]
@@ -174,6 +212,33 @@ public sealed class ModuleAuthoringApiTests : IClassFixture<TestWebApplicationFa
     // ---- helpers ----
 
     private Task<Guid> CreateModuleAsync(bool enabled = true) => factory.RegisterModuleAsync("{}", enabled);
+
+    private async Task<Guid> CreateSessionAsync(Guid practicalModuleId)
+    {
+        var practical = new PracticalMaterial(
+            factory.Seed.OwnModuleId,
+            "Authoring session " + Guid.NewGuid().ToString("N"));
+        practical.BindExternalModule(3, 60);
+        var task = new Case(practical.Id, "External task", "Task text");
+        task.LinkExternalTask(practicalModuleId, "task-" + Guid.NewGuid().ToString("N"));
+        var session = new PracticalModuleSession(
+            Guid.NewGuid(),
+            task.Id,
+            factory.Seed.TestUserId,
+            1,
+            "session-key",
+            "/return",
+            DateTimeOffset.UtcNow,
+            null);
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        db.PracticalMaterials.Add(practical);
+        db.Cases.Add(task);
+        db.PracticalModuleSessions.Add(session);
+        await db.SaveChangesAsync();
+        return session.Id;
+    }
 
     private HttpClient TeacherClient(ITokenExchangeClient exchange)
     {

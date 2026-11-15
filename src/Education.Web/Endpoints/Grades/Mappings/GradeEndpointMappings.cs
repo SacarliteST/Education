@@ -72,6 +72,7 @@ internal static class GradeEndpointMappings
             results.PracticalId,
             results.Kind.ToWire(),
             results.ClassWindowId,
+            results.PracticalModuleId,
             results.Tasks.Select(task => new StudentPracticalTaskResultResponse(
                     task.AssignmentId,
                     task.PracticalTaskId,

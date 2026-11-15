@@ -8,6 +8,12 @@ public interface IPracticalModuleSessionsRepository
     /// <summary>Отслеживаемая сущность или <see langword="null"/>.</summary>
     Task<PracticalModuleSession?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+    /// <summary>Проверяет, что сессия запущена для задания указанного внешнего модуля.</summary>
+    Task<bool> BelongsToModuleAsync(
+        Guid sessionId,
+        Guid practicalModuleId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Последняя (по <c>StartedAt</c>) попытка пользователя по заданию, отслеживаемая.</summary>
     Task<PracticalModuleSession?> GetLatestForUserTaskAsync(
         Guid userId,
