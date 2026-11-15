@@ -86,6 +86,21 @@ public sealed class GradebookClassWindowApiTests : IClassFixture<TestWebApplicat
     }
 
     [Fact]
+    public async Task Gradebook_RandomTaskSet_UsesAverageOfAllAssignedTasks()
+    {
+        var scenario = await CreateExternalTaskSetScenarioAsync();
+        var client = CreateTeacherClient();
+
+        var response = await client.GetFromJsonAsync<CourseGradebookResponse>(
+            '/' + ApiRoutes.Grades.ForCourseGradebook(factory.Seed.OwnCourseId)
+            + $"?classWindowId={scenario.WindowId:D}");
+
+        var cell = FindCell(response!, scenario.PracticalId);
+        Assert.Equal(2, cell.Grade);
+        Assert.Equal("failed", cell.Status);
+    }
+
+    [Fact]
     public async Task ExternalResults_WhenCatalogUnavailable_ReturnReferenceWithoutName()
     {
         var scenario = await CreateExternalScenarioAsync();
@@ -255,6 +270,69 @@ public sealed class GradebookClassWindowApiTests : IClassFixture<TestWebApplicat
         return new ExternalScenario(window.Id, practical.Id, assignment.Id, session.Id, externalTaskRef);
     }
 
+    private async Task<ExternalTaskSetScenario> CreateExternalTaskSetScenarioAsync()
+    {
+        var startsAt = DateTimeOffset.UtcNow.AddMinutes(-10);
+        var module = new PracticalModule(
+            "grade-set-" + Guid.NewGuid().ToString("N"),
+            "SQL module",
+            "Test module",
+            "SQL_SIMULATOR",
+            "/modules/sql",
+            "sql-module-api",
+            "{\"catalogEndpoint\":\"http://sql-module/tasks\"}");
+        var practical = new PracticalMaterial(factory.Seed.OwnModuleId, "External set " + Guid.NewGuid().ToString("N"));
+        practical.BindExternalModule(3, 60);
+        var window = ClassWindow.Start(
+            factory.Seed.OwnCourseId,
+            "EXTERNAL-SET-" + Guid.NewGuid().ToString("N"),
+            [],
+            startsAt,
+            30,
+            factory.Seed.TestUserId);
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EducationDbContext>();
+        db.PracticalModules.Add(module);
+        db.PracticalMaterials.Add(practical);
+        db.ClassWindows.Add(window);
+        await db.SaveChangesAsync();
+
+        db.TaskSelectionRules.Add(new TaskSelectionRule(practical.Id, module.Id, 3));
+        var assignments = Enumerable.Range(0, 3)
+            .Select(index => new PracticalTaskAssignment(
+                practical.Id,
+                factory.Seed.TestUserId,
+                window.Id,
+                $"task-{index}-{Guid.NewGuid():N}",
+                index,
+                startsAt))
+            .ToList();
+        db.PracticalTaskAssignments.AddRange(assignments);
+        await db.SaveChangesAsync();
+
+        var scores = new[] { 0, 100, 0 };
+        var sessions = assignments.Select((assignment, index) =>
+        {
+            var session = new PracticalModuleSession(
+                Guid.NewGuid(),
+                null,
+                factory.Seed.TestUserId,
+                1,
+                $"session-key-{index}",
+                "/return",
+                startsAt.AddMinutes(index + 1),
+                startsAt.AddMinutes(20),
+                assignment.Id);
+            session.Complete(startsAt.AddMinutes(index + 2), scores[index], null);
+            return session;
+        });
+        db.PracticalModuleSessions.AddRange(sessions);
+        await db.SaveChangesAsync();
+
+        return new ExternalTaskSetScenario(window.Id, practical.Id);
+    }
+
     private async Task<FixedExternalScenario> CreateFixedExternalScenarioAsync()
     {
         var startsAt = DateTimeOffset.UtcNow.AddMinutes(-10);
@@ -357,6 +435,8 @@ public sealed class GradebookClassWindowApiTests : IClassFixture<TestWebApplicat
         Guid AssignmentId,
         Guid SessionId,
         string ExternalTaskRef);
+
+    private sealed record ExternalTaskSetScenario(Guid WindowId, Guid PracticalId);
 
     private sealed record FixedExternalScenario(
         Guid WindowId,

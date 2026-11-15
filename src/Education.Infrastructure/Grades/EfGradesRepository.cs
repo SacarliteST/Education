@@ -12,12 +12,15 @@ namespace Education.Infrastructure.Grades;
 internal sealed class EfGradesRepository : IGradesRepository
 {
     private readonly EducationDbContext context;
+    private readonly TimeProvider timeProvider;
 
     /// <summary>Создаёт экземпляр класса <see cref="EfGradesRepository"/>.</summary>
     /// <param name="context">Контекст базы данных Education.</param>
-    public EfGradesRepository(EducationDbContext context)
+    /// <param name="timeProvider">Источник текущего времени.</param>
+    public EfGradesRepository(EducationDbContext context, TimeProvider timeProvider)
     {
         this.context = context;
+        this.timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -375,6 +378,18 @@ internal sealed class EfGradesRepository : IGradesRepository
     {
         if (practical.Kind == PracticalKind.External)
         {
+            var usesRandomTaskSet = await context.TaskSelectionRules
+                .AsNoTracking()
+                .AnyAsync(rule => rule.PracticalMaterialId == practical.Id, cancellationToken);
+            if (usesRandomTaskSet)
+            {
+                return await CalculateAssignedTaskSetGradesAsync(
+                    practical,
+                    studentIds,
+                    classWindowScope,
+                    cancellationToken);
+            }
+
             var sessions = context.PracticalModuleSessions
                 .Where(session => studentIds.Contains(session.UserId)
                     && session.Status == ModuleSessionState.Completed
@@ -445,5 +460,69 @@ internal sealed class EfGradesRepository : IGradesRepository
                     .Select(result => practical.CalculateTestGrade(result.Score, result.MaxScore))
                     .ToList(),
                 files.Where(file => file.UserId == id).Select(file => file.Grade).ToList()));
+    }
+
+    private async Task<Dictionary<Guid, PracticalGrade>> CalculateAssignedTaskSetGradesAsync(
+        PracticalMaterial practical,
+        IReadOnlyCollection<Guid> studentIds,
+        ClassWindowResultsScope? classWindowScope,
+        CancellationToken cancellationToken)
+    {
+        var assignmentsQuery = context.PracticalTaskAssignments
+            .AsNoTracking()
+            .Where(assignment => assignment.PracticalMaterialId == practical.Id
+                && studentIds.Contains(assignment.StudentId));
+        if (classWindowScope is not null)
+        {
+            assignmentsQuery = assignmentsQuery.Where(assignment =>
+                assignment.ClassWindowId == classWindowScope.ClassWindowId);
+        }
+
+        var assignments = await assignmentsQuery
+            .Select(assignment => new
+            {
+                assignment.Id,
+                assignment.StudentId,
+                assignment.ClassWindowId,
+                assignment.ClassWindow.EndsAt,
+                assignment.ClassWindow.ClosedAt,
+            })
+            .ToListAsync(cancellationToken);
+        var assignmentIds = assignments.Select(assignment => assignment.Id).ToList();
+        var bestScores = assignmentIds.Count == 0
+            ? new Dictionary<Guid, int?>()
+            : (await context.PracticalModuleSessions
+                .AsNoTracking()
+                .Where(session => session.AssignmentId != null
+                    && assignmentIds.Contains(session.AssignmentId.Value)
+                    && session.Status == ModuleSessionState.Completed
+                    && session.Grade != null)
+                .GroupBy(session => session.AssignmentId!.Value)
+                .Select(group => new
+                {
+                    AssignmentId = group.Key,
+                    Score = group.Max(session => session.Grade),
+                })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(item => item.AssignmentId, item => item.Score);
+        var now = timeProvider.GetUtcNow();
+        var bestSetScores = assignments
+            .GroupBy(assignment => new { assignment.StudentId, assignment.ClassWindowId })
+            .Select(set =>
+            {
+                var isFinished = set.Any(assignment => assignment.ClosedAt is not null || assignment.EndsAt <= now);
+                var scores = set.Select(assignment => bestScores.GetValueOrDefault(assignment.Id)).ToList();
+                var score = scores.All(item => item is not null) || isFinished
+                    ? (int?)Math.Round(scores.Average(item => item ?? 0), MidpointRounding.AwayFromZero)
+                    : null;
+                return new { set.Key.StudentId, Score = score };
+            })
+            .Where(set => set.Score is not null)
+            .GroupBy(set => set.StudentId)
+            .ToDictionary(group => group.Key, group => group.Max(set => set.Score));
+
+        return studentIds.ToDictionary(
+            id => id,
+            id => PracticalGradeCalculator.External(practical, bestSetScores.GetValueOrDefault(id)));
     }
 }
