@@ -79,6 +79,10 @@ public sealed class GradebookClassWindowApiTests : IClassFixture<TestWebApplicat
         Assert.Equal(scenario.AssignmentId, task.AssignmentId);
         Assert.Null(task.PracticalTaskId);
         Assert.Equal("Соединение таблиц", task.TaskName);
+        Assert.Equal("completed", task.ResultStatus);
+        Assert.Equal(1, task.AttemptsCount);
+        Assert.Equal(100, task.ResultScore);
+        Assert.Equal(scenario.SessionId, task.ResultSessionId);
         var session = Assert.Single(task.Sessions);
         Assert.Equal(scenario.SessionId, session.SessionId);
         Assert.Equal("COMPLETED", session.Status);

@@ -79,6 +79,10 @@ internal static class GradeEndpointMappings
                     task.ExternalTaskRef,
                     task.TaskName,
                     task.ClassWindowId,
+                    task.ResultState.ToWire(),
+                    task.AttemptsCount,
+                    task.RecordedResult?.Grade,
+                    task.RecordedResult?.SessionId,
                     task.Sessions.Select(session => new StudentPracticalSessionResultResponse(
                             session.SessionId,
                             session.Status.ToWire(),
@@ -98,5 +102,14 @@ internal static class GradeEndpointMappings
                     attempt.IsCompleted))
                 .ToList());
     }
+
+    private static string ToWire(this StudentPracticalTaskResultState state) => state switch
+    {
+        StudentPracticalTaskResultState.NotStarted => "notStarted",
+        StudentPracticalTaskResultState.InProgress => "inProgress",
+        StudentPracticalTaskResultState.Completed => "completed",
+        StudentPracticalTaskResultState.Expired => "expired",
+        _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
+    };
 }
 
