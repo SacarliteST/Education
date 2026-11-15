@@ -1,4 +1,4 @@
-namespace Education.Application.ClassWindows;
+﻿namespace Education.Application.ClassWindows;
 
 /// <summary>
 /// Определяет границы пары по данным хранилища и проверяет её принадлежность курсу.

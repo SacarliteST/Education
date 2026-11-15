@@ -1,5 +1,5 @@
-﻿using Education.Application.Courses;
-using Education.Application.ClassWindows;
+﻿using Education.Application.ClassWindows;
+using Education.Application.Courses;
 using Education.Application.PracticalModules;
 using Education.Application.Practicals;
 using Education.Application.TestResults;

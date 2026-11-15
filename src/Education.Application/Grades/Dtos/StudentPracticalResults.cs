@@ -1,4 +1,4 @@
-using Education.Domain.Practicals;
+﻿using Education.Domain.Practicals;
 
 namespace Education.Application.Grades;
 

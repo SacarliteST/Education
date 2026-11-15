@@ -1,4 +1,4 @@
-namespace Education.Application.ClassWindows;
+﻿namespace Education.Application.ClassWindows;
 
 /// <summary>
 /// Определяет временные границы пары для выборки учебных результатов.

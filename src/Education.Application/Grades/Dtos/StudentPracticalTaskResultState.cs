@@ -1,4 +1,4 @@
-namespace Education.Application.Grades;
+﻿namespace Education.Application.Grades;
 
 /// <summary>Сводное состояние прохождения одного задания внешнего модуля.</summary>
 public enum StudentPracticalTaskResultState

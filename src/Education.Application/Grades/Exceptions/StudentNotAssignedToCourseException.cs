@@ -1,4 +1,4 @@
-namespace Education.Application.Grades;
+﻿namespace Education.Application.Grades;
 
 /// <summary>Студент не назначен на курс практического материала.</summary>
 public sealed class StudentNotAssignedToCourseException()

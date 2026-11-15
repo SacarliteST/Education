@@ -1,4 +1,4 @@
-namespace Education.Application.Grades;
+﻿namespace Education.Application.Grades;
 
 /// <summary>Попытка прохождения внутреннего теста.</summary>
 public sealed record StudentTestAttemptResult(

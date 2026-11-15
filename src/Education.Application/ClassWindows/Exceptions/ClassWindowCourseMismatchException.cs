@@ -1,4 +1,4 @@
-namespace Education.Application.ClassWindows;
+﻿namespace Education.Application.ClassWindows;
 
 /// <summary>
 /// Ошибка выбора пары, которая относится к другому курсу.

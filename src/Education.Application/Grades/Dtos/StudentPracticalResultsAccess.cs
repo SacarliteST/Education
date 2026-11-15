@@ -1,4 +1,4 @@
-namespace Education.Application.Grades;
+﻿namespace Education.Application.Grades;
 
 /// <summary>
 /// Данные для проверки доступа преподавателя к детализации результатов студента.

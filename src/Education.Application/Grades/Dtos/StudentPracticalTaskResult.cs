@@ -1,4 +1,4 @@
-namespace Education.Application.Grades;
+﻿namespace Education.Application.Grades;
 
 /// <summary>Результаты студента по заданию внешнего модуля.</summary>
 public sealed record StudentPracticalTaskResult(

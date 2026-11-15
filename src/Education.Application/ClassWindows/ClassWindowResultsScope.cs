@@ -1,4 +1,4 @@
-namespace Education.Application.ClassWindows;
+﻿namespace Education.Application.ClassWindows;
 
 /// <summary>
 /// Временные границы пары, которыми ограничиваются результаты в ведомости и детализации.

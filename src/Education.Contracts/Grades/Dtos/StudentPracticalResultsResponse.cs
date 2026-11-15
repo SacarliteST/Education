@@ -1,4 +1,4 @@
-namespace Education.Contracts.Grades;
+﻿namespace Education.Contracts.Grades;
 
 /// <summary>
 /// Детализация результатов студента по практическому материалу.

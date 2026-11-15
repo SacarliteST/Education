@@ -1,6 +1,6 @@
-﻿using Education.Application.Grades;
+﻿using Education.Application.ClassWindows;
+using Education.Application.Grades;
 using Education.Domain.PracticalModules;
-using Education.Application.ClassWindows;
 using Education.Domain.Practicals;
 using Education.Infrastructure.Persistence;
 using Education.Infrastructure.Users;

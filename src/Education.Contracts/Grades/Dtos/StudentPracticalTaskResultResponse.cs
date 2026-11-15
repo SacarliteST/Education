@@ -1,4 +1,4 @@
-namespace Education.Contracts.Grades;
+﻿namespace Education.Contracts.Grades;
 
 /// <summary>
 /// Результаты студента по одному заданию внешнего практического модуля.
