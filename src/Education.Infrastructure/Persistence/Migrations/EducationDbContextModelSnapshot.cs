@@ -693,6 +693,13 @@ namespace Education.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.PrimitiveCollection<List<short>>("DifficultyDistribution")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint[]")
+                        .HasColumnName("difficulty_distribution")
+                        .HasDefaultValueSql("ARRAY[]::smallint[]");
+
                     b.PrimitiveCollection<List<short>>("DifficultyLevels")
                         .IsRequired()
                         .HasColumnType("smallint[]")

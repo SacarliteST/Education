@@ -111,19 +111,28 @@ public sealed class TaskSelectionRulesService : ITaskSelectionRulesService
         if (rule is null)
         {
             rule = new TaskSelectionRule(
-                practicalId, command.PracticalModuleId, command.TaskCount, command.DifficultyLevels, command.TopicRefs);
+                practicalId,
+                command.PracticalModuleId,
+                command.TaskCount,
+                command.DifficultyLevels,
+                command.TopicRefs,
+                ExpandDifficultyDistribution(command.DifficultyQuotas));
             await rulesRepository.AddAsync(rule, cancellationToken);
         }
         else
         {
-            rule.Update(command.TaskCount, command.DifficultyLevels, command.TopicRefs);
+            rule.Update(
+                command.TaskCount,
+                command.DifficultyLevels,
+                command.TopicRefs,
+                ExpandDifficultyDistribution(command.DifficultyQuotas));
         }
 
         await rulesRepository.SaveChangesAsync(cancellationToken);
         logger.LogInformation(
-            "Сохранено правило выборки практики {PracticalId}: модуль {ModuleId}, заданий {TaskCount}, сложности [{DifficultyLevels}], тем [{TopicRefs}].",
+            "Сохранено правило выборки практики {PracticalId}: модуль {ModuleId}, заданий {TaskCount}, сложности [{DifficultyLevels}], распределение [{DifficultyDistribution}], тем [{TopicRefs}].",
             practicalId, command.PracticalModuleId, rule.TaskCount,
-            String.Join(',', rule.DifficultyLevels), String.Join(',', rule.TopicRefs));
+            String.Join(',', rule.DifficultyLevels), String.Join(',', rule.DifficultyDistribution), String.Join(',', rule.TopicRefs));
 
         var emptySelectionWarning = !await HasCandidatesAsync(rule, cancellationToken);
         return new UpsertTaskSelectionRuleResult(ToInfo(rule), emptySelectionWarning);
@@ -234,7 +243,15 @@ public sealed class TaskSelectionRulesService : ITaskSelectionRulesService
         try
         {
             var tasks = await moduleCatalogService.GetTasksAsync(rule.PracticalModuleId, cancellationToken) ?? [];
-            return tasks.Any(task => TaskSelectionFilter.Matches(rule, task));
+            var candidates = tasks.Where(task => TaskSelectionFilter.Matches(rule, task)).ToList();
+            if (rule.DifficultyDistribution.Count == 0)
+            {
+                return candidates.Count >= rule.TaskCount;
+            }
+
+            return rule.DifficultyDistribution
+                .GroupBy(level => level)
+                .All(quota => candidates.Count(task => task.DifficultyLevel == quota.Key) >= quota.Count());
         }
         catch (ModuleCatalogUnavailableException exception)
         {
@@ -270,7 +287,16 @@ public sealed class TaskSelectionRulesService : ITaskSelectionRulesService
         rule.PracticalModuleId,
         rule.TaskCount,
         rule.DifficultyLevels,
-        rule.TopicRefs);
+        rule.TopicRefs,
+        rule.DifficultyDistribution
+            .GroupBy(level => level)
+            .Select(quota => new TaskDifficultyQuotaInfo(quota.Key, quota.Count()))
+            .OrderBy(quota => quota.DifficultyLevel)
+            .ToList());
+
+    private static IReadOnlyList<short> ExpandDifficultyDistribution(
+        IReadOnlyList<TaskDifficultyQuotaInfo> quotas) =>
+        quotas.SelectMany(quota => Enumerable.Repeat(quota.DifficultyLevel, quota.TaskCount)).ToList();
 
     private async Task EnsurePracticalOwnerAsync(Guid practicalId, CancellationToken cancellationToken)
     {

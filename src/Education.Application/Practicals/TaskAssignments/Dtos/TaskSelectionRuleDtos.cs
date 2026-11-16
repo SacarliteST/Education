@@ -7,11 +7,18 @@ namespace Education.Application.Practicals.TaskAssignments;
 /// <param name="TaskCount">Количество заданий в наборе студента.</param>
 /// <param name="DifficultyLevels">Допустимые уровни сложности; пусто — любые.</param>
 /// <param name="TopicRefs">Допустимые темы модуля; пусто — любые.</param>
+/// <param name="DifficultyQuotas">Точные квоты по уровням сложности; пусто — без квот.</param>
 public sealed record UpsertTaskSelectionRuleCommand(
     Guid PracticalModuleId,
     int TaskCount,
     IReadOnlyList<short> DifficultyLevels,
-    IReadOnlyList<string> TopicRefs);
+    IReadOnlyList<string> TopicRefs,
+    IReadOnlyList<TaskDifficultyQuotaInfo> DifficultyQuotas);
+
+/// <summary>Точная квота заданий одного уровня сложности.</summary>
+/// <param name="DifficultyLevel">Уровень сложности.</param>
+/// <param name="TaskCount">Количество заданий этого уровня.</param>
+public sealed record TaskDifficultyQuotaInfo(short DifficultyLevel, int TaskCount);
 
 /// <summary>Правило случайной выборки заданий практики.</summary>
 /// <param name="PracticalId">Практика.</param>
@@ -19,18 +26,20 @@ public sealed record UpsertTaskSelectionRuleCommand(
 /// <param name="TaskCount">Количество заданий в наборе студента.</param>
 /// <param name="DifficultyLevels">Допустимые уровни сложности; пусто — любые.</param>
 /// <param name="TopicRefs">Допустимые темы модуля; пусто — любые.</param>
+/// <param name="DifficultyQuotas">Точные квоты по уровням сложности; пусто — без квот.</param>
 public sealed record TaskSelectionRuleInfo(
     Guid PracticalId,
     Guid PracticalModuleId,
     int TaskCount,
     IReadOnlyList<short> DifficultyLevels,
-    IReadOnlyList<string> TopicRefs);
+    IReadOnlyList<string> TopicRefs,
+    IReadOnlyList<TaskDifficultyQuotaInfo> DifficultyQuotas);
 
 /// <summary>Результат сохранения правила выборки.</summary>
 /// <param name="Rule">Сохранённое правило.</param>
 /// <param name="EmptySelectionWarning">
-/// <see langword="true"/>, если по сохранённому правилу каталог модуля прямо сейчас не даёт
-/// ни одного задания (или каталог недоступен) — правило сохранено, но наборы не сформируются.
+/// <see langword="true"/>, если в каталоге модуля прямо сейчас недостаточно заданий
+/// для формирования полного набора (или каталог недоступен). Правило при этом сохранено.
 /// </param>
 public sealed record UpsertTaskSelectionRuleResult(TaskSelectionRuleInfo Rule, bool EmptySelectionWarning);
 

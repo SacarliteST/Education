@@ -6,9 +6,10 @@
 /// <param name="TaskCount">Количество заданий в наборе студента.</param>
 /// <param name="DifficultyLevels">Допустимые уровни сложности; пусто — любые.</param>
 /// <param name="TopicRefs">Допустимые темы модуля; пусто — любые.</param>
+/// <param name="DifficultyQuotas">Точное количество заданий каждого уровня сложности; пусто — точные квоты не заданы.</param>
 /// <param name="EmptySelectionWarning">
-/// <see langword="true"/>, если по правилу каталог модуля прямо сейчас не даёт ни одного задания
-/// (или каталог недоступен) — правило сохранено, но наборы не сформируются.
+/// <see langword="true"/>, если в каталоге модуля прямо сейчас недостаточно заданий
+/// для формирования полного набора (или каталог недоступен). Правило при этом сохранено.
 /// </param>
 public sealed record TaskSelectionRuleResponse(
     Guid PracticalId,
@@ -16,4 +17,5 @@ public sealed record TaskSelectionRuleResponse(
     int TaskCount,
     IReadOnlyList<short> DifficultyLevels,
     IReadOnlyList<string> TopicRefs,
+    IReadOnlyList<TaskDifficultyQuota> DifficultyQuotas,
     bool EmptySelectionWarning);

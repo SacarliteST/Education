@@ -22,6 +22,10 @@ internal sealed class TaskSelectionRuleConfiguration : IEntityTypeConfiguration<
             .OnDelete(DeleteBehavior.Restrict);
         builder.Property(rule => rule.TaskCount).HasColumnName("task_count");
         builder.Property(rule => rule.DifficultyLevels).HasColumnName("difficulty_levels").IsRequired();
+        builder.Property(rule => rule.DifficultyDistribution)
+            .HasColumnName("difficulty_distribution")
+            .HasDefaultValueSql("ARRAY[]::smallint[]")
+            .IsRequired();
         builder.Property(rule => rule.TopicRefs).HasColumnName("topic_refs").IsRequired();
         builder.HasOne(rule => rule.PracticalMaterial)
             .WithOne()

@@ -59,7 +59,10 @@ internal static class TaskAssignmentsEndpointGroup
                         request.PracticalModuleId,
                         request.TaskCount,
                         request.DifficultyLevels ?? [],
-                        request.TopicRefs ?? []),
+                        request.TopicRefs ?? [],
+                        (request.DifficultyQuotas ?? [])
+                            .Select(quota => new TaskDifficultyQuotaInfo(quota.DifficultyLevel, quota.TaskCount))
+                            .ToList()),
                     cancellationToken);
                 return Results.Ok(ToResponse(result.Rule, result.EmptySelectionWarning));
             }))
@@ -229,6 +232,9 @@ internal static class TaskAssignmentsEndpointGroup
         rule.TaskCount,
         rule.DifficultyLevels,
         rule.TopicRefs,
+        rule.DifficultyQuotas
+            .Select(quota => new TaskDifficultyQuota(quota.DifficultyLevel, quota.TaskCount))
+            .ToList(),
         EmptySelectionWarning);
 
     private static AssignmentTaskResponse ToResponse(AssignmentTaskItem item) => new(

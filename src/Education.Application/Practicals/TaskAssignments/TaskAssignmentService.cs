@@ -178,8 +178,24 @@ public sealed class TaskAssignmentService : ITaskAssignmentService
                 rule.PracticalMaterialId, rule.PracticalModuleId);
         }
 
+        if (rule.DifficultyDistribution.Count > 0 && !HasEnoughTasksForDistribution(rule, candidates))
+        {
+            logger.LogWarning(
+                "Набор по практике {PracticalId} не сформирован: в каталоге модуля {ModuleId} недостаточно заданий требуемой сложности.",
+                rule.PracticalMaterialId,
+                rule.PracticalModuleId);
+            return [];
+        }
+
         return candidates;
     }
+
+    private static bool HasEnoughTasksForDistribution(
+        TaskSelectionRule rule,
+        IReadOnlyList<ModuleCatalogTask> candidates) =>
+        rule.DifficultyDistribution
+            .GroupBy(level => level)
+            .All(quota => candidates.Count(task => task.DifficultyLevel == quota.Key) >= quota.Count());
 
     private static IReadOnlyList<PracticalTaskAssignment> BuildSet(
         TaskSelectionRule rule,
@@ -188,10 +204,29 @@ public sealed class TaskAssignmentService : ITaskAssignmentService
         IReadOnlyList<ModuleCatalogTask> candidates,
         DateTimeOffset now)
     {
-        return PickRandom(candidates, rule.TaskCount)
+        var selectedTasks = rule.DifficultyDistribution.Count == 0
+            ? PickRandom(candidates, rule.TaskCount)
+            : PickByDifficulty(candidates, rule.DifficultyDistribution);
+
+        return selectedTasks
             .Select((task, index) => new PracticalTaskAssignment(
                 rule.PracticalMaterialId, studentId, classWindowId, task.Ref, index, now))
             .ToList();
+    }
+
+    private static List<ModuleCatalogTask> PickByDifficulty(
+        IReadOnlyList<ModuleCatalogTask> candidates,
+        IReadOnlyList<short> distribution)
+    {
+        var selected = distribution
+            .GroupBy(level => level)
+            .SelectMany(quota => PickRandom(
+                candidates.Where(task => task.DifficultyLevel == quota.Key).ToList(),
+                quota.Count()))
+            .OrderBy(_ => Random.Shared.Next())
+            .ToList();
+
+        return selected;
     }
 
     private static List<ModuleCatalogTask> PickRandom(IReadOnlyList<ModuleCatalogTask> candidates, int count)
